@@ -20,7 +20,7 @@ jQuery(document).ready(function() {
 			// Listen to country select changes and initialize current autocomplete
 			let countrySelect = addressContainer.find('.country_select');
 			let countrySelectHandler = function() {
-				let countryCode = PostcodeNlAddressAutocomplete.convertCountry2CodeToCountryContext(this.value);
+				let countryCode = PostcodeNlAddressAutocomplete.convertCountry2CodeToCountry3Code(this.value);
 
 				if (PostcodeNlAddressAutocomplete.isCountrySupported(countryCode))
 				{
@@ -38,9 +38,9 @@ jQuery(document).ready(function() {
 			queryElement.addEventListener('autocomplete-select', function (event) {
 				if (event.detail.precision === 'Address') {
 					autocomplete.getDetails(event.detail.context, function (result) {
-						addressContainer.find('input[name$="_address_1"]').val(result.mailParts.street + ' ' + result.mailParts.building);
-						addressContainer.find('input[name$="_postcode"]').val(result.mailParts.postcode);
-						addressContainer.find('input[name$="_city"]').val(result.mailParts.locality);
+						addressContainer.find('input[name$="_address_1"]').val(result.address.street + ' ' + result.address.building);
+						addressContainer.find('input[name$="_postcode"]').val(result.address.postcode);
+						addressContainer.find('input[name$="_city"]').val(result.address.locality);
 					});
 				}
 			});
@@ -52,7 +52,7 @@ jQuery(document).ready(function() {
 
 const PostcodeNlAddressAutocomplete = {};
 
-PostcodeNlAddressAutocomplete.convertCountry2CodeToCountryContext = function(country2Code) {
+PostcodeNlAddressAutocomplete.convertCountry2CodeToCountry3Code = function(country2Code) {
 	for (let i in PostcodeNlAddressAutocompleteSettings.supportedCountries)
 	{
 		if (!PostcodeNlAddressAutocompleteSettings.supportedCountries.hasOwnProperty(i)) {
@@ -62,7 +62,7 @@ PostcodeNlAddressAutocomplete.convertCountry2CodeToCountryContext = function(cou
 		let country = PostcodeNlAddressAutocompleteSettings.supportedCountries[i];
 		if (country.iso2 === country2Code)
 		{
-			return country.context;
+			return country.iso3;
 		}
 	}
 
@@ -76,7 +76,7 @@ PostcodeNlAddressAutocomplete.isCountrySupported = function(country3Code) {
 			continue;
 		}
 
-		if (PostcodeNlAddressAutocompleteSettings.supportedCountries[i].context === country3Code)
+		if (PostcodeNlAddressAutocompleteSettings.supportedCountries[i].iso3 === country3Code)
 		{
 			return true;
 		}

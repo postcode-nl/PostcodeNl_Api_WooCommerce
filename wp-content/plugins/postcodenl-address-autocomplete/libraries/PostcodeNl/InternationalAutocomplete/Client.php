@@ -4,6 +4,16 @@
 namespace PostcodeNl\InternationalAutocomplete;
 
 
+use PostcodeNl\InternationalAutocomplete\Exception\AuthenticationException;
+use PostcodeNl\InternationalAutocomplete\Exception\BadRequestException;
+use PostcodeNl\InternationalAutocomplete\Exception\CurlException;
+use PostcodeNl\InternationalAutocomplete\Exception\CurlNotLoadedException;
+use PostcodeNl\InternationalAutocomplete\Exception\ForbiddenException;
+use PostcodeNl\InternationalAutocomplete\Exception\InvalidJsonResponseException;
+use PostcodeNl\InternationalAutocomplete\Exception\ServerUnavailableException;
+use PostcodeNl\InternationalAutocomplete\Exception\TooManyRequestsException;
+use PostcodeNl\InternationalAutocomplete\Exception\UnexpectedException;
+
 class Client
 {
 	public const SESSION_HEADER_KEY = 'X-Autocomplete-Session';
@@ -26,7 +36,7 @@ class Client
 
 		if (!extension_loaded('curl'))
 		{
-			throw new ClientException('Cannot use Postcode.nl International Autocomplete client, the server needs to have the PHP `cURL` extension installed.');
+			throw new CurlNotLoadedException('Cannot use Postcode.nl International Autocomplete client, the server needs to have the PHP `cURL` extension installed.');
 		}
 
 		$this->_curlHandler = curl_init();
@@ -77,12 +87,12 @@ class Client
 
 		$response = curl_exec($this->_curlHandler);
 
-		$responseStatusCode = curl_getinfo($this->_curlHandler, CURLINFO_HTTP_CODE);
+		$responseStatusCode = curl_getinfo($this->_curlHandler, CURLINFO_RESPONSE_CODE);
 		$curlError = curl_error($this->_curlHandler);
 		$curlErrorNr = curl_errno($this->_curlHandler);
-		if ($curlError)
+		if ($curlError !== '')
 		{
-			throw new ClientException('Connection error `'. $curlErrorNr .'`: `'. $curlError .'`', $curlErrorNr);
+			throw new CurlException(vsprintf('Connection error number `%s`: `%s`.', [$curlErrorNr, $curlError]));
 		}
 
 		// Parse the response as JSON, will be null if not parsable JSON.
@@ -92,18 +102,21 @@ class Client
 			case 200:
 				if (!is_array($jsonResponse))
 				{
-					throw new ClientException('Invalid JSON response from the server: ' . $url);
+					throw new InvalidJsonResponseException('Invalid JSON response from the server for request: ' . $url);
 				}
-
 				return $jsonResponse;
 			case 400:
-				throw new ClientException('Bad request: ' . $url);
-			case 404:
-				throw new ClientException('Could not find the requested resource at: ' . $url);
-			case 500:
-				throw new ClientException('API server gave server error: ' . $response);
+				throw new BadRequestException(vsprintf('Server response code 400, bad request for `%s`.', [$url]));
+			case 401:
+				throw new AuthenticationException('Could not authenticate your request, please make sure your API credentials are correct.');
+			case 403:
+				throw new ForbiddenException('Requests to the international API are not allowed at the moment.');
+			case 429:
+				throw new TooManyRequestsException('Too many requests made, please slow down: ' . $response);
+			case 503:
+				throw new ServerUnavailableException('The international API server is currently not available: ' . $response);
 			default:
-				throw new ClientException(vsprintf('The error code `%s` is not yet handled.', [$responseStatusCode]));
+				throw new UnexpectedException(vsprintf('Unexpected server response code `%s`.', [$responseStatusCode]));
 		}
 	}
 }

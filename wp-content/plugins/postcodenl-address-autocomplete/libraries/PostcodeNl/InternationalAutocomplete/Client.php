@@ -8,7 +8,7 @@ class Client
 {
 	public const SESSION_HEADER_KEY = 'X-Autocomplete-Session';
 
-	protected const SERVER_URL = 'https://serve-a-lot.office.react.nl/~bastiaan/PostcodeNl_Api-master/international/v1/';
+	protected const SERVER_URL = 'https://api.postcode.eu/international/v1/';
 	protected const VERSION = 0.1;
 
 	/** @var string The Postcode.nl API key, required for all requests. Provided when registering an account. */

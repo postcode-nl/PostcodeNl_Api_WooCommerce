@@ -3,7 +3,7 @@
 
 namespace PostcodeNl\AddressAutocomplete;
 
-use PostcodeNl\InternationalAutocomplete\ClientException;
+use PostcodeNl\InternationalAutocomplete\Exception\ClientException;
 
 defined('ABSPATH') || exit;
 
@@ -124,10 +124,10 @@ class Options
 			}
 			catch (ClientException $e)
 			{
-				// Continue using previous if exist, else use empty array
+				// Continue using previous, if none exists throw the exception
 				if ($this->_supportedCountries === null)
 				{
-					$this->_supportedCountries = [];
+					throw $e;
 				}
 			}
 		}
@@ -159,7 +159,7 @@ class Options
 		foreach ($options as $option => $value)
 		{
 			$postName = static::FORM_NAME_PREFIX . $option;
-
+			// Only overwrite the API secret if anything has been set
 			if ($option === 'apiSecret' && ($_POST[$postName] ?? '') === '')
 			{
 				continue;

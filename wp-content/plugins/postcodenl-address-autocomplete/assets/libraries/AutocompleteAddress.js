@@ -46,7 +46,7 @@ var PostcodeNl = PostcodeNl || {};
 			 * @type {string}
 			 */
 			autocompleteUrl: {
-				value: 'https://api.postcode.eu/int/v1/autocomplete',
+				value: 'https://api.postcode.nl/international/v1/autocomplete',
 				writable: true,
 			},
 
@@ -55,7 +55,7 @@ var PostcodeNl = PostcodeNl || {};
 			 * @type {string}
 			 */
 			addressDetailsUrl: {
-				value: 'https://api.postcode.eu/int/v1/address',
+				value: 'https://api.postcode.nl/international/v1/address',
 				writable: true,
 			},
 
@@ -164,6 +164,7 @@ var PostcodeNl = PostcodeNl || {};
 	{
 		const self = this,
 			ul = document.createElement('ul'),
+			wrapper = document.createElement('div'),
 			classNames = {
 				menuOpen: options.cssPrefix + 'menu-open',
 				itemFocus: options.cssPrefix + 'item-focus',
@@ -177,9 +178,9 @@ var PostcodeNl = PostcodeNl || {};
 			positionTo = function (element)
 			{
 				const rect = element.getBoundingClientRect();
-				ul.style.top = rect.bottom + (window.scrollY || window.pageYOffset) + 'px';
-				ul.style.left = rect.left + (window.scrollX || window.pageXOffset) + 'px';
-				ul.style.width = rect.width + 'px';
+				wrapper.style.top = rect.bottom + (window.scrollY || window.pageYOffset) + 'px';
+				wrapper.style.left = rect.left + (window.scrollX || window.pageXOffset) + 'px';
+				wrapper.style.width = rect.width + 'px';
 			},
 
 			/**
@@ -190,6 +191,11 @@ var PostcodeNl = PostcodeNl || {};
 			 */
 			moveItemFocus = function (focusNext, setValue)
 			{
+				if (ul.children.length === 0)
+				{
+					return;
+				}
+
 				const startChild = focusNext? ul.firstElementChild : ul.lastElementChild,
 					endChild = focusNext? ul.lastElementChild : ul.firstElementChild;
 
@@ -217,6 +223,16 @@ var PostcodeNl = PostcodeNl || {};
 				}
 
 				item.classList.add(classNames.itemFocus);
+
+				// Scroll the menu item into view if needed.
+				if (ul.scrollTop > item.offsetTop)
+				{
+					ul.scrollTop = item.offsetTop;
+				}
+				else if ((item.offsetHeight + item.offsetTop) > ul.clientHeight)
+				{
+					ul.scrollTop = (item.offsetHeight + item.offsetTop) - ul.clientHeight;
+				}
 
 				// Update the input element value unless the focus event was cancelled.
 				if (setValue && true === inputElement.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'focus', {cancelable: true})))
@@ -247,11 +263,6 @@ var PostcodeNl = PostcodeNl || {};
 			inputContext;
 
 		Object.defineProperties(this, {
-			id: {
-				get: function () {
-					return ul.id;
-				},
-			},
 			isOpen: {
 				get: function () {
 					return isOpen;
@@ -269,7 +280,9 @@ var PostcodeNl = PostcodeNl || {};
 			},
 		});
 
-		ul.classList.add(options.cssPrefix + 'menu');
+		wrapper.classList.add(options.cssPrefix + 'menu');
+		ul.classList.add(options.cssPrefix + 'menu-items');
+		wrapper.appendChild(ul);
 
 		ul.addEventListener('mouseover', function (e) {
 			if (e.target === ul)
@@ -295,11 +308,11 @@ var PostcodeNl = PostcodeNl || {};
 			item = null;
 		});
 
-		ul.addEventListener('mousedown', function () {
+		wrapper.addEventListener('mousedown', function () {
 			isMousedown = true;
 		});
 
-		ul.addEventListener('click', function (e) {
+		wrapper.addEventListener('click', function (e) {
 			e.preventDefault();
 
 			if (item !== null)
@@ -313,11 +326,11 @@ var PostcodeNl = PostcodeNl || {};
 		// Add the menu to the page.
 		if (HTMLElement.prototype.isPrototypeOf(options.appendTo))
 		{
-			options.appendTo.appendChild(ul);
+			options.appendTo.appendChild(wrapper);
 		}
 		else
 		{
-			(document.querySelector(options.appendTo) || document.body).appendChild(ul);
+			(document.querySelector(options.appendTo) || document.body).appendChild(wrapper);
 		}
 
 		/**
@@ -329,6 +342,7 @@ var PostcodeNl = PostcodeNl || {};
 		this.setItems = function (matches, renderItem)
 		{
 			ul.innerHTML = '';
+			ul.scrollTop = 0;
 
 			for (let i = 0, li, match; match = matches[i++];)
 			{
@@ -350,20 +364,21 @@ var PostcodeNl = PostcodeNl || {};
 			inputValue = inputElement.value;
 			inputContext = elementData.get(inputElement).context;
 
-			if (isOpen || ul.children.length === 0)
+			if (options.autoFocus && item === null)
+			{
+				this.focusNext(false);
+			}
+
+			if (isOpen)
 			{
 				return;
 			}
 
 			positionTo(inputElement);
-			ul.classList.add(classNames.menuOpen);
+			wrapper.classList.add(classNames.menuOpen);
+			ul.scrollTop = 0;
 			isOpen = true;
 			inputElement.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'open'));
-
-			if (options.autoFocus)
-			{
-				this.focusNext(false);
-			}
 		}
 
 		/**
@@ -386,27 +401,9 @@ var PostcodeNl = PostcodeNl || {};
 
 			removeItemFocus();
 			item = null;
-			ul.classList.remove(classNames.menuOpen);
+			wrapper.classList.remove(classNames.menuOpen);
 			isOpen = false;
 			inputElement.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'close'));
-		}
-
-		/**
-		 * Toggle the menu based on the specified state.
-		 *
-		 * @param {HTMLElement} element - Associated input element.
-		 * @param {boolean} state - Open the menu if true, close otherwise.
-		 */
-		this.toggle = function (element, state)
-		{
-			if (state)
-			{
-				this.open(element);
-			}
-			else
-			{
-				this.close();
-			}
 		}
 
 		/**
@@ -433,8 +430,25 @@ var PostcodeNl = PostcodeNl || {};
 			}
 
 			inputElement.focus();
-			this.close();
 		}
+
+		/**
+		 * Remove menu items.
+		 */
+		this.clear = function ()
+		{
+			removeItemFocus();
+			item = null;
+			ul.innerHTML = '';
+		}
+
+		// Close on click outside.
+		document.addEventListener('click', function (e) {
+			if (isOpen && e.target !== inputElement && !wrapper.contains(e.target))
+			{
+				self.close();
+			}
+		});
 	}
 
 	/**
@@ -444,11 +458,7 @@ var PostcodeNl = PostcodeNl || {};
 	 */
 	this.AutocompleteAddress = function (elementsOrSelector, options)
 	{
-		let inputElements,
-			searchTimeoutId = null,
-			previousValue = null,
-			previousContext = null,
-			matches = [];
+		let inputElements;
 
 		if (typeof elementsOrSelector === 'string')
 		{
@@ -472,8 +482,6 @@ var PostcodeNl = PostcodeNl || {};
 			return;
 		}
 
-		const self = this;
-
 		// Create options object that inherits from defaults.
 		options = extend(Object.create(defaults), options);
 
@@ -484,8 +492,14 @@ var PostcodeNl = PostcodeNl || {};
 			},
 		});
 
-		// Add menu instance.
-		const menu = new Menu(options);
+		let searchTimeoutId = null,
+			previousValue = null,
+			previousContext = null,
+			matches = [];
+
+		const self = this,
+			menu = new Menu(options),
+			inputBlankClassName = options.cssPrefix + 'address-input-blank';
 
 		// Create an ARIA live region for screen readers.
 		// See https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Live_Regions
@@ -515,14 +529,12 @@ var PostcodeNl = PostcodeNl || {};
 		 * Create an XMLHttpRequest GET request.
 		 *
 		 * @param {string} url - URL to which the request is sent.
-		 * @param {Object} data - Parameters to send with the request.
 		 * @param {successCallback} success - Function that is executed if the request succeeds.
 		 * @return {XMLHttpRequest} Object representing the eventual completion/failure of the request, and its resulting value.
 		 */
-		this.xhrGet = function (url, data, success)
+		this.xhrGet = function (url, success)
 		{
-			const xhr = new XMLHttpRequest(),
-				params = [];
+			const xhr = new XMLHttpRequest();
 
 			xhr.addEventListener('load', function () {
 				if (this.status === 200)
@@ -531,12 +543,7 @@ var PostcodeNl = PostcodeNl || {};
 				}
 			});
 
-			for (let i in data)
-			{
-				params.push(i + '=' + encodeURIComponent(data[i]));
-			}
-
-			xhr.open('GET', url + (params.length > 0 ? '?' + params.join('&') : ''));
+			xhr.open('GET', url);
 			xhr.setRequestHeader('X-Autocomplete-Session', getSessionId());
 			xhr.send();
 
@@ -546,7 +553,7 @@ var PostcodeNl = PostcodeNl || {};
 		/**
 		 * Get autocomplete matches for the specified context and term.
 		 *
-		 * @see {@link https://api.postcode.nl/documentation/int/v1/Address/autocomplete}
+		 * @see {@link https://api.postcode.nl/documentation/international/v1/Autocomplete/autocomplete}
 		 * @param {string} context - A place identifier denoting the context to search in. e.g. “nld”.
 		 * @param {string} term - The search query to process. e.g. “2012ES”, “Haarlem”, “Julian”.
 		 * @param {successCallback} response - Function that handles the response.
@@ -554,13 +561,13 @@ var PostcodeNl = PostcodeNl || {};
 		 */
 		this.getSuggestions = function (context, term, response)
 		{
-			return this.xhrGet(this.options.autocompleteUrl + '/' + context + '/' + encodeURIComponent(term), {}, response);
+			return this.xhrGet(this.options.autocompleteUrl + '/' + context + '/' + encodeURIComponent(term), response);
 		}
 
 		/**
 		 * Get address details for the specified address identifier.
 		 *
-		 * @see {@link https://api.postcode.nl/documentation/int/v1/Address/getDetails}
+		 * @see {@link https://api.postcode.nl/documentation/international/v1/Autocomplete/getDetails}
 		 * @param {string} addressId - Address identifier returned by a match of precision “Address”.
 		 * @param {string} [dispatchCountry] - Dispatching country ISO3 code, used to determine country address line presence and language.
 		 * If not given, country is not added in mailLines.
@@ -572,16 +579,16 @@ var PostcodeNl = PostcodeNl || {};
 			let dispatchCountry = null,
 				response = arguments[1];
 
-			let params = [encodeURIComponent(addressId)];
+			const params = [addressId];
 
 			if (arguments.length === 3)
 			{
 				dispatchCountry = arguments[1];
 				response = arguments[2];
-				params.push(encodeURIComponent(dispatchCountry));
+				params.push(dispatchCountry);
 			}
 
-			return this.xhrGet(this.options.addressDetailsUrl + '/' + params.join('/'), {}, response);
+			return this.xhrGet(this.options.addressDetailsUrl + '/' + params.join('/'), response);
 		}
 
 		/**
@@ -672,6 +679,23 @@ var PostcodeNl = PostcodeNl || {};
 			}
 		}
 
+		/**
+		 * Trigger a search on the specified input element. If invoked without a term, the current input's value is used.
+		 *
+		 * @param {HTMLElement} element - Input element associated with the autocomplete instance.
+		 * @param {string} term - Search query.
+		 */
+		this.search = function (element, term)
+		{
+			if (typeof term !== 'undefined')
+			{
+				element.value = term;
+			}
+
+			element.classList.toggle(inputBlankClassName, element.value === '');
+			search(element);
+		}
+
 		Array.prototype.forEach.call(inputElements, function (element) {
 			let isKeyEvent = false;
 
@@ -685,6 +709,7 @@ var PostcodeNl = PostcodeNl || {};
 			element.autocomplete = 'off';
 			element.setAttribute('aria-controls', liveRegion.id);
 			element.classList.add(options.cssPrefix + 'address-input');
+			element.classList.toggle(inputBlankClassName, element.value === '');
 
 			element.addEventListener('keydown', function (e) {
 				isKeyEvent = true;
@@ -698,7 +723,7 @@ var PostcodeNl = PostcodeNl || {};
 						}
 						else
 						{
-							search(this);
+							search(element);
 						}
 
 						e.preventDefault();
@@ -711,7 +736,7 @@ var PostcodeNl = PostcodeNl || {};
 						}
 						else
 						{
-							search(this);
+							search(element);
 						}
 
 						e.preventDefault();
@@ -731,11 +756,13 @@ var PostcodeNl = PostcodeNl || {};
 						break;
 
 					default:
-						searchDebounced(this);
+						searchDebounced(element);
 				}
 			});
 
 			element.addEventListener('input', function (e) {
+				element.classList.remove(inputBlankClassName);
+
 				// Skip key event to prevent searching twice.
 				if (isKeyEvent)
 				{
@@ -743,40 +770,42 @@ var PostcodeNl = PostcodeNl || {};
 					return;
 				}
 
-				searchDebounced(this);
+				searchDebounced(element);
 			});
 
 			element.addEventListener('focus', function () {
-				const data = elementData.get(this);
+				if (menu.isMousedown)
+				{
+					return;
+				}
+
+				menu.open(element);
+
+				const data = elementData.get(element);
 
 				// Trigger search if the address is incomplete.
 				if (typeof data.match.precision === 'undefined' || data.match.precision !== PRECISION_ADDRESS)
 				{
-					search(this);
+					search(element);
 				}
 			});
 
-			element.addEventListener('click', function () {
-				if (this.value.length >= options.minLength)
-				{
-					menu.open(this);
-				}
-			});
+			element.addEventListener('click', menu.open.bind(menu, element));
 
 			element.addEventListener(EVENT_NAMESPACE + 'select', function (e) {
-				const data = elementData.get(this);
+				const data = elementData.get(element);
 
 				data.match = e.detail;
 
 				if (e.detail.precision === PRECISION_ADDRESS)
 				{
-					// Update the previous value to prevent opening the menu on focus for an address that is already complete.
-					previousValue = e.detail.value;
+					menu.close();
 				}
 				else
 				{
+					menu.open(element);
 					data.context = e.detail.context;
-					window.setTimeout(search, 0, this);
+					window.setTimeout(search, 0, element);
 				}
 			});
 
@@ -786,7 +815,7 @@ var PostcodeNl = PostcodeNl || {};
 					return;
 				}
 
-				const data = elementData.get(this);
+				const data = elementData.get(element);
 				window.clearTimeout(searchTimeoutId);
 				menu.close();
 
@@ -797,12 +826,14 @@ var PostcodeNl = PostcodeNl || {};
 					{
 						if (m.precision === PRECISION_ADDRESS)
 						{
-							this.value = m.value;
-							this.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'select', {detail: m}));
+							element.value = m.value;
+							element.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'select', {detail: m}));
 							break;
 						}
 					}
 				}
+
+				element.classList.toggle(inputBlankClassName, element.value === '');
 			});
 		});
 
@@ -824,9 +855,11 @@ var PostcodeNl = PostcodeNl || {};
 		 */
 		const search = function (element)
 		{
+			menu.open(element);
+
 			if (element.value.length < options.minLength)
 			{
-				menu.close();
+				menu.clear();
 				return;
 			}
 
@@ -834,7 +867,6 @@ var PostcodeNl = PostcodeNl || {};
 
 			if (element.value === previousValue && data.context === previousContext)
 			{
-				menu.open(element);
 				return;
 			}
 
@@ -851,19 +883,24 @@ var PostcodeNl = PostcodeNl || {};
 
 			element.classList.add(options.cssPrefix + 'loading');
 
-			const xhr = self.getSuggestions.call(self, data.context, element.value, function (matches) {
+			const xhr = self.getSuggestions.call(self, data.context, element.value, function (result) {
 				// Trigger the response event. Cancel this event to prevent rendering address suggestions.
-				if (true === element.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'response', {detail: matches, cancelable: true})))
+				if (true === element.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'response', {detail: result, cancelable: true})))
 				{
-					if (hasSubstring && matches.length === 0)
+					matches = result;
+
+					if (hasSubstring && result.length === 0)
 					{
-						menu.open(element);
 						return;
 					}
 
-					menu.setItems(matches, self.renderItem.bind(self));
-					menu.toggle(element, matches.length > 0)
-					self.announce(options.getResponseMessage(matches.length));
+					menu.setItems(result, self.renderItem.bind(self));
+					self.announce(options.getResponseMessage(result.length));
+
+					if (options.autoFocus)
+					{
+						menu.focusNext(false);
+					}
 				}
 			});
 
@@ -969,4 +1006,3 @@ var PostcodeNl = PostcodeNl || {};
 	}
 
 }).apply(PostcodeNl);
-

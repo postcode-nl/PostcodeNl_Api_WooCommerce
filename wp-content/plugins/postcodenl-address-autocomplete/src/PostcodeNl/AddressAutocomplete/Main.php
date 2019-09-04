@@ -62,7 +62,6 @@ class Main
 			'required' => false,
 			'class' => [
 				'form-row-wide',
-				'address-field',
 				'postcodenl-address-autocomplete',
 			],
 			'autocomplete' => 'off',

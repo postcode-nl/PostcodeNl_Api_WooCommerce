@@ -870,7 +870,7 @@ var PostcodeNl = PostcodeNl || {};
 				return;
 			}
 
-			const hasSubstring = previousValue !== null && (element.value.indexOf(previousValue) === 0 || previousValue.indexOf(element.value) === 0);
+			const hasSubstring = data.context === previousContext && previousValue !== null && (element.value.indexOf(previousValue) === 0 || previousValue.indexOf(element.value) === 0);
 			previousValue = element.value;
 			previousContext = data.context;
 			data.match = {};
@@ -887,15 +887,15 @@ var PostcodeNl = PostcodeNl || {};
 				// Trigger the response event. Cancel this event to prevent rendering address suggestions.
 				if (true === element.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'response', {detail: result, cancelable: true})))
 				{
-					matches = result;
+					matches = result.matches;
 
-					if (hasSubstring && result.length === 0)
+					if (hasSubstring && matches.length === 0)
 					{
 						return;
 					}
 
-					menu.setItems(result, self.renderItem.bind(self));
-					self.announce(options.getResponseMessage(result.length));
+					menu.setItems(matches, self.renderItem.bind(self));
+					self.announce(options.getResponseMessage(matches.length));
 
 					if (options.autoFocus)
 					{

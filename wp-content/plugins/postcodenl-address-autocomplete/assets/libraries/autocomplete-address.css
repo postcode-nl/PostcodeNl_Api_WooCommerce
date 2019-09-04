@@ -2,29 +2,44 @@
 	display: none;
 	position: absolute;
 	z-index: 99;
-	max-height: 300px;
-	margin: 0;
-	padding: 0;
-	overflow-y: auto;
-	overflow-x: hidden;
+	padding-bottom: 35px;
+	background-position: right 17px bottom 6px;
 	border-top: 1px solid #ddd;
 	box-shadow: 0 10px 15px rgba(0, 0, 0, .15);
 	background-color: #fff;
 }
 
-.postcodenl-autocomplete-menu:after {
-	display: block;
-	margin-top: 8px;
-	height: 35px;
-	background-image: url(img/postcode-nl-logo-grey.svg);
-	background-position: 12px 10px;
-	background-repeat: no-repeat;
-	background-size: 100px;
-	content: '';
-}
-
 .postcodenl-autocomplete-menu-open {
 	display: block;
+}
+
+.postcodenl-autocomplete-menu-items {
+	max-height: 300px;
+	margin: 0;
+	padding: 0;
+	border-bottom: 1px solid #ddd;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+.postcodenl-autocomplete-menu-items:empty {
+	display: none;
+}
+
+.postcodenl-autocomplete-menu,
+.postcodenl-autocomplete-address-input-blank {
+	background-image: url(img/postcode-nl-logo-grey.svg);
+	background-repeat: no-repeat;
+	background-size: 100px;
+}
+
+.postcodenl-autocomplete-address-input-blank {
+	background-position: calc(100% - 12px) calc(50% + 2px);
+}
+
+.postcodenl-autocomplete-address-input-blank:focus {
+	background-position: calc(100% + 120px) calc(50% + 2px);
+	transition: background-position .3s ease-out;
 }
 
 .postcodenl-autocomplete-loading {

@@ -47,16 +47,25 @@ class Client
 		curl_setopt($this->_curlHandler, CURLOPT_USERAGENT, static::class . '/' . static::VERSION .' PHP/'. PHP_VERSION);
 	}
 
+	/**
+	 * @see https://api.postcode.nl/documentation/international/v1/Autocomplete/autocomplete
+	 */
 	public function autocomplete(string $context, string $term, ?string $session = null): array
 	{
 		return $this->performApiCall('autocomplete/' . rawurlencode($context) . '/' . rawurlencode($term), $session ?? $this->generateSessionString());
 	}
 
+	/**
+	 * @see https://api.postcode.nl/documentation/international/v1/Autocomplete/getDetails
+	 */
 	public function getDetails(string $context, ?string $session = null): array
 	{
 		return $this->performApiCall('address/' . rawurlencode($context), $session ?? $this->generateSessionString());
 	}
 
+	/**
+	 * @see https://api.postcode.nl/documentation/international/v1/Autocomplete/getSupportedCountries
+	 */
 	public function getSupportedCountries(): array
 	{
 		return $this->performApiCall('supported-countries', null);

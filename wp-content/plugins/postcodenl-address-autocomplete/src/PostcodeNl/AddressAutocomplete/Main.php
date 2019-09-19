@@ -36,7 +36,7 @@ class Main
 
 	public function wordPressInit(): void
 	{
-		add_filter('woocommerce_checkout_fields', [$this, 'checkoutFields']);
+		add_filter('woocommerce_default_address_fields', [$this, 'addressFields']);
 
 		add_action('wp_enqueue_scripts', [$this, 'enqueueScripts']);
 
@@ -47,18 +47,19 @@ class Main
 		add_action('wp_ajax_nopriv_' . Proxy::AJAX_GET_DETAILS, [$this->_proxy, 'getDetails']);
 
 		add_action('woocommerce_after_checkout_form', [$this, 'afterCheckoutForm']);
+		add_action('woocommerce_after_edit_account_address_form', [$this, 'afterCheckoutForm']);
 
 		add_action('admin_menu', [$this->_options, 'addPluginPage']);
 
 		add_action('admin_notices', [$this, 'adminNotice']);
 	}
 
-	public function checkoutFields(array $fields): array
+	public function addressFields(array $fields): array
 	{
-		$autocompleteField = [
+		$fields['postcodeNl_address_autocomplete'] = [
 			'type' => 'text',
 			'label' => __('Autocomplete address', static::TEXT_DOMAIN),
-			'placeholder' => __('Start typing the billing address', static::TEXT_DOMAIN),
+			'placeholder' => __('Start typing the address', static::TEXT_DOMAIN),
 			'required' => false,
 			'class' => [
 				'form-row-wide',
@@ -67,11 +68,6 @@ class Main
 			'autocomplete' => 'off',
 			'priority' => 45,
 		];
-
-		$fields['billing']['billing_postcodeNl_address_autocomplete'] = $autocompleteField;
-		$autocompleteField['label'] = __('Shipping address', static::TEXT_DOMAIN);
-		$autocompleteField['placeholder'] = __('Start typing the shipping address', static::TEXT_DOMAIN);
-		$fields['shipping']['shipping_postcodeNl_address_autocomplete'] = $autocompleteField;
 
 		return $fields;
 	}
@@ -113,7 +109,8 @@ class Main
 
 	public function adminNotice(): void
 	{
-		if (!class_exists('WooCommerce')) {
+		if (!class_exists('WooCommerce'))
+		{
 			vprintf(
 				'<div class="notice notice-error is-dismissible">
 				<h3>%s</h3>

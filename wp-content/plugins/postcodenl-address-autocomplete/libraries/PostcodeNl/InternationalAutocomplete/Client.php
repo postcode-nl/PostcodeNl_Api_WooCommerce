@@ -110,7 +110,7 @@ class Client
 			case 401:
 				throw new AuthenticationException('Could not authenticate your request, please make sure your API credentials are correct.');
 			case 403:
-				throw new ForbiddenException('Requests to the international API are not allowed at the moment.');
+				throw new ForbiddenException('Your account currently has no access to the international API, make sure you have an active subscription.');
 			case 429:
 				throw new TooManyRequestsException('Too many requests made, please slow down: ' . $response);
 			case 503:

@@ -6,6 +6,8 @@ defined('ABSPATH') || exit;
 
 use PostcodeNl\AddressAutocomplete\Exception\Exception;
 use PostcodeNl\InternationalAutocomplete\Client;
+use function count;
+use function explode;
 
 class Proxy
 {
@@ -39,7 +41,7 @@ class Proxy
 	{
 		[$context, $term] = $this->getParameters(2);
 
-		$result = $this->_client->autocomplete($context, $term, $this->_session);
+		$result = $this->_client->internationalAutocomplete($context, $term, $this->_session);
 		print(json_encode($result));
 		/** @see https://developer.wordpress.org/plugins/javascript/enqueuing/#die */
 		wp_die();
@@ -49,7 +51,7 @@ class Proxy
 	{
 		[$context] = $this->getParameters(1);
 
-		$result = $this->_client->getDetails($context, $this->_session);
+		$result = $this->_client->internationalGetDetails($context, $this->_session);
 		print(json_encode($result));
 		/** @see https://developer.wordpress.org/plugins/javascript/enqueuing/#die */
 		wp_die();
@@ -62,8 +64,8 @@ class Proxy
 
 	protected function getParameters(int $expectedParameters): array
 	{
-		$parts = \explode('/', \trim($_GET['parameters'] ?? '', '/'));
-		if (\count($parts) !== $expectedParameters)
+		$parts = explode('/', \trim($_GET['parameters'] ?? '', '/'));
+		if (count($parts) !== $expectedParameters)
 		{
 			throw new Exception('Invalid number of parameters provided.');
 		}

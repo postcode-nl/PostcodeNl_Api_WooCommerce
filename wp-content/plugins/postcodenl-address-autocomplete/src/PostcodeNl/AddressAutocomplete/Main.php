@@ -26,8 +26,7 @@ class Main
 			throw new Exception('Instance already initialized use Main::getInstance() instead.');
 		}
 
-		$this->_options = new Options();
-		$this->_proxy = new Proxy($this->_options->apiKey, $this->_options->apiSecret);
+		$this->loadOptions();
 
 		add_action('init', [$this, 'wordPressInit']);
 
@@ -37,6 +36,7 @@ class Main
 	public function wordPressInit(): void
 	{
 		add_filter('woocommerce_default_address_fields', [$this, 'addressFields']);
+		add_filter('plugin_action_links_' . $this->getPluginFileAndPath(), [$this, 'pluginActionLinks']);
 
 		add_action('wp_enqueue_scripts', [$this, 'enqueueScripts']);
 
@@ -72,6 +72,17 @@ class Main
 		return $fields;
 	}
 
+	public function pluginActionLinks(array $links): array
+	{
+		array_unshift(
+			$links,
+			sprintf('<a href="%s">%s</a>', admin_url('options-general.php?page=' . Options::MENU_SLUG), __('Settings', static::TEXT_DOMAIN)),
+			sprintf('<a href="https://account.postcode.nl" target="_blank" rel="noopener">%s</a>', __('API account', static::TEXT_DOMAIN))
+		);
+
+		return $links;
+	}
+
 	public function enqueueScripts(): void
 	{
 		wp_enqueue_style('postcodeNlAutocompleteAddress', plugins_url('../../../', __FILE__) . 'assets/libraries/autocomplete-address.css');
@@ -102,6 +113,12 @@ class Main
 		return $this->_options;
 	}
 
+	public function loadOptions(): void
+	{
+		$this->_options = new Options();
+		$this->_proxy = new Proxy($this->_options->apiKey, $this->_options->apiSecret);
+	}
+
 	public function getProxy(): Proxy
 	{
 		return $this->_proxy;
@@ -117,20 +134,39 @@ class Main
 				<p>%s</p>
 			</div>',
 				[
-					__('Postcode.nl Address Autocomplete requires WooCommerce', static::TEXT_DOMAIN),
+					__('Postcode.nl Address Autocomplete: WooCommerce is required', static::TEXT_DOMAIN),
 					__('Postcode.nl Address Autocomplete requires the WooCommerce plugin to be activated to be able to add address autocomplete to the checkout form.', static::TEXT_DOMAIN),
 				]
 			);
 		}
 
-		if ($this->_options->hasKeyAndSecret())
+		// Do not show the notices when the user is already on the options page
+		$page = get_current_screen();
+		if ($page !== null && $page->id === 'settings_page_' . Options::MENU_SLUG)
 		{
 			return;
 		}
 
-		// Do not show the notice when the user is already on the options page
-		$page = get_current_screen();
-		if ($page !== null && $page->id === 'settings_page_' . Options::MENU_SLUG)
+		if (!$this->_options->hasKeyAndSecret())
+		{
+			vprintf(
+				'<div class="notice notice-error">
+				<h3>%s</h3>
+				<p>%s</p>
+			</div>',
+				[
+					__('Postcode.nl Address Autocomplete: Set your credentials', static::TEXT_DOMAIN),
+					vsprintf(
+						__('Please set your Postcode.nl API key and secret in <a href="%s">the options</a> to start using the Autocomplete in your WooCommerce checkout.', static::TEXT_DOMAIN),
+						[menu_page_url(Options::MENU_SLUG, false)]
+					),
+				]
+			);
+
+			return;
+		}
+
+		if ($this->_options->isApiActive())
 		{
 			return;
 		}
@@ -141,11 +177,8 @@ class Main
 				<p>%s</p>
 			</div>',
 			[
-				__('Set your credentials for Postcode.nl Address Autocomplete', static::TEXT_DOMAIN),
-				vsprintf(
-					__('Please set your Postcode.nl API key and secret in <a href="%s">the options</a> to start using the Autocomplete in your WooCommerce checkout.', static::TEXT_DOMAIN),
-					[menu_page_url(Options::MENU_SLUG, false)]
-				),
+				sprintf(__('Postcode.nl Address Autocomplete: Your API account is %s', static::TEXT_DOMAIN), $this->_options->getApiStatusDescription()),
+				$this->_options->getApiStatusHint(),
 			]
 		);
 	}
@@ -153,5 +186,9 @@ class Main
 	public static function getInstance(): self
 	{
 		return static::$_instance;
+	}
+
+	protected function getPluginFileAndPath(): string {
+		return plugin_basename(dirname(__FILE__, 4) . '/postcodenl-address-autocomplete.php');
 	}
 }

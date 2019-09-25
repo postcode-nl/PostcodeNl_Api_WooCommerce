@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Postcode.nl Address Autocomplete
- * Plugin URI: https://www.postcode.nl
+ * Plugin URI: https://www.postcode.nl/en/services/adresdata/implementatie
  * Description: Reference implementation for Postcode.nl international address autocomplete for Woo
  * Version: 0.1
  * Author: Postcode.nl

@@ -1,15 +1,10 @@
 jQuery(document).ready(function() {
+	// Initialize the autocomplete on forms which are available on document ready
 	PostcodeNlAddressAutocomplete.initialize();
 
-	let initialized = false;
+	// The default WooCommerce checkout form is loaded after dom ready so we must listen to the custom WooCommerce "updated_checkout" event.
 	jQuery(document.body).on('updated_checkout', function() {
-		if (initialized) {
-			return;
-		}
-
 		PostcodeNlAddressAutocomplete.initialize();
-
-		initialized = true;
 	});
 });
 
@@ -19,6 +14,11 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 	jQuery('.postcodenl-address-autocomplete').each(function() {
 		let autocompleteContainer = jQuery(this);
 		let queryElement = this.querySelector('.input-text');
+		if (queryElement.getAttribute('data-autocomplete-initialized') === '1')
+		{
+			return;
+		}
+
 		let addressContainer = autocompleteContainer.parent().parent();
 
 		let autocomplete = new PostcodeNl.AutocompleteAddress(queryElement, {
@@ -57,6 +57,8 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 				});
 			}
 		});
+
+		queryElement.setAttribute('data-autocomplete-initialized', '1');
 	});
 };
 

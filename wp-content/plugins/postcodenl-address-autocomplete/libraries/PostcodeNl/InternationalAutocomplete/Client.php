@@ -10,6 +10,7 @@ use PostcodeNl\InternationalAutocomplete\Exception\CurlException;
 use PostcodeNl\InternationalAutocomplete\Exception\CurlNotLoadedException;
 use PostcodeNl\InternationalAutocomplete\Exception\ForbiddenException;
 use PostcodeNl\InternationalAutocomplete\Exception\InvalidJsonResponseException;
+use PostcodeNl\InternationalAutocomplete\Exception\InvalidPostcodeException;
 use PostcodeNl\InternationalAutocomplete\Exception\ServerUnavailableException;
 use PostcodeNl\InternationalAutocomplete\Exception\TooManyRequestsException;
 use PostcodeNl\InternationalAutocomplete\Exception\UnexpectedException;
@@ -18,7 +19,7 @@ class Client
 {
 	public const SESSION_HEADER_KEY = 'X-Autocomplete-Session';
 
-	protected const SERVER_URL = 'https://api.postcode.eu/international/v1/';
+	protected const SERVER_URL = 'https://api.postcode.eu/';
 	protected const VERSION = 0.1;
 
 	/** @var string The Postcode.nl API key, required for all requests. Provided when registering an account. */
@@ -50,25 +51,75 @@ class Client
 	/**
 	 * @see https://api.postcode.nl/documentation/international/v1/Autocomplete/autocomplete
 	 */
-	public function autocomplete(string $context, string $term, ?string $session = null): array
+	public function internationalAutocomplete(string $context, string $term, ?string $session = null): array
 	{
-		return $this->performApiCall('autocomplete/' . rawurlencode($context) . '/' . rawurlencode($term), $session ?? $this->generateSessionString());
+		return $this->performApiCall('international/v1/autocomplete/' . rawurlencode($context) . '/' . rawurlencode($term), $session ?? $this->generateSessionString());
 	}
 
 	/**
 	 * @see https://api.postcode.nl/documentation/international/v1/Autocomplete/getDetails
 	 */
-	public function getDetails(string $context, ?string $session = null): array
+	public function internationalGetDetails(string $context, ?string $session = null): array
 	{
-		return $this->performApiCall('address/' . rawurlencode($context), $session ?? $this->generateSessionString());
+		return $this->performApiCall('international/v1/address/' . rawurlencode($context), $session ?? $this->generateSessionString());
 	}
 
 	/**
 	 * @see https://api.postcode.nl/documentation/international/v1/Autocomplete/getSupportedCountries
 	 */
-	public function getSupportedCountries(): array
+	public function internationalGetSupportedCountries(): array
 	{
-		return $this->performApiCall('supported-countries', null);
+		return $this->performApiCall('international/v1/supported-countries', null);
+	}
+
+	/**
+	 * Look up an address by postcode and house number.
+	 *
+	 * @param string $postcode Dutch postcode in the '1234AB' format
+	 * @param int $houseNumber House number
+	 * @param string|null $houseNumberAddition House number addition, optional
+	 * @return array
+	 *
+	 * @see https://api.postcode.nl/documentation
+	 */
+	public function dutchAddressByPostcode(string $postcode, int $houseNumber, ?string $houseNumberAddition = null): array
+	{
+		// Test postcode format
+		$postcode = trim($postcode);
+		if (!$this->_isValidDutchPostcodeFormat($postcode))
+		{
+			throw new InvalidPostcodeException(sprintf('Postcode `%s` has an invalid format, it should be in the format 1234AB.', $postcode));
+		}
+
+		// Use the regular validation function
+		$urlParts = [
+			'nl/v1/addresses/postcode',
+			rawurlencode($postcode),
+			$houseNumber,
+		];
+		if ($houseNumberAddition !== null)
+		{
+			$urlParts[] = rawurlencode($houseNumberAddition);
+		}
+		$response = $this->performApiCall(implode('/', $urlParts), null);
+
+		return $response;
+	}
+
+	public function accountInfo(): array
+	{
+		return $this->performApiCall('account/v1/info', null);
+	}
+
+	/**
+	 * Validate if string has a correct Dutch postcode format. First digit cannot be zero.
+	 *
+	 * @param string $postcode
+	 * @return bool
+	 */
+	protected function _isValidDutchPostcodeFormat(string $postcode): bool
+	{
+		return (bool) preg_match('~^[1-9]\d{3}\s?[a-zA-Z]{2}$~', $postcode);
 	}
 
 	public function __destruct()

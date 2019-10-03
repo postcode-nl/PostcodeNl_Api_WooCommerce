@@ -188,7 +188,8 @@ class Main
 		return static::$_instance;
 	}
 
-	protected function getPluginFileAndPath(): string {
+	protected function getPluginFileAndPath(): string
+	{
 		return plugin_basename(dirname(__FILE__, 4) . '/postcodenl-address-autocomplete.php');
 	}
 }

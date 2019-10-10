@@ -28,6 +28,8 @@ class Client
 	protected $_secret;
 	/** @var resource */
 	protected $_curlHandler;
+	/** @var array Response headers received in the most recent API call. */
+	protected $_mostRecentResponseHeaders = [];
 
 
 	public function __construct(string $key, string $secret)
@@ -46,6 +48,25 @@ class Client
 		curl_setopt($this->_curlHandler, CURLOPT_CONNECTTIMEOUT, 2);
 		curl_setopt($this->_curlHandler, CURLOPT_TIMEOUT, 5);
 		curl_setopt($this->_curlHandler, CURLOPT_USERAGENT, static::class . '/' . static::VERSION .' PHP/'. PHP_VERSION);
+
+		if (isset($_SERVER['HTTP_REFERER']))
+		{
+			curl_setopt($this->_curlHandler, CURLOPT_REFERER, $_SERVER['HTTP_REFERER']);
+		}
+		curl_setopt($this->_curlHandler, CURLOPT_HEADERFUNCTION, function($curl, string $header) {
+			$length = strlen($header);
+
+			$headerParts = explode(':', $header, 2);
+			// Ignore invalid headers
+			if (count($headerParts) < 2)
+			{
+				return $length;
+			}
+			[$headerName, $headerValue] = $headerParts;
+			$this->_mostRecentResponseHeaders[strtolower(trim($headerName))][] = trim($headerValue);
+
+			return $length;
+		});
 	}
 
 	/**
@@ -145,6 +166,7 @@ class Client
 			]);
 		}
 
+		$this->_mostRecentResponseHeaders = [];
 		$response = curl_exec($this->_curlHandler);
 
 		$responseStatusCode = curl_getinfo($this->_curlHandler, CURLINFO_RESPONSE_CODE);
@@ -164,6 +186,9 @@ class Client
 				{
 					throw new InvalidJsonResponseException('Invalid JSON response from the server for request: ' . $url);
 				}
+
+				$this->_repeatCacheControlHeader();
+
 				return $jsonResponse;
 			case 400:
 				throw new BadRequestException(vsprintf('Server response code 400, bad request for `%s`.', [$url]));
@@ -178,5 +203,15 @@ class Client
 			default:
 				throw new UnexpectedException(vsprintf('Unexpected server response code `%s`.', [$responseStatusCode]));
 		}
+	}
+
+	protected function _repeatCacheControlHeader(): void
+	{
+		if (!isset($this->_mostRecentResponseHeaders['cache-control']))
+		{
+			return;
+		}
+
+		header('Cache-Control: ' . implode(',', $this->_mostRecentResponseHeaders['cache-control']));
 	}
 }

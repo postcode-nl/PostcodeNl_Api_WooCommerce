@@ -39,22 +39,18 @@ class Proxy
 
 	public function autocomplete(): void
 	{
-		[$context, $term] = $this->getParameters(2);
+		[$context, $term] = $this->_getParameters(2);
 
 		$result = $this->_client->internationalAutocomplete($context, $term, $this->_session);
-		print(json_encode($result));
-		/** @see https://developer.wordpress.org/plugins/javascript/enqueuing/#die */
-		wp_die();
+		$this->_outputJsonResponse($result);
 	}
 
 	public function getDetails(): void
 	{
-		[$context] = $this->getParameters(1);
+		[$context] = $this->_getParameters(1);
 
 		$result = $this->_client->internationalGetDetails($context, $this->_session);
-		print(json_encode($result));
-		/** @see https://developer.wordpress.org/plugins/javascript/enqueuing/#die */
-		wp_die();
+		$this->_outputJsonResponse($result);
 	}
 
 	public function getClient(): Client
@@ -62,7 +58,7 @@ class Proxy
 		return $this->_client;
 	}
 
-	protected function getParameters(int $expectedParameters): array
+	protected function _getParameters(int $expectedParameters): array
 	{
 		$parts = explode('/', \trim($_GET['parameters'] ?? '', '/'));
 		if (count($parts) !== $expectedParameters)
@@ -71,5 +67,15 @@ class Proxy
 		}
 
 		return $parts;
+	}
+
+	protected function _outputJsonResponse(array $response): void
+	{
+		// WordPress seems to be in the habit of setting the expires header to `Wed, 11 Jan 1984 05:00:00 GMT`, there is no need for that
+		header_remove('Expires');
+		// The response is JSON
+		header('Content-type: application/json');
+		// wp_die resets the cache control headers, so die regularly
+		die(json_encode($response));
 	}
 }

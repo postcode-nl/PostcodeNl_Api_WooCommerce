@@ -122,14 +122,20 @@ class Client
 		{
 			$urlParts[] = rawurlencode($houseNumberAddition);
 		}
-		$response = $this->performApiCall(implode('/', $urlParts), null);
-
-		return $response;
+		return $this->performApiCall(implode('/', $urlParts), null);
 	}
 
 	public function accountInfo(): array
 	{
 		return $this->performApiCall('account/v1/info', null);
+	}
+
+	/**
+	 * @return array The response headers from the most recent API call.
+	 */
+	public function getApiCallResponseHeaders(): array
+	{
+		return $this->_mostRecentResponseHeaders;
 	}
 
 	/**
@@ -187,8 +193,6 @@ class Client
 					throw new InvalidJsonResponseException('Invalid JSON response from the server for request: ' . $url);
 				}
 
-				$this->_repeatCacheControlHeader();
-
 				return $jsonResponse;
 			case 400:
 				throw new BadRequestException(vsprintf('Server response code 400, bad request for `%s`.', [$url]));
@@ -203,15 +207,5 @@ class Client
 			default:
 				throw new UnexpectedException(vsprintf('Unexpected server response code `%s`.', [$responseStatusCode]));
 		}
-	}
-
-	protected function _repeatCacheControlHeader(): void
-	{
-		if (!isset($this->_mostRecentResponseHeaders['cache-control']))
-		{
-			return;
-		}
-
-		header('Cache-Control: ' . implode(',', $this->_mostRecentResponseHeaders['cache-control']));
 	}
 }

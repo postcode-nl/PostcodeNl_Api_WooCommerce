@@ -71,11 +71,24 @@ class Proxy
 
 	protected function _outputJsonResponse(array $response): void
 	{
+		// Repeat the cache control header from the API response if it is available
+		$this->_repeatCacheControlHeader($this->_client->getApiCallResponseHeaders());
+
 		// WordPress seems to be in the habit of setting the expires header to `Wed, 11 Jan 1984 05:00:00 GMT`, there is no need for that
 		header_remove('Expires');
 		// The response is JSON
 		header('Content-type: application/json');
 		// wp_die resets the cache control headers, so die regularly
 		die(json_encode($response));
+	}
+
+	protected function _repeatCacheControlHeader(array $apiResponseHeaders): void
+	{
+		if (!isset($apiResponseHeaders['cache-control']))
+		{
+			return;
+		}
+
+		header('Cache-Control: ' . implode(',', $apiResponseHeaders['cache-control']));
 	}
 }

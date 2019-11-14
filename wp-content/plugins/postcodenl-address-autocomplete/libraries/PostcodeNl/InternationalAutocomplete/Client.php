@@ -11,6 +11,7 @@ use PostcodeNl\InternationalAutocomplete\Exception\CurlNotLoadedException;
 use PostcodeNl\InternationalAutocomplete\Exception\ForbiddenException;
 use PostcodeNl\InternationalAutocomplete\Exception\InvalidJsonResponseException;
 use PostcodeNl\InternationalAutocomplete\Exception\InvalidPostcodeException;
+use PostcodeNl\InternationalAutocomplete\Exception\InvalidSessionValueException;
 use PostcodeNl\InternationalAutocomplete\Exception\ServerUnavailableException;
 use PostcodeNl\InternationalAutocomplete\Exception\TooManyRequestsException;
 use PostcodeNl\InternationalAutocomplete\Exception\UnexpectedException;
@@ -18,6 +19,7 @@ use PostcodeNl\InternationalAutocomplete\Exception\UnexpectedException;
 class Client
 {
 	public const SESSION_HEADER_KEY = 'X-Autocomplete-Session';
+	public const SESSION_HEADER_VALUE_VALIDATION = '/^[a-z\d\-_.]{8,64}$/i';
 
 	protected const SERVER_URL = 'https://api.postcode.eu/';
 	protected const VERSION = 0.1;
@@ -72,17 +74,21 @@ class Client
 	/**
 	 * @see https://api.postcode.nl/documentation/international/v1/Autocomplete/autocomplete
 	 */
-	public function internationalAutocomplete(string $context, string $term, ?string $session = null): array
+	public function internationalAutocomplete(string $context, string $term, string $session): array
 	{
-		return $this->performApiCall('international/v1/autocomplete/' . rawurlencode($context) . '/' . rawurlencode($term), $session ?? $this->generateSessionString());
+		$this->_validateSessionHeader($session);
+
+		return $this->_performApiCall('international/v1/autocomplete/' . rawurlencode($context) . '/' . rawurlencode($term), $session);
 	}
 
 	/**
 	 * @see https://api.postcode.nl/documentation/international/v1/Autocomplete/getDetails
 	 */
-	public function internationalGetDetails(string $context, ?string $session = null): array
+	public function internationalGetDetails(string $context, string $session): array
 	{
-		return $this->performApiCall('international/v1/address/' . rawurlencode($context), $session ?? $this->generateSessionString());
+		$this->_validateSessionHeader($session);
+
+		return $this->_performApiCall('international/v1/address/' . rawurlencode($context), $session);
 	}
 
 	/**
@@ -90,7 +96,7 @@ class Client
 	 */
 	public function internationalGetSupportedCountries(): array
 	{
-		return $this->performApiCall('international/v1/supported-countries', null);
+		return $this->_performApiCall('international/v1/supported-countries', null);
 	}
 
 	/**
@@ -122,12 +128,12 @@ class Client
 		{
 			$urlParts[] = rawurlencode($houseNumberAddition);
 		}
-		return $this->performApiCall(implode('/', $urlParts), null);
+		return $this->_performApiCall(implode('/', $urlParts), null);
 	}
 
 	public function accountInfo(): array
 	{
-		return $this->performApiCall('account/v1/info', null);
+		return $this->_performApiCall('account/v1/info', null);
 	}
 
 	/**
@@ -154,12 +160,19 @@ class Client
 		curl_close($this->_curlHandler);
 	}
 
-	protected function generateSessionString(): string
+	protected function _validateSessionHeader(string $session): void
 	{
-		return bin2hex(random_bytes(8));
+		if (preg_match(static::SESSION_HEADER_VALUE_VALIDATION, $session) === 0)
+		{
+			throw new InvalidSessionValueException(sprintf(
+				'Session value `%s` does not conform to `%s`, please refer to the API documentation for further information.',
+				$session,
+				static::SESSION_HEADER_VALUE_VALIDATION
+			));
+		}
 	}
 
-	protected function performApiCall(string $path, ?string $session): array
+	protected function _performApiCall(string $path, ?string $session): array
 	{
 		$url = static::SERVER_URL . $path;
 		curl_setopt($this->_curlHandler, CURLOPT_URL, $url);

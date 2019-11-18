@@ -22,7 +22,7 @@ class Client
 	public const SESSION_HEADER_VALUE_VALIDATION = '/^[a-z\d\-_.]{8,64}$/i';
 
 	protected const SERVER_URL = 'https://api.postcode.eu/';
-	protected const VERSION = 0.1;
+	protected const VERSION = 1.0;
 
 	/** @var string The Postcode.nl API key, required for all requests. Provided when registering an account. */
 	protected $_key;
@@ -34,6 +34,11 @@ class Client
 	protected $_mostRecentResponseHeaders = [];
 
 
+	/**
+	 * Client constructor.
+	 * @param string $key The Postcode.nl API key, provided when registering an account.
+	 * @param string $secret The Postcode.nl API secret, provided when registering an account.
+	 */
 	public function __construct(string $key, string $secret)
 	{
 		$this->_key = $key;
@@ -131,6 +136,10 @@ class Client
 		return $this->_performApiCall(implode('/', $urlParts), null);
 	}
 
+	/**
+	 * Get Account information
+	 * @see https://api.postcode.nl/documentation/account/v1/Account/getInfo
+	 */
 	public function accountInfo(): array
 	{
 		return $this->_performApiCall('account/v1/info', null);

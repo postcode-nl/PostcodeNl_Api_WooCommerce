@@ -22,12 +22,14 @@ class Client
 	public const SESSION_HEADER_VALUE_VALIDATION = '/^[a-z\d\-_.]{8,64}$/i';
 
 	protected const SERVER_URL = 'https://api.postcode.eu/';
-	protected const VERSION = 1.0;
+	protected const VERSION = '1.0';
 
 	/** @var string The Postcode.nl API key, required for all requests. Provided when registering an account. */
 	protected $_key;
 	/** @var string The Postcode.nl API secret, required for all requests */
 	protected $_secret;
+	/** @var string A platform identifier, a short description of the platform using the API client. */
+	protected $_platform;
 	/** @var resource */
 	protected $_curlHandler;
 	/** @var array Response headers received in the most recent API call. */
@@ -38,11 +40,13 @@ class Client
 	 * Client constructor.
 	 * @param string $key The Postcode.nl API key, provided when registering an account.
 	 * @param string $secret The Postcode.nl API secret, provided when registering an account.
+	 * @param string $platform A platform identifier, a short description of the platform using the API client.
 	 */
-	public function __construct(string $key, string $secret)
+	public function __construct(string $key, string $secret, string $platform)
 	{
 		$this->_key = $key;
 		$this->_secret = $secret;
+		$this->_platform = $platform;
 
 		if (!extension_loaded('curl'))
 		{
@@ -54,7 +58,7 @@ class Client
 		curl_setopt($this->_curlHandler, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($this->_curlHandler, CURLOPT_CONNECTTIMEOUT, 2);
 		curl_setopt($this->_curlHandler, CURLOPT_TIMEOUT, 5);
-		curl_setopt($this->_curlHandler, CURLOPT_USERAGENT, static::class . '/' . static::VERSION .' PHP/'. PHP_VERSION);
+		curl_setopt($this->_curlHandler, CURLOPT_USERAGENT, $this->_getUserAgent());
 
 		if (isset($_SERVER['HTTP_REFERER']))
 		{
@@ -229,5 +233,16 @@ class Client
 			default:
 				throw new UnexpectedException(vsprintf('Unexpected server response code `%s`.', [$responseStatusCode]));
 		}
+	}
+
+	protected function _getUserAgent(): string
+	{
+		return sprintf(
+			'%s %s/%s PHP/%s',
+			$this->_platform,
+			str_replace('\\', '_', static::class),
+			static::VERSION,
+			PHP_VERSION
+		);
 	}
 }

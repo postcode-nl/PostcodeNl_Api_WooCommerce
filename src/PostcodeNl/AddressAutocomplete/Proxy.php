@@ -22,7 +22,7 @@ class Proxy
 
 	public function __construct(string $apiKey, string $apiSecret)
 	{
-		$this->_client = new Client($apiKey, $apiSecret);
+		$this->_client = new Client($apiKey, $apiSecret, 'PostcodeNl-WooCommerce');
 
 		$headers = getallheaders();
 		foreach ($headers as $name => $value)

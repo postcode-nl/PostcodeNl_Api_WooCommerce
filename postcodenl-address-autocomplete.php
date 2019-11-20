@@ -7,6 +7,11 @@
  * Author: Postcode.nl
  * Author URI: https://www.postcode.nl
  * Text Domain: postcodenl-address-autocomplete
+ * Requires at least: 5.2.0
+ * Requires PHP: 7.3.0
+ *
+ * WC requires at least: 3.7.0
+ * WC tested up to: 3.8
  */
 
 use PostcodeNl\AddressAutocomplete\Main;

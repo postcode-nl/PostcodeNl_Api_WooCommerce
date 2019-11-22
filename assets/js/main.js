@@ -54,8 +54,8 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 					addressContainer.find('input[name$="_city"]').val(result.address.locality);
 					// Support for other address fields if available
 					addressContainer.find('input[name$="_street_name"]').val(result.address.street);
-					addressContainer.find('input[name$="_house_number"]').val(result.address.houseNumber);
-					addressContainer.find('input[name$="_house_number_suffix"]').val(result.address.houseNumberAddition ? result.address.houseNumberAddition : '');
+					addressContainer.find('input[name$="_house_number"]').val(result.address.buildingNumber);
+					addressContainer.find('input[name$="_house_number_suffix"]').val(result.address.buildingNumberAddition ? result.address.buildingNumberAddition : '');
 
 					// Force WooCommerce to recalculate shipping costs after address change
 					jQuery(document.body).trigger('update_checkout');

@@ -22,6 +22,7 @@ var PostcodeNl = PostcodeNl || {};
 		EVENT_NAMESPACE = 'autocomplete-',
 		PRECISION_ADDRESS = 'Address',
 		KEY_ESC = 'Escape',
+		KEY_ESC_LEGACY = 'Esc',
 		KEY_ENTER = 'Enter',
 		KEY_TAB = 'Tab',
 		KEY_UP = 'ArrowUp',
@@ -46,7 +47,6 @@ var PostcodeNl = PostcodeNl || {};
 			 * @type {string}
 			 */
 			autocompleteUrl: {
-				value: 'https://api.postcode.nl/international/v1/autocomplete',
 				writable: true,
 			},
 
@@ -55,7 +55,6 @@ var PostcodeNl = PostcodeNl || {};
 			 * @type {string}
 			 */
 			addressDetailsUrl: {
-				value: 'https://api.postcode.nl/international/v1/address',
 				writable: true,
 			},
 
@@ -128,6 +127,7 @@ var PostcodeNl = PostcodeNl || {};
 			/**
 			 * Get screen reader text for a successful response with at least one match.
 			 * Override this function to translate the message.
+			 * @type {Function}
 			 *
 			 * @param {number} count - Number of matches. Will be at least one.
 			 * @return {string} Screen reader message based on the number of matches.
@@ -320,7 +320,7 @@ var PostcodeNl = PostcodeNl || {};
 				self.select();
 			}
 
-			isMousedown = false;
+			window.setTimeout(function () { isMousedown = false }); // IEfix: Use setTimeout to assign after the event happens.
 		});
 
 		// Add the menu to the page.
@@ -417,7 +417,7 @@ var PostcodeNl = PostcodeNl || {};
 		this.focusNext = moveItemFocus.bind(this, true);
 
 		/**
-		 * Select the active menu item, update and focus the associated input element, then close the menu.
+		 * Select the active menu item, update and focus the associated input element.
 		 */
 		this.select = function ()
 		{
@@ -445,6 +445,14 @@ var PostcodeNl = PostcodeNl || {};
 		// Close on click outside.
 		document.addEventListener('click', function (e) {
 			if (isOpen && e.target !== inputElement && !wrapper.contains(e.target))
+			{
+				self.close();
+			}
+		});
+
+		// Close on window resize.
+		window.addEventListener('resize', function () {
+			if (isOpen)
 			{
 				self.close();
 			}
@@ -561,7 +569,7 @@ var PostcodeNl = PostcodeNl || {};
 		 */
 		this.getSuggestions = function (context, term, response)
 		{
-			return this.xhrGet(this.options.autocompleteUrl + '/' + context + '/' + encodeURIComponent(term), response);
+			return this.xhrGet(this.options.autocompleteUrl + '/' + encodeURIComponent(context) + '/' + encodeURIComponent(term), response);
 		}
 
 		/**
@@ -600,9 +608,13 @@ var PostcodeNl = PostcodeNl || {};
 		 */
 		this.renderItem = function (ul, item)
 		{
-			const li = document.createElement('li');
+			const li = document.createElement('li'),
+				label = document.createElement('span');
+
 			li.classList.add(this.options.cssPrefix + 'item');
-			li.innerHTML = this.highlight(item.label, item.highlights);
+			label.classList.add(this.options.cssPrefix + 'item-label');
+			label.innerHTML = this.highlight(item.label, item.highlights);
+			li.appendChild(label);
 
 			if (item.precision !== PRECISION_ADDRESS)
 			{
@@ -611,7 +623,7 @@ var PostcodeNl = PostcodeNl || {};
 
 			if (item.description)
 			{
-				let span = document.createElement('span');
+				const span = document.createElement('span');
 				span.textContent = item.description;
 				span.classList.add(this.options.cssPrefix + 'item-description');
 				li.appendChild(span);
@@ -621,7 +633,7 @@ var PostcodeNl = PostcodeNl || {};
 			{
 				for (let i = 0, tag; tag = item.tags[i++];)
 				{
-					let em = document.createElement('em');
+					const em = document.createElement('em');
 					em.textContent = this.options.tags[tag];
 					em.classList.add(this.options.cssPrefix + 'item-tag');
 					li.appendChild(em);
@@ -743,6 +755,7 @@ var PostcodeNl = PostcodeNl || {};
 						break;
 
 					case KEY_ESC:
+					case KEY_ESC_LEGACY:
 						menu.close(true);
 						break;
 
@@ -835,6 +848,8 @@ var PostcodeNl = PostcodeNl || {};
 
 				element.classList.toggle(inputBlankClassName, element.value === '');
 			});
+
+			element.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'create'));
 		});
 
 		/**
@@ -904,10 +919,17 @@ var PostcodeNl = PostcodeNl || {};
 				}
 			});
 
-			xhr.addEventListener('error', function (e) {
-				// Trigger an error event for failed requests.
-				element.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'error', {detail: e}));
-			});
+			const xhrErrorHandler = function (e)
+			{
+				if (this.status !== 200)
+				{
+					element.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'error', {detail: {'event': e, request: this}}));
+				}
+			}
+
+			// Trigger an error event for failed requests.
+			xhr.addEventListener('error', xhrErrorHandler);
+			xhr.addEventListener('load', xhrErrorHandler);
 
 			xhr.addEventListener('loadend', function (e) { // All three load-ending conditions (abort, load, or error).
 				element.classList.remove(options.cssPrefix + 'loading');
@@ -1003,6 +1025,27 @@ var PostcodeNl = PostcodeNl || {};
 		}
 
 		window.CustomEvent = CustomEvent;
+	}
+
+	if (window.DOMTokenList.prototype.toggle.length === 0)
+	{
+		/**
+		 * Fix DOMTokenList.toggle in IE11.
+		 *
+		 * @param {string} value - Class value to toggle.
+		 * @param {boolean} [force] - Add class value if the argument evaluates to true, else remove it.
+		 * @return {boolean} True if the class value is added, false if removed.
+		 * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/Element/classList}
+		 */
+		window.DOMTokenList.prototype.toggle = function (value)
+		{
+			if (arguments.length > 1)
+			{
+				return (this[arguments[1]? 'add' : 'remove'](value), !!arguments[1]);
+			}
+
+			return (this[this.contains(value)? 'remove' : 'add'](value), this.contains(value));
+		}
 	}
 
 }).apply(PostcodeNl);

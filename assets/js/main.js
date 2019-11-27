@@ -30,9 +30,19 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 
 		// Listen to country select changes and initialize current autocomplete
 		let countrySelect = addressContainer.find('.country_select');
-		let countrySelectHandler = function() {
-			let countryCode = PostcodeNlAddressAutocomplete.convertCountry2CodeToCountry3Code(this.value);
-
+		// Handle a single country
+		if (countrySelect.length === 0)
+		{
+			let countryToState = addressContainer.find('.country_to_state');
+			if (countryToState.length === 0)
+			{
+				// Country code could not be determined
+				autocompleteContainer.css('display', 'none');
+				return;
+			}
+			let countryCode = PostcodeNlAddressAutocomplete.convertCountry2CodeToCountry3Code(
+				countryToState.val()
+			);
 			if (PostcodeNlAddressAutocomplete.isCountrySupported(countryCode))
 			{
 				autocomplete.setCountry(countryCode);
@@ -42,9 +52,26 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 			{
 				autocompleteContainer.css('display', 'none');
 			}
-		};
-		jQuery(countrySelect).on('change', countrySelectHandler);
-		countrySelectHandler.call(countrySelect[0]);
+		}
+		else
+		{
+			// Handle country selection
+			let countrySelectHandler = function() {
+				let countryCode = PostcodeNlAddressAutocomplete.convertCountry2CodeToCountry3Code(this.value);
+
+				if (PostcodeNlAddressAutocomplete.isCountrySupported(countryCode))
+				{
+					autocomplete.setCountry(countryCode);
+					autocompleteContainer.css('display', 'inherit');
+				}
+				else
+				{
+					autocompleteContainer.css('display', 'none');
+				}
+			};
+			jQuery(countrySelect).on('change', countrySelectHandler);
+			countrySelectHandler.call(countrySelect[0]);
+		}
 
 		queryElement.addEventListener('autocomplete-select', function (event) {
 			if (event.detail.precision === 'Address') {

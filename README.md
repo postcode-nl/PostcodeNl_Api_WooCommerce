@@ -19,6 +19,11 @@ In your WordPress administration panel, go to `Plugins > Add New` and click the 
 
 In your WordPress administration panel go to `Plugins > Installed Plugins` and look for `Postcode.nl Address Autocomplete` and activate it. Then click on `Settings` to configure the plugin.
 
+## Translations
+
+The plugins texts are in English, if you want to translate any of the plugins texts you can find out how to do so here:
+[WordPress Localization](https://developer.wordpress.org/plugins/internationalization/localization/)
+
 Postcode.nl Account
 =============
 

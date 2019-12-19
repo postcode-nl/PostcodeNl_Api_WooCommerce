@@ -12,6 +12,7 @@ use PostcodeNl\InternationalAutocomplete\Exception\ForbiddenException;
 use PostcodeNl\InternationalAutocomplete\Exception\InvalidJsonResponseException;
 use PostcodeNl\InternationalAutocomplete\Exception\InvalidPostcodeException;
 use PostcodeNl\InternationalAutocomplete\Exception\InvalidSessionValueException;
+use PostcodeNl\InternationalAutocomplete\Exception\NotFoundException;
 use PostcodeNl\InternationalAutocomplete\Exception\ServerUnavailableException;
 use PostcodeNl\InternationalAutocomplete\Exception\TooManyRequestsException;
 use PostcodeNl\InternationalAutocomplete\Exception\UnexpectedException;
@@ -226,6 +227,8 @@ class Client
 				throw new AuthenticationException('Could not authenticate your request, please make sure your API credentials are correct.');
 			case 403:
 				throw new ForbiddenException('Your account currently has no access to the international API, make sure you have an active subscription.');
+			case 404:
+				throw new NotFoundException('The requested address could not be found.');
 			case 429:
 				throw new TooManyRequestsException('Too many requests made, please slow down: ' . $response);
 			case 503:

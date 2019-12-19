@@ -8,7 +8,7 @@
  * https://tldrlegal.com/l/mit
  *
  * @author Postcode.nl
- * @version 1.0
+ * @version 1.1
  */
 
 var PostcodeNl = PostcodeNl || {};
@@ -253,6 +253,28 @@ var PostcodeNl = PostcodeNl || {};
 				{
 					item.classList.remove(classNames.itemFocus);
 				}
+			},
+
+			/**
+			 * Event handler to close the menu on outside click.
+			 */
+			closeOnClickOutside = function (e)
+			{
+				if (isOpen && e.target !== inputElement && !wrapper.contains(e.target))
+				{
+					self.close();
+				}
+			},
+
+			/**
+			 * Event handler to close the menu on window resize.
+			 */
+			closeOnWindowResize = function ()
+			{
+				if (isOpen)
+				{
+					self.close();
+				}
 			};
 
 		let isOpen = false,
@@ -442,21 +464,26 @@ var PostcodeNl = PostcodeNl || {};
 			ul.innerHTML = '';
 		}
 
-		// Close on click outside.
-		document.addEventListener('click', function (e) {
-			if (isOpen && e.target !== inputElement && !wrapper.contains(e.target))
+		/**
+		 * Remove the menu from the DOM.
+		 *
+		 * @return {boolean} True if the menu is removed, false if already removed.
+		 */
+		this.destroy = function ()
+		{
+			if (wrapper.parentNode === null)
 			{
-				self.close();
+				return false;
 			}
-		});
 
-		// Close on window resize.
-		window.addEventListener('resize', function () {
-			if (isOpen)
-			{
-				self.close();
-			}
-		});
+			wrapper.parentNode.removeChild(wrapper);
+			document.removeEventListener('click', closeOnClickOutside);
+			window.removeEventListener('resize', closeOnWindowResize);
+			return true;
+		}
+
+		document.addEventListener('click', closeOnClickOutside);
+		window.addEventListener('resize', closeOnWindowResize);
 	}
 
 	/**
@@ -708,13 +735,81 @@ var PostcodeNl = PostcodeNl || {};
 			search(element);
 		}
 
+		/**
+		 * Reset to initial context, clear the menu, clear input values.
+		 */
+		this.reset = function ()
+		{
+			previousValue = null;
+			previousContext = null;
+
+			menu.clear();
+
+			for (let i = 0, element; element = inputElements[i++];)
+			{
+				const data = elementData.get(element);
+
+				data.context = options.context;
+				data.match = {};
+				element.value = '';
+				element.classList.add(inputBlankClassName);
+			}
+		}
+
+		/**
+		 * Remove autocomplete functionality and return the input element to its pre-init state.
+		 */
+		this.destroy = function ()
+		{
+			if (!menu.destroy())
+			{
+				return; // Menu is not part of the DOM, assume already destroyed.
+			}
+
+			document.body.removeChild(liveRegion);
+
+			for (let i = 0, element; element = inputElements[i++];)
+			{
+				const data = elementData.get(element);
+
+				for (var eventType in data.eventHandlers)
+				{
+					element.removeEventListener(eventType, data.eventHandlers[eventType]);
+				}
+
+				for (var attr in data.initialAttributeValues)
+				{
+					const value = data.initialAttributeValues[attr];
+
+					if (value === null)
+					{
+						element.removeAttribute(attr);
+					}
+					else
+					{
+						element.setAttribute(attr, value);
+					}
+				}
+
+				elementData.delete(element);
+				element.classList.remove(options.cssPrefix + 'address-input', options.cssPrefix + 'loading', inputBlankClassName);
+			}
+		}
+
 		Array.prototype.forEach.call(inputElements, function (element) {
+			const eventHandlers = Object.create(null);
 			let isKeyEvent = false;
 
 			// Map match and context to this element.
 			elementData.set(element, {
 				match: {},
 				context: options.context,
+				eventHandlers: eventHandlers,
+				initialAttributeValues: {
+					spellcheck: element.hasAttribute('spellcheck') ? element.getAttribute('spellcheck') : null,
+					autocomplete: element.hasAttribute('autocomplete') ? element.getAttribute('autocomplete') : null,
+					'aria-controls': element.hasAttribute('aria-controls') ? element.getAttribute('aria-controls') : null,
+				},
 			});
 
 			element.spellcheck = false;
@@ -723,7 +818,7 @@ var PostcodeNl = PostcodeNl || {};
 			element.classList.add(options.cssPrefix + 'address-input');
 			element.classList.toggle(inputBlankClassName, element.value === '');
 
-			element.addEventListener('keydown', function (e) {
+			element.addEventListener('keydown', eventHandlers.keydown = function (e) {
 				isKeyEvent = true;
 
 				switch (e.key)
@@ -773,7 +868,7 @@ var PostcodeNl = PostcodeNl || {};
 				}
 			});
 
-			element.addEventListener('input', function (e) {
+			element.addEventListener('input', eventHandlers.input = function (e) {
 				element.classList.remove(inputBlankClassName);
 
 				// Skip key event to prevent searching twice.
@@ -786,7 +881,7 @@ var PostcodeNl = PostcodeNl || {};
 				searchDebounced(element);
 			});
 
-			element.addEventListener('focus', function () {
+			element.addEventListener('focus', eventHandlers.focus = function () {
 				if (menu.isMousedown)
 				{
 					return;
@@ -803,9 +898,9 @@ var PostcodeNl = PostcodeNl || {};
 				}
 			});
 
-			element.addEventListener('click', menu.open.bind(menu, element));
+			element.addEventListener('click', eventHandlers.click = menu.open.bind(menu, element));
 
-			element.addEventListener(EVENT_NAMESPACE + 'select', function (e) {
+			element.addEventListener(EVENT_NAMESPACE + 'select', eventHandlers[EVENT_NAMESPACE + 'select'] = function (e) {
 				const data = elementData.get(element);
 
 				data.match = e.detail;
@@ -822,7 +917,7 @@ var PostcodeNl = PostcodeNl || {};
 				}
 			});
 
-			element.addEventListener('blur', function () {
+			element.addEventListener('blur', eventHandlers.blur = function () {
 				if (menu.isMousedown)
 				{
 					return;
@@ -872,13 +967,14 @@ var PostcodeNl = PostcodeNl || {};
 		{
 			menu.open(element);
 
+			const data = elementData.get(element);
+
 			if (element.value.length < options.minLength)
 			{
+				data.context = options.context;
 				menu.clear();
 				return;
 			}
-
-			const data = elementData.get(element);
 
 			if (element.value === previousValue && data.context === previousContext)
 			{

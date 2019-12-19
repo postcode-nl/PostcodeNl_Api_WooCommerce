@@ -5,6 +5,9 @@ namespace PostcodeNl\AddressAutocomplete;
 
 use PostcodeNl\AddressAutocomplete\Exception\Exception;
 use PostcodeNl\InternationalAutocomplete\Exception\ClientException;
+use function htmlspecialchars;
+use function str_replace;
+use function vsprintf;
 
 defined('ABSPATH') || exit;
 
@@ -20,8 +23,13 @@ class Options
 	protected const API_ACCOUNT_STATUS_INACTIVE = 'inactive';
 	protected const API_ACCOUNT_STATUS_ACTIVE = 'active';
 
+	protected const NETHERLANDS_MODE_DEFAULT = 'default';
+	protected const NETHERLANDS_MODE_POSTCODE_ONLY = 'postcodeOnly';
+
 	public $apiKey = '';
 	public $apiSecret = '';
+	/** @var bool Indication whether to use the international API for the Netherlands or the Dutch address Api which only accepts postcode and house number combinations. */
+	public $netherlandsPostcodeOnly = false;
 
 	/** @var array */
 	protected $_supportedCountries;
@@ -38,6 +46,7 @@ class Options
 		$data = \get_option(static::OPTION_KEY, []);
 		$this->apiKey = $data['apiKey'] ?? '';
 		$this->apiSecret = $data['apiSecret'] ?? '';
+		$this->netherlandsPostcodeOnly = $data['netherlandsPostcodeOnly'] ?? '';
 		$this->_supportedCountries = json_decode($data['supportedCountries'] ?? 'NULL', true);
 		$supportedCountriesExpiration = $data['supportedCountriesExpiration'] ?? '';
 		$this->_supportedCountriesExpiration = $supportedCountriesExpiration === '' ? null : new \DateTime($supportedCountriesExpiration);
@@ -64,19 +73,30 @@ class Options
 		$markup .= '<form method="post" action="">';
 		$markup .= '<table class="form-table">';
 
-		$markup .= $this->_getInput(
+		$markup .= $this->_getInputRow(
 			__('API key', Main::TEXT_DOMAIN),
 			'apiKey',
 			$this->apiKey,
 			'text',
 			__('The API key provided by Postcode.nl when you created your account, or you can request new credentials if you lost them. <a href="https://account.postcode.nl/" target="_blank" rel="noopener">Log into your Postcode.nl API account</a> or if you do not have an account yet you can <a href="https://www.postcode.nl/en/services/adresdata/producten-overzicht" target="_blank" rel="noopener">register one now</a>.', Main::TEXT_DOMAIN)
 		);
-		$markup .= $this->_getInput(
+		$markup .= $this->_getInputRow(
 			__('API Secret', Main::TEXT_DOMAIN),
 			'apiSecret',
 			'',
 			'password',
-			__('You API secret as provided by Postcode.nl, only fill in this field if you want to set your secret, leave empty otherwise.', Main::TEXT_DOMAIN)
+			__('Your API secret as provided by Postcode.nl, only fill in this field if you want to set your secret, leave empty otherwise.', Main::TEXT_DOMAIN)
+		);
+		$markup .= $this->_getInputRow(
+			__('Dutch address lookup method', Main::TEXT_DOMAIN),
+			'netherlandsPostcodeOnly',
+			$this->netherlandsPostcodeOnly ? static::NETHERLANDS_MODE_POSTCODE_ONLY : static::NETHERLANDS_MODE_DEFAULT,
+			'select',
+			__('Which method to use for Dutch address lookups. Full lookup allows searching through city and street names, postcode only method only supports exact postcode and house number lookups but costs less per address. See <a href="https://www.postcode.nl/en/services/adresdata/producten-overzicht" target="_blank" rel="noopener">product pricing</a>.', Main::TEXT_DOMAIN),
+			[
+				static::NETHERLANDS_MODE_DEFAULT => 'Full lookup (default)',
+				static::NETHERLANDS_MODE_POSTCODE_ONLY => 'Postcode only',
+			]
 		);
 		$markup .= '</table>';
 		$markup .= vsprintf(
@@ -188,20 +208,41 @@ class Options
 		return $this->_supportedCountries;
 	}
 
-	protected function _getInput(string $label, string $name, string $value, string $inputType, ?string $description): string
+	protected function _getInputRow(string $label, string $name, string $value, string $inputType, ?string $description, array $options = []): string
 	{
-		$id = \str_replace('_', '-', static::FORM_NAME_PREFIX . $name);
-		return \vsprintf(
-			'<tr><th><label for="%s">%s</label></th><td><input type="%s" id="%s" value="%s" name="%s" />%s</td></tr>',
-			[
+		$id = str_replace('_', '-', static::FORM_NAME_PREFIX . $name);
+		if ($inputType === 'select')
+		{
+			$selectOptions = [];
+			foreach ($options as $option => $optionLabel)
+			{
+				$selectOptions[] = sprintf('<option value="%s"%s>%s</option>', $option, $option === $value ? ' selected' : '', $optionLabel);
+			}
+
+			$formElement = sprintf(
+				'<select id="%s" name="%s">%s</select>',
 				$id,
-				$label,
+				static::FORM_NAME_PREFIX . $name,
+				implode("\n", $selectOptions)
+			);
+		}
+		else
+		{
+			$formElement = sprintf(
+				'<input type="%s" id="%s" value="%s" name="%s" />',
 				$inputType,
 				$id,
-				\htmlspecialchars($value, ENT_QUOTES, get_bloginfo('charset')),
-				static::FORM_NAME_PREFIX . $name,
-				$description !== null ? vsprintf('<p class="description">%s</p>', [$description]) : '',
-			]
+				htmlspecialchars($value, ENT_QUOTES, get_bloginfo('charset')),
+				static::FORM_NAME_PREFIX . $name
+			);
+		}
+
+		return sprintf(
+			'<tr><th><label for="%s">%s</label></th><td>%s%s</td></tr>',
+			$id,
+			$label,
+			$formElement,
+			$description !== null ? vsprintf('<p class="description">%s</p>', [$description]) : '',
 		);
 	}
 
@@ -219,8 +260,16 @@ class Options
 			{
 				continue;
 			}
+			if ($option === 'netherlandsPostcodeOnly')
+			{
+				$newValue = isset($_POST[$postName]) && $_POST[$postName] === static::NETHERLANDS_MODE_POSTCODE_ONLY;
+			}
+			else
+			{
+				$newValue = $_POST[$postName] ?? $value;
+			}
 
-			$options->{$option} = $_POST[$postName] ?? $value;
+			$options->{$option} = $newValue;
 		}
 
 		if ($options->apiKey !== $existingKey || $options->apiSecret !== $existingSecret)
@@ -263,6 +312,7 @@ class Options
 		return [
 			'apiKey' => $this->apiKey,
 			'apiSecret' => $this->apiSecret,
+			'netherlandsPostcodeOnly' => $this->netherlandsPostcodeOnly,
 			'supportedCountriesExpiration' => $this->_supportedCountriesExpiration === null ? '' : $this->_supportedCountriesExpiration->format('Y-m-d H:i:s'),
 			'supportedCountries' => json_encode($this->_supportedCountries),
 			'apiAccountStatus' => $this->_apiAccountStatus,

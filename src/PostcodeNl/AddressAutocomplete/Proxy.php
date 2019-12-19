@@ -6,6 +6,7 @@ defined('ABSPATH') || exit;
 
 use PostcodeNl\AddressAutocomplete\Exception\Exception;
 use PostcodeNl\InternationalAutocomplete\Client;
+use PostcodeNl\InternationalAutocomplete\Exception\NotFoundException;
 use function count;
 use function explode;
 
@@ -13,6 +14,7 @@ class Proxy
 {
 	public const AJAX_AUTOCOMPLETE = 'postcodenl_address_autocomplete';
 	public const AJAX_GET_DETAILS = 'postcodenl_address_get_details';
+	public const AJAX_DUTCH_ADDRESS_LOOKUP = 'postcodenl_address_dutch_address_lookup';
 
 	/** @var Client */
 	protected $_client;
@@ -54,6 +56,30 @@ class Proxy
 		[$context] = $this->_getParameters(1);
 
 		$result = $this->_client->internationalGetDetails($context, $this->_session);
+		$this->_outputJsonResponse($result);
+	}
+
+	public function dutchAddressLookup(): void
+	{
+		[$postcode, $houseNumberAndAddition] = $this->_getParameters(2);
+		if (!preg_match('/(?<houseNumber>\d+)\s?(?<addition>.*)/', $houseNumberAndAddition, $matches))
+		{
+			throw new Exception('House number could not be parsed.');
+		}
+		$houseNumber = $matches['houseNumber'] ?? null;
+		if ($houseNumber === null)
+		{
+			throw new Exception('Missing house number.');
+		}
+		$houseNumberAddition = $matches['addition'] ?? null;
+		try
+		{
+			$result = $this->_client->dutchAddressByPostcode($postcode, (int) $houseNumber, $houseNumberAddition);
+		}
+		catch (NotFoundException $e)
+		{
+			$result = ['error' => true, 'message' => __('Unknown postcode and house number combination, make sure your input is correct.', Main::TEXT_DOMAIN)];
+		}
 		$this->_outputJsonResponse($result);
 	}
 

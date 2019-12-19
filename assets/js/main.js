@@ -20,13 +20,47 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 		}
 
 		let addressContainer = autocompleteContainer.parent().parent();
+		let autocompleteIsDestroyed = false;
 
-		let autocomplete = new PostcodeNl.AutocompleteAddress(queryElement, {
-			autocompleteUrl: PostcodeNlAddressAutocompleteSettings.autocomplete,
-			addressDetailsUrl: PostcodeNlAddressAutocompleteSettings.getDetails,
-			autoFocus: true,
-			autoSelect: true,
-		});
+		let createAutocomplete = function(queryElement) {
+			return new PostcodeNl.AutocompleteAddress(queryElement, {
+				autocompleteUrl: PostcodeNlAddressAutocompleteSettings.autocomplete,
+				addressDetailsUrl: PostcodeNlAddressAutocompleteSettings.getDetails,
+				autoFocus: true,
+				autoSelect: true,
+			});
+		};
+		let switchToCountry = function(iso2CountryCode)
+		{
+			let countryCode = PostcodeNlAddressAutocomplete.convertCountry2CodeToCountry3Code(iso2CountryCode);
+			if (PostcodeNlAddressAutocomplete.isCountrySupported(countryCode))
+			{
+				if (PostcodeNlDutchAddressLookup.shouldUsePostcodeOnlyLookup(countryCode))
+				{
+					autocomplete.destroy();
+					autocompleteIsDestroyed = true;
+					PostcodeNlDutchAddressLookup.initialize(queryElement);
+				}
+				else
+				{
+					if (autocompleteIsDestroyed)
+					{
+						PostcodeNlDutchAddressLookup.deinitialize(queryElement);
+						autocompleteIsDestroyed = false;
+						autocomplete = createAutocomplete(queryElement);
+					}
+
+					autocomplete.setCountry(countryCode);
+					autocompleteContainer.css('display', 'inherit');
+				}
+			}
+			else
+			{
+				autocompleteContainer.css('display', 'none');
+			}
+		};
+
+		let autocomplete = createAutocomplete(queryElement);
 
 		// Listen to country select changes and initialize current autocomplete
 		let countrySelect = addressContainer.find('.country_select');
@@ -40,34 +74,13 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 				autocompleteContainer.css('display', 'none');
 				return;
 			}
-			let countryCode = PostcodeNlAddressAutocomplete.convertCountry2CodeToCountry3Code(
-				countryToState.val()
-			);
-			if (PostcodeNlAddressAutocomplete.isCountrySupported(countryCode))
-			{
-				autocomplete.setCountry(countryCode);
-				autocompleteContainer.css('display', 'inherit');
-			}
-			else
-			{
-				autocompleteContainer.css('display', 'none');
-			}
+			switchToCountry(countryToState.val());
 		}
 		else
 		{
 			// Handle country selection
 			let countrySelectHandler = function() {
-				let countryCode = PostcodeNlAddressAutocomplete.convertCountry2CodeToCountry3Code(this.value);
-
-				if (PostcodeNlAddressAutocomplete.isCountrySupported(countryCode))
-				{
-					autocomplete.setCountry(countryCode);
-					autocompleteContainer.css('display', 'inherit');
-				}
-				else
-				{
-					autocompleteContainer.css('display', 'none');
-				}
+				switchToCountry(this.value);
 			};
 			jQuery(countrySelect).on('change', countrySelectHandler);
 			countrySelectHandler.call(countrySelect[0]);

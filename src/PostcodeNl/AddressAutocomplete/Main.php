@@ -46,6 +46,9 @@ class Main
 		add_action('wp_ajax_' . Proxy::AJAX_GET_DETAILS, [$this->_proxy, 'getDetails']);
 		add_action('wp_ajax_nopriv_' . Proxy::AJAX_GET_DETAILS, [$this->_proxy, 'getDetails']);
 
+		add_action('wp_ajax_' . Proxy::AJAX_DUTCH_ADDRESS_LOOKUP, [$this->_proxy, 'dutchAddressLookup']);
+		add_action('wp_ajax_nopriv_' . Proxy::AJAX_DUTCH_ADDRESS_LOOKUP, [$this->_proxy, 'dutchAddressLookup']);
+
 		add_action('woocommerce_after_checkout_form', [$this, 'afterCheckoutForm']);
 		add_action('woocommerce_after_edit_account_address_form', [$this, 'afterCheckoutForm']);
 
@@ -90,6 +93,7 @@ class Main
 
 		wp_enqueue_script('postcodeNlAutocompleteAddress', plugins_url('../../../', __FILE__) . 'assets/libraries/AutocompleteAddress.js');
 		wp_enqueue_script('postcodenl-address-autocomplete', plugins_url('../../../', __FILE__) . 'assets/js/main.js', ['postcodeNlAutocompleteAddress', 'jquery'], 0.1);
+		wp_enqueue_script('postcodenl-address-autocomplete-dutch-address-lookup', plugins_url('../../../', __FILE__) . 'assets/js/dutchAddressLookup.js', ['postcodenl-address-autocomplete'], 0.1);
 	}
 
 	public function afterCheckoutForm(): void
@@ -97,7 +101,12 @@ class Main
 		$settings = [
 			'autocomplete' => vsprintf('%s?action=%s&parameters=', [admin_url('admin-ajax.php'), Proxy::AJAX_AUTOCOMPLETE]),
 			'getDetails' => vsprintf('%s?action=%s&parameters=', [admin_url('admin-ajax.php'), Proxy::AJAX_GET_DETAILS]),
+			'dutchAddressLookup' => vsprintf('%s?action=%s&parameters=', [admin_url('admin-ajax.php'), Proxy::AJAX_DUTCH_ADDRESS_LOOKUP]),
 			'supportedCountries' => $this->_options->getSupportedCountries(),
+			'netherlandsPostcodeOnly' => $this->_options->netherlandsPostcodeOnly,
+			'postcodeOnlyLabel' => __('Postcode and house number', static::TEXT_DOMAIN),
+			'postcodeOnlyPlaceholder' => '1234AB 1',
+			'postcodeOnlyInputHint' => __('Enter a postcode and house number.', static::TEXT_DOMAIN),
 		];
 
 		vprintf(

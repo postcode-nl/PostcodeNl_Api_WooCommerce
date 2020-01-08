@@ -56,8 +56,8 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 					}
 
 					autocomplete.setCountry(countryCode);
-					autocompleteContainer.css('display', 'inherit');
 				}
+				autocompleteContainer.css('display', 'inherit');
 			}
 			else
 			{

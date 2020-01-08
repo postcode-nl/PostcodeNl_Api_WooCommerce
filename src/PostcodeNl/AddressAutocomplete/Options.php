@@ -58,7 +58,7 @@ class Options
 	{
 		if (!current_user_can(static::REQUIRED_USER_CAPABILITY))
 		{
-			_e('Not accessible.', Main::TEXT_DOMAIN);
+			_e('Not accessible.', 'postcodenl-address-autocomplete');
 			return;
 		}
 
@@ -69,30 +69,30 @@ class Options
 		}
 
 		$markup = '<div class="wrap">';
-		$markup .= vsprintf('<h2>%s</h2>', [__('Postcode.nl Address Autocomplete options', Main::TEXT_DOMAIN)]);
+		$markup .= vsprintf('<h2>%s</h2>', [__('Postcode.nl Address Autocomplete options', 'postcodenl-address-autocomplete')]);
 		$markup .= '<form method="post" action="">';
 		$markup .= '<table class="form-table">';
 
 		$markup .= $this->_getInputRow(
-			__('API key', Main::TEXT_DOMAIN),
+			__('API key', 'postcodenl-address-autocomplete'),
 			'apiKey',
 			$this->apiKey,
 			'text',
-			__('The API key provided by Postcode.nl when you created your account, or you can request new credentials if you lost them. <a href="https://account.postcode.nl/" target="_blank" rel="noopener">Log into your Postcode.nl API account</a> or if you do not have an account yet you can <a href="https://www.postcode.nl/en/services/adresdata/producten-overzicht" target="_blank" rel="noopener">register one now</a>.', Main::TEXT_DOMAIN)
+			__('The API key provided by Postcode.nl when you created your account, or you can request new credentials if you lost them. <a href="https://account.postcode.nl/" target="_blank" rel="noopener">Log into your Postcode.nl API account</a> or if you do not have an account yet you can <a href="https://www.postcode.nl/en/services/adresdata/producten-overzicht" target="_blank" rel="noopener">register one now</a>.', 'postcodenl-address-autocomplete')
 		);
 		$markup .= $this->_getInputRow(
-			__('API Secret', Main::TEXT_DOMAIN),
+			__('API Secret', 'postcodenl-address-autocomplete'),
 			'apiSecret',
 			'',
 			'password',
-			__('Your API secret as provided by Postcode.nl, only fill in this field if you want to set your secret, leave empty otherwise.', Main::TEXT_DOMAIN)
+			__('Your API secret as provided by Postcode.nl, only fill in this field if you want to set your secret, leave empty otherwise.', 'postcodenl-address-autocomplete')
 		);
 		$markup .= $this->_getInputRow(
-			__('Dutch address lookup method', Main::TEXT_DOMAIN),
+			__('Dutch address lookup method', 'postcodenl-address-autocomplete'),
 			'netherlandsPostcodeOnly',
 			$this->netherlandsPostcodeOnly ? static::NETHERLANDS_MODE_POSTCODE_ONLY : static::NETHERLANDS_MODE_DEFAULT,
 			'select',
-			__('Which method to use for Dutch address lookups. Full lookup allows searching through city and street names, postcode only method only supports exact postcode and house number lookups but costs less per address. See <a href="https://www.postcode.nl/en/services/adresdata/producten-overzicht" target="_blank" rel="noopener">product pricing</a>.', Main::TEXT_DOMAIN),
+			__('Which method to use for Dutch address lookups. Full lookup allows searching through city and street names, postcode only method only supports exact postcode and house number lookups but costs less per address. See <a href="https://www.postcode.nl/en/services/adresdata/producten-overzicht" target="_blank" rel="noopener">product pricing</a>.', 'postcodenl-address-autocomplete'),
 			[
 				static::NETHERLANDS_MODE_DEFAULT => 'Full lookup (default)',
 				static::NETHERLANDS_MODE_POSTCODE_ONLY => 'Postcode only',
@@ -101,15 +101,15 @@ class Options
 		$markup .= '</table>';
 		$markup .= vsprintf(
 			'<p class="submit"><input type="submit" name="%s" id="submit" class="button button-primary" value="%s"></p>',
-			[$submitName, __('Save changes', Main::TEXT_DOMAIN)]
+			[$submitName, __('Save changes', 'postcodenl-address-autocomplete')]
 		);
 		$markup .= '</form>';
 
-		$markup .= sprintf('<h3>%s</h3>', __('API connection', Main::TEXT_DOMAIN));
-		$markup .= sprintf('<p>%s: %s</p>', __('Subscription', Main::TEXT_DOMAIN), $this->getApiStatusDescription());
+		$markup .= sprintf('<h3>%s</h3>', __('API connection', 'postcodenl-address-autocomplete'));
+		$markup .= sprintf('<p>%s: %s</p>', __('Subscription', 'postcodenl-address-autocomplete'), $this->getApiStatusDescription());
 		if ($this->_apiAccountName !== null)
 		{
-			$markup .= sprintf('<p>%s: %s</p>', __('API account name', Main::TEXT_DOMAIN), $this->_apiAccountName);
+			$markup .= sprintf('<p>%s: %s</p>', __('API account name', 'postcodenl-address-autocomplete'), $this->_apiAccountName);
 		}
 
 		if ($this->hasKeyAndSecret())
@@ -119,7 +119,7 @@ class Options
 			if (count($countryNames) > 0)
 			{
 				sort($countryNames);
-				$markup .= vsprintf('<h3>%s</h3>', [__('Postcode.nl Address Autocomplete supports', Main::TEXT_DOMAIN)]);
+				$markup .= vsprintf('<h3>%s</h3>', [__('Postcode.nl Address Autocomplete supports', 'postcodenl-address-autocomplete')]);
 				$markup .= vsprintf('<ul><li>%s</li></ul>', [implode('</li><li>', $countryNames)]);
 			}
 		}
@@ -160,11 +160,11 @@ class Options
 		switch ($this->_apiAccountStatus)
 		{
 			case static::API_ACCOUNT_STATUS_NEW:
-				return __('not connected', Main::TEXT_DOMAIN);
+				return __('not connected', 'postcodenl-address-autocomplete');
 			case static::API_ACCOUNT_STATUS_ACTIVE:
-				return __('active', Main::TEXT_DOMAIN);
+				return __('active', 'postcodenl-address-autocomplete');
 			case static::API_ACCOUNT_STATUS_INACTIVE:
-				return __('inactive', Main::TEXT_DOMAIN);
+				return __('inactive', 'postcodenl-address-autocomplete');
 			default:
 				throw new Exception('Invalid account status value.');
 		}
@@ -175,11 +175,11 @@ class Options
 		switch ($this->_apiAccountStatus)
 		{
 			case static::API_ACCOUNT_STATUS_NEW:
-				return sprintf(__('Make sure you used the correct Postcode.nl API subscription key and secret in <a href="%s">the options page</a>.', Main::TEXT_DOMAIN), menu_page_url(static::MENU_SLUG, false));
+				return sprintf(__('Make sure you used the correct Postcode.nl API subscription key and secret in <a href="%s">the options page</a>.', 'postcodenl-address-autocomplete'), menu_page_url(static::MENU_SLUG, false));
 			case static::API_ACCOUNT_STATUS_ACTIVE:
-				return __('The Postcode.nl API is successfully connected.', Main::TEXT_DOMAIN);
+				return __('The Postcode.nl API is successfully connected.', 'postcodenl-address-autocomplete');
 			case static::API_ACCOUNT_STATUS_INACTIVE:
-				return __('Your Postcode.nl API subscription is currently inactive, please login to your account and follow the steps to activate your account.', Main::TEXT_DOMAIN);
+				return __('Your Postcode.nl API subscription is currently inactive, please login to your account and follow the steps to activate your account.', 'postcodenl-address-autocomplete');
 			default:
 				throw new Exception('Invalid account status value.');
 		}

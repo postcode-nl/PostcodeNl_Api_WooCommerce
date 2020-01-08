@@ -9,8 +9,6 @@ defined('ABSPATH') || exit;
 
 class Main
 {
-	public const TEXT_DOMAIN = 'postcodenl-address-autocomplete';
-
 	/** @var self Reference to own */
 	protected static $_instance;
 	/** @var Proxy The proxy object used to redirect requests to the Postcode.nl server */
@@ -61,8 +59,8 @@ class Main
 	{
 		$fields['postcodeNl_address_autocomplete'] = [
 			'type' => 'text',
-			'label' => __('Autocomplete address', static::TEXT_DOMAIN),
-			'placeholder' => __('Start typing the address', static::TEXT_DOMAIN),
+			'label' => __('Autocomplete address', 'postcodenl-address-autocomplete'),
+			'placeholder' => __('Start typing the address', 'postcodenl-address-autocomplete'),
 			'required' => false,
 			'class' => [
 				'form-row-wide',
@@ -79,8 +77,8 @@ class Main
 	{
 		array_unshift(
 			$links,
-			sprintf('<a href="%s">%s</a>', admin_url('options-general.php?page=' . Options::MENU_SLUG), __('Settings', static::TEXT_DOMAIN)),
-			sprintf('<a href="https://account.postcode.nl" target="_blank" rel="noopener">%s</a>', __('API account', static::TEXT_DOMAIN))
+			sprintf('<a href="%s">%s</a>', admin_url('options-general.php?page=' . Options::MENU_SLUG), __('Settings', 'postcodenl-address-autocomplete')),
+			sprintf('<a href="https://account.postcode.nl" target="_blank" rel="noopener">%s</a>', __('API account', 'postcodenl-address-autocomplete'))
 		);
 
 		return $links;
@@ -104,9 +102,9 @@ class Main
 			'dutchAddressLookup' => vsprintf('%s?action=%s&parameters=', [admin_url('admin-ajax.php'), Proxy::AJAX_DUTCH_ADDRESS_LOOKUP]),
 			'supportedCountries' => $this->_options->getSupportedCountries(),
 			'netherlandsPostcodeOnly' => $this->_options->netherlandsPostcodeOnly,
-			'postcodeOnlyLabel' => __('Postcode and house number', static::TEXT_DOMAIN),
+			'postcodeOnlyLabel' => __('Postcode and house number', 'postcodenl-address-autocomplete'),
 			'postcodeOnlyPlaceholder' => '1234AB 1',
-			'postcodeOnlyInputHint' => __('Enter a postcode and house number.', static::TEXT_DOMAIN),
+			'postcodeOnlyInputHint' => __('Enter a postcode and house number.', 'postcodenl-address-autocomplete'),
 		];
 
 		vprintf(
@@ -143,8 +141,8 @@ class Main
 				<p>%s</p>
 			</div>',
 				[
-					__('Postcode.nl Address Autocomplete: WooCommerce is required', static::TEXT_DOMAIN),
-					__('Postcode.nl Address Autocomplete requires the WooCommerce plugin to be activated to be able to add address autocomplete to the checkout form.', static::TEXT_DOMAIN),
+					__('Postcode.nl Address Autocomplete: WooCommerce is required', 'postcodenl-address-autocomplete'),
+					__('Postcode.nl Address Autocomplete requires the WooCommerce plugin to be activated to be able to add address autocomplete to the checkout form.', 'postcodenl-address-autocomplete'),
 				]
 			);
 		}
@@ -164,9 +162,9 @@ class Main
 				<p>%s</p>
 			</div>',
 				[
-					__('Postcode.nl Address Autocomplete: Set your credentials', static::TEXT_DOMAIN),
+					__('Postcode.nl Address Autocomplete: Set your credentials', 'postcodenl-address-autocomplete'),
 					vsprintf(
-						__('Please set your Postcode.nl API key and secret in <a href="%s">the options</a> to start using the Autocomplete in your WooCommerce checkout.', static::TEXT_DOMAIN),
+						__('Please set your Postcode.nl API key and secret in <a href="%s">the options</a> to start using the Autocomplete in your WooCommerce checkout.', 'postcodenl-address-autocomplete'),
 						[menu_page_url(Options::MENU_SLUG, false)]
 					),
 				]
@@ -186,7 +184,7 @@ class Main
 				<p>%s</p>
 			</div>',
 			[
-				sprintf(__('Postcode.nl Address Autocomplete: Your API account is %s', static::TEXT_DOMAIN), $this->_options->getApiStatusDescription()),
+				sprintf(__('Postcode.nl Address Autocomplete: Your API account is %s', 'postcodenl-address-autocomplete'), $this->_options->getApiStatusDescription()),
 				$this->_options->getApiStatusHint(),
 			]
 		);

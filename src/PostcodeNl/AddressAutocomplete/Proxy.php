@@ -78,7 +78,7 @@ class Proxy
 		}
 		catch (NotFoundException $e)
 		{
-			$result = ['error' => true, 'message' => __('Unknown postcode and house number combination, make sure your input is correct.', Main::TEXT_DOMAIN)];
+			$result = ['error' => true, 'message' => __('Unknown postcode and house number combination, make sure your input is correct.', 'postcodenl-address-autocomplete')];
 		}
 		$this->_outputJsonResponse($result);
 	}

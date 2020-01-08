@@ -856,7 +856,7 @@ var PostcodeNl = PostcodeNl || {};
 
 					case KEY_TAB:
 					case KEY_ENTER:
-						if (menu.hasFocus)
+						if (menu.isOpen)
 						{
 							menu.select();
 							e.preventDefault();

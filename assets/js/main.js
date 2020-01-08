@@ -21,6 +21,11 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 
 		let addressContainer = autocompleteContainer.parent().parent();
 		let autocompleteIsDestroyed = false;
+		jQuery('input[name$="_address_1"], input[name$="_postcode"], input[name$="_city"], input[name$="_street_name"], input[name$="_house_number"], input[name$="_house_number_suffix"]')
+			.on('input', function() {
+				queryElement.value = '';
+			}
+		);
 
 		let createAutocomplete = function(queryElement) {
 			return new PostcodeNl.AutocompleteAddress(queryElement, {

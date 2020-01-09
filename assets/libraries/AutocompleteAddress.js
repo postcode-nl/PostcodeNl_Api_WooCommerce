@@ -858,7 +858,10 @@ var PostcodeNl = PostcodeNl || {};
 					case KEY_ENTER:
 						if (menu.isOpen)
 						{
-							menu.select();
+							if (menu.hasFocus)
+							{
+								menu.select();
+							}
 							e.preventDefault();
 						}
 						break;

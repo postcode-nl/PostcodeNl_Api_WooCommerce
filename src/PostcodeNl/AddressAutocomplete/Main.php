@@ -60,6 +60,11 @@ class Main
 
 	public function addressFields(array $fields): array
 	{
+		if (!$this->_options->hasKeyAndSecret())
+		{
+			return $fields;
+		}
+
 		$fields['postcodeNl_address_autocomplete'] = [
 			'type' => 'text',
 			'label' => __('Autocomplete address', 'postcodenl-address-autocomplete'),
@@ -99,6 +104,11 @@ class Main
 
 	public function afterCheckoutForm(): void
 	{
+		if (!$this->_options->hasKeyAndSecret())
+		{
+			return;
+		}
+
 		$settings = [
 			'autocomplete' => vsprintf('%s?action=%s&parameters=', [admin_url('admin-ajax.php'), Proxy::AJAX_AUTOCOMPLETE]),
 			'getDetails' => vsprintf('%s?action=%s&parameters=', [admin_url('admin-ajax.php'), Proxy::AJAX_GET_DETAILS]),

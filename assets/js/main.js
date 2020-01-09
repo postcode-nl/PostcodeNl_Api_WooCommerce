@@ -11,6 +11,11 @@ jQuery(document).ready(function() {
 const PostcodeNlAddressAutocomplete = {};
 
 PostcodeNlAddressAutocomplete.initialize = function() {
+	if (typeof PostcodeNlAddressAutocompleteSettings === undefined)
+	{
+		return;
+	}
+
 	jQuery('.postcodenl-address-autocomplete').each(function() {
 		let autocompleteContainer = jQuery(this);
 		let queryElement = this.querySelector('.input-text');

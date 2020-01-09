@@ -54,7 +54,7 @@ PostcodeNlDutchAddressLookup.checkPostcode = function() {
 	if (!addressData || addressData.length < 3)
 	{
 		// No postcode and house number found
-		if (query.length > 7)
+		if (query.length > 7 || !input.is(':focus'))
 		{
 			PostcodeNlDutchAddressLookup.clearWarnings();
 			input.after('<span class="postcodenl-address-autocomplete-warning">' + PostcodeNlAddressAutocompleteSettings.postcodeOnlyInputHint + '</span>');

@@ -7,8 +7,6 @@ defined('ABSPATH') || exit;
 use PostcodeNl\AddressAutocomplete\Exception\Exception;
 use PostcodeNl\InternationalAutocomplete\Client;
 use PostcodeNl\InternationalAutocomplete\Exception\NotFoundException;
-use function count;
-use function explode;
 
 class Proxy
 {

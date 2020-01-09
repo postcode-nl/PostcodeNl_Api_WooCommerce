@@ -1,13 +1,9 @@
 <?php
 
-
 namespace PostcodeNl\AddressAutocomplete;
 
 use PostcodeNl\AddressAutocomplete\Exception\Exception;
 use PostcodeNl\InternationalAutocomplete\Exception\ClientException;
-use function htmlspecialchars;
-use function str_replace;
-use function vsprintf;
 
 defined('ABSPATH') || exit;
 

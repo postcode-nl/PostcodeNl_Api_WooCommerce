@@ -855,13 +855,22 @@ var PostcodeNl = PostcodeNl || {};
 						break;
 
 					case KEY_TAB:
-					case KEY_ENTER:
-						if (menu.isOpen)
+						if (menu.hasFocus)
 						{
-							if (menu.hasFocus)
-							{
-								menu.select();
-							}
+							menu.select();
+							e.preventDefault();
+						}
+						break;
+
+					case KEY_ENTER:
+						if (menu.hasFocus)
+						{
+							menu.select();
+							e.preventDefault();
+						}
+						else if (menu.isOpen)
+						{
+							menu.close();
 							e.preventDefault();
 						}
 						break;

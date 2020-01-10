@@ -11,7 +11,7 @@ jQuery(document).ready(function() {
 const PostcodeNlAddressAutocomplete = {};
 
 PostcodeNlAddressAutocomplete.initialize = function() {
-	if (typeof PostcodeNlAddressAutocompleteSettings === undefined)
+	if (typeof PostcodeNlAddressAutocompleteSettings === "undefined")
 	{
 		return;
 	}

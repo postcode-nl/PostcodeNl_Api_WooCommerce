@@ -24,7 +24,7 @@ class Proxy
 	{
 		$identifiers = [
 			'WordPress/' . get_bloginfo('version'),
-			'PostcodeNl-WooCommerce/1.0',
+			'PostcodeNl-WooCommerce/' . Main::VERSION,
 		];
 		$this->_client = new Client($apiKey, $apiSecret, implode(' ', $identifiers));
 

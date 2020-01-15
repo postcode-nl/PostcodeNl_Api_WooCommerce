@@ -86,6 +86,12 @@ class Proxy
 		return $this->_client;
 	}
 
+	/**
+	 * Get parsed parameters.
+	 *
+	 * @param int $expectedParameters The expected number of GET parameters, an error is thrown if this is not equal to the actual number.
+	 * @return array An array of parsed parameters, stripped of added slashes.
+	 */
 	protected function _getParameters(int $expectedParameters): array
 	{
 		$parts = explode('/', \trim($_GET['parameters'] ?? '', '/'));
@@ -94,6 +100,7 @@ class Proxy
 			throw new Exception('Invalid number of parameters provided.');
 		}
 
+		$parts = array_map('stripslashes', $parts);
 		return $parts;
 	}
 

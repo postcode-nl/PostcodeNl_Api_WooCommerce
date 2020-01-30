@@ -99,13 +99,13 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 		queryElement.addEventListener('autocomplete-select', function (event) {
 			if (event.detail.precision === 'Address') {
 				autocomplete.getDetails(event.detail.context, function (result) {
-					addressContainer.find('input[name$="_address_1"]').val(result.address.street + ' ' + result.address.building);
+					addressContainer.find('input[name$="_address_1"]').val(result.address.street);
 					addressContainer.find('input[name$="_postcode"]').val(result.address.postcode);
 					addressContainer.find('input[name$="_city"]').val(result.address.locality);
 					// Support for other address fields if available
 					addressContainer.find('input[name$="_street_name"]').val(result.address.street);
 					addressContainer.find('input[name$="_house_number"]').val(result.address.buildingNumber);
-					addressContainer.find('input[name$="_house_number_suffix"]').val(result.address.buildingNumberAddition ? result.address.buildingNumberAddition : '');
+					addressContainer.find('input[name$="_address_2"]').val(result.address.buildingNumberAddition ? result.address.buildingNumberAddition : '');
 
 					// Force WooCommerce to recalculate shipping costs after address change
 					jQuery(document.body).trigger('update_checkout');

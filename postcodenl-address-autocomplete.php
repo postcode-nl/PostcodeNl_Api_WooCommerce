@@ -3,7 +3,7 @@
  * Plugin Name: Postcode.nl Address Autocomplete
  * Plugin URI: https://www.postcode.nl/en/services/adresdata/implementatie
  * Description: Reference implementation for Postcode.nl international address autocomplete for WooCommerce
- * Version: 1.0.4
+ * Version: 1.0.5
  * Author: Postcode.nl
  * Author URI: https://www.postcode.nl
  * Text Domain: postcodenl-address-autocomplete
@@ -11,7 +11,7 @@
  * Requires PHP: 7.3.0
  *
  * WC requires at least: 3.7.0
- * WC tested up to: 3.8
+ * WC tested up to: 3.9
  */
 
 use PostcodeNl\AddressAutocomplete\Main;

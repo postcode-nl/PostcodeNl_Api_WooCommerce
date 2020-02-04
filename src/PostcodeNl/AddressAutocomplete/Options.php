@@ -22,6 +22,9 @@ class Options
 	protected const NETHERLANDS_MODE_DEFAULT = 'default';
 	protected const NETHERLANDS_MODE_POSTCODE_ONLY = 'postcodeOnly';
 
+	protected const FORM_ACTION_NAME = self::FORM_NAME_PREFIX . 'submit';
+	protected const FORM_ACTION_NONCE_NAME = self::FORM_NAME_PREFIX . 'nonce';
+
 	public $apiKey = '';
 	public $apiSecret = '';
 	/** @var bool Indication whether to use the international API for the Netherlands or the Dutch address Api which only accepts postcode and house number combinations. */
@@ -58,8 +61,7 @@ class Options
 			return;
 		}
 
-		$submitName = static::FORM_NAME_PREFIX . 'submit';
-		if (isset($_POST[$submitName]))
+		if (isset($_POST[static::FORM_ACTION_NAME]))
 		{
 			$this->_handleSubmit();
 		}
@@ -67,6 +69,8 @@ class Options
 		$markup = '<div class="wrap">';
 		$markup .= vsprintf('<h2>%s</h2>', [__('Postcode.nl Address Autocomplete options', 'postcodenl-address-autocomplete')]);
 		$markup .= '<form method="post" action="">';
+		$markup .= wp_nonce_field(static::FORM_ACTION_NAME, static::FORM_ACTION_NONCE_NAME, true, false);
+
 		$markup .= '<table class="form-table">';
 
 		$markup .= $this->_getInputRow(
@@ -97,7 +101,7 @@ class Options
 		$markup .= '</table>';
 		$markup .= vsprintf(
 			'<p class="submit"><input type="submit" name="%s" id="submit" class="button button-primary" value="%s"></p>',
-			[$submitName, __('Save changes', 'postcodenl-address-autocomplete')]
+			[static::FORM_ACTION_NAME, __('Save changes', 'postcodenl-address-autocomplete')]
 		);
 		$markup .= '</form>';
 
@@ -238,12 +242,16 @@ class Options
 			$id,
 			$label,
 			$formElement,
-			$description !== null ? vsprintf('<p class="description">%s</p>', [$description]) : '',
+			$description !== null ? vsprintf('<p class="description">%s</p>', [$description]) : ''
 		);
 	}
 
 	protected function _handleSubmit(): void
 	{
+		if (!isset($_POST[static::FORM_ACTION_NONCE_NAME]) || !wp_verify_nonce($_POST[static::FORM_ACTION_NONCE_NAME], static::FORM_ACTION_NAME)) {
+			return;
+		}
+
 		$options = Main::getInstance()->getOptions();
 		$existingKey = $options->apiKey;
 		$existingSecret = $options->apiSecret;

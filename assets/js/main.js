@@ -26,11 +26,15 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 
 		let addressContainer = autocompleteContainer.parent().parent();
 		let autocompleteIsDestroyed = false;
-		jQuery('input[name$="_address_1"], input[name$="_postcode"], input[name$="_city"], input[name$="_street_name"], input[name$="_house_number"], input[name$="_house_number_suffix"]')
-			.on('input', function() {
-				queryElement.value = '';
-			}
-		);
+		let mappingFields = Object.getOwnPropertyNames(PostcodeNlAddressFieldMapping.mapping);
+		if (mappingFields.length > 0)
+		{
+			jQuery('input[name$="' + mappingFields.join('"], input[name$="') + '"]')
+				.on('input', function() {
+					queryElement.value = '';
+				}
+			);
+		}
 
 		let createAutocomplete = function(queryElement) {
 			return new PostcodeNl.AutocompleteAddress(queryElement, {
@@ -97,20 +101,49 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 		}
 
 		queryElement.addEventListener('autocomplete-select', function (event) {
-			if (event.detail.precision === 'Address') {
-				autocomplete.getDetails(event.detail.context, function (result) {
-					addressContainer.find('input[name$="_address_1"]').val(result.address.street + ' ' + result.address.building);
-					addressContainer.find('input[name$="_postcode"]').val(result.address.postcode);
-					addressContainer.find('input[name$="_city"]').val(result.address.locality);
-					// Support for other address fields if available
-					addressContainer.find('input[name$="_street_name"]').val(result.address.street);
-					addressContainer.find('input[name$="_house_number"]').val(result.address.buildingNumber);
-					addressContainer.find('input[name$="_house_number_suffix"]').val(result.address.buildingNumberAddition ? result.address.buildingNumberAddition : '');
-
-					// Force WooCommerce to recalculate shipping costs after address change
-					jQuery(document.body).trigger('update_checkout');
-				});
+			if (event.detail.precision !== 'Address')
+			{
+				return;
 			}
+			autocomplete.getDetails(event.detail.context, function (result) {
+				for (let fieldName in PostcodeNlAddressFieldMapping.mapping)
+				{
+					if (!PostcodeNlAddressFieldMapping.mapping.hasOwnProperty(fieldName))
+					{
+						continue;
+					}
+
+					let addressPart = PostcodeNlAddressFieldMapping.mapping[fieldName];
+					let value;
+					switch (addressPart) {
+						case PostcodeNlAddressFieldMapping.street:
+							value = result.address.street;
+							break;
+						case PostcodeNlAddressFieldMapping.houseNumber:
+							value = result.address.buildingNumber;
+							break;
+						case PostcodeNlAddressFieldMapping.houseNumberAddition:
+							value = result.address.buildingNumberAddition ? result.address.buildingNumberAddition : '';
+							break;
+						case PostcodeNlAddressFieldMapping.postcode:
+							value = result.address.postcode;
+							break;
+						case PostcodeNlAddressFieldMapping.city:
+							value = result.address.locality;
+							break;
+						case PostcodeNlAddressFieldMapping.streetAndHouseNumber:
+							value = result.address.street + ' ' + result.address.building;
+							break;
+						case PostcodeNlAddressFieldMapping.houseNumberAndAddition:
+							value = result.address.building;
+							break;
+					}
+					addressContainer.find('input[name$="' + fieldName + '"]').val(value);
+				}
+
+				// Force WooCommerce to recalculate shipping costs after address change
+				jQuery(document.body).trigger('update_checkout');
+			});
 		});
 
 		queryElement.setAttribute('data-autocomplete-initialized', '1');

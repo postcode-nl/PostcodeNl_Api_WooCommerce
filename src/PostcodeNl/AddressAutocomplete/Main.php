@@ -98,7 +98,8 @@ class Main
 		wp_enqueue_style('postcodenl-address-autocomplete', plugins_url('../../../', __FILE__) . 'assets/css/style.css', ['postcodeNlAutocompleteAddress'], static::VERSION);
 
 		wp_enqueue_script('postcodeNlAutocompleteAddress', plugins_url('../../../', __FILE__) . 'assets/libraries/AutocompleteAddress.js', [],static::VERSION, true);
-		wp_enqueue_script('postcodenl-address-autocomplete', plugins_url('../../../', __FILE__) . 'assets/js/main.js', ['postcodeNlAutocompleteAddress', 'jquery'], static::VERSION, true);
+		wp_enqueue_script('postcodenl-field-mapping', plugins_url('../../../', __FILE__) . 'assets/js/addressFieldMapping.js', [], static::VERSION, true);
+		wp_enqueue_script('postcodenl-address-autocomplete', plugins_url('../../../', __FILE__) . 'assets/js/main.js', ['postcodeNlAutocompleteAddress', 'postcodenl-field-mapping', 'jquery'], static::VERSION, true);
 		wp_enqueue_script('postcodenl-address-autocomplete-dutch-address-lookup', plugins_url('../../../', __FILE__) . 'assets/js/dutchAddressLookup.js', ['postcodenl-address-autocomplete'], static::VERSION, true);
 	}
 

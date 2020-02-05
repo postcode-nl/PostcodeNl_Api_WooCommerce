@@ -74,13 +74,41 @@ PostcodeNlDutchAddressLookup.checkPostcode = function() {
 			input.after('<span class="postcodenl-address-autocomplete-warning">' + response.message + '</span>');
 			return;
 		}
-		addressContainer.find('input[name$="_address_1"]').val(response.street + ' ' + response.houseNumber + (' ' + (response.houseNumberAddition ? response.houseNumberAddition : '')).trim());
-		addressContainer.find('input[name$="_postcode"]').val(response.postcode);
-		addressContainer.find('input[name$="_city"]').val(response.city);
-		// Support for other address fields if available
-		addressContainer.find('input[name$="_street_name"]').val(response.street);
-		addressContainer.find('input[name$="_house_number"]').val(response.houseNumber);
-		addressContainer.find('input[name$="_house_number_suffix"]').val(response.houseNumberAddition ? response.houseNumberAddition : '');
+
+		for (let fieldName in PostcodeNlAddressFieldMapping.mapping)
+		{
+			if (!PostcodeNlAddressFieldMapping.mapping.hasOwnProperty(fieldName))
+			{
+				continue;
+			}
+
+			let addressPart = PostcodeNlAddressFieldMapping.mapping[fieldName];
+			let value;
+			switch (addressPart) {
+				case PostcodeNlAddressFieldMapping.street:
+					value = response.street;
+					break;
+				case PostcodeNlAddressFieldMapping.houseNumber:
+					value = response.houseNumber;
+					break;
+				case PostcodeNlAddressFieldMapping.houseNumberAddition:
+					value = response.houseNumberAddition ? response.houseNumberAddition : '';
+					break;
+				case PostcodeNlAddressFieldMapping.postcode:
+					value = response.postcode;
+					break;
+				case PostcodeNlAddressFieldMapping.city:
+					value = response.city;
+					break;
+				case PostcodeNlAddressFieldMapping.streetAndHouseNumber:
+					value = response.street + ' ' + response.houseNumber + (' ' + (response.houseNumberAddition ? response.houseNumberAddition : '')).trim();
+					break;
+				case PostcodeNlAddressFieldMapping.houseNumberAndAddition:
+					value = response.houseNumber + (' ' + (response.houseNumberAddition ? response.houseNumberAddition : '')).trim();
+					break;
+			}
+			addressContainer.find('input[name$="' + fieldName + '"]').val(value);
+		}
 
 		// Force WooCommerce to recalculate shipping costs after address change
 		jQuery(document.body).trigger('update_checkout');

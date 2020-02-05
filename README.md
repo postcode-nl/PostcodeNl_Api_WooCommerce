@@ -6,6 +6,13 @@ Adds autocompletion for addresses to the checkout page. Multiple countries are s
 This module has been created by [Postcode.nl](https://postcode.nl).
 
 
+Postcode.nl Account
+=============
+
+A [Postcode.nl account](https://www.postcode.nl/en/services/adresdata/producten-overzicht) is required.
+Testing is free. After testing you can choose to purchase a subscription. 
+
+
 How to install
 =============
 
@@ -41,12 +48,6 @@ PostcodeNlAddressFieldMapping.mapping = {
 };
 ```
 To use this mapping replace `PostcodeNlAddressFieldMapping.mapping = {...};` with the code above.
-
-Postcode.nl Account
-=============
-
-A [Postcode.nl account](https://www.postcode.nl/en/services/adresdata/producten-overzicht) is required.
-Testing is free. After testing you can choose to purchase a subscription. 
 
 
 License

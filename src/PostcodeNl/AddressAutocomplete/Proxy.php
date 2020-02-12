@@ -27,13 +27,11 @@ class Proxy
 			'PostcodeNl-WooCommerce/' . Main::VERSION,
 		];
 		$this->_client = new Client($apiKey, $apiSecret, implode(' ', $identifiers));
-
-		$sessionHeaderKey = str_replace('-', '_', strtoupper(Client::SESSION_HEADER_KEY));
-		$this->_session = $_SERVER[$sessionHeaderKey];
 	}
 
 	public function autocomplete(): void
 	{
+		$this->_populateSession();
 		[$context, $term] = $this->_getParameters(2);
 
 		$result = $this->_client->internationalAutocomplete($context, $term, $this->_session);
@@ -42,6 +40,7 @@ class Proxy
 
 	public function getDetails(): void
 	{
+		$this->_populateSession();
 		[$context] = $this->_getParameters(1);
 
 		$result = $this->_client->internationalGetDetails($context, $this->_session);
@@ -116,5 +115,15 @@ class Proxy
 		}
 
 		header('Cache-Control: ' . implode(',', $apiResponseHeaders['cache-control']));
+	}
+
+	protected function _populateSession(): void
+	{
+		$sessionHeaderKey = 'HTTP_' . str_replace('-', '_', strtoupper(Client::SESSION_HEADER_KEY));
+		if (!isset($_SERVER[$sessionHeaderKey]))
+		{
+			throw new Exception(sprintf('Missing HTTP session header `%s`.', Client::SESSION_HEADER_KEY));
+		}
+		$this->_session = $_SERVER[$sessionHeaderKey];
 	}
 }

@@ -28,17 +28,8 @@ class Proxy
 		];
 		$this->_client = new Client($apiKey, $apiSecret, implode(' ', $identifiers));
 
-		$headers = getallheaders();
-		foreach ($headers as $name => $value)
-		{
-			if (strcasecmp(Client::SESSION_HEADER_KEY, $name) !== 0)
-			{
-				continue;
-			}
-
-			$this->_session = $value;
-			break;
-		}
+		$sessionHeaderKey = str_replace('-', '_', strtoupper(Client::SESSION_HEADER_KEY));
+		$this->_session = $_SERVER[$sessionHeaderKey];
 	}
 
 	public function autocomplete(): void

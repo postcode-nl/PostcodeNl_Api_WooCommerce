@@ -6,7 +6,15 @@ defined('ABSPATH') || exit;
 
 use PostcodeNl\AddressAutocomplete\Exception\Exception;
 use PostcodeNl\InternationalAutocomplete\Client;
+use PostcodeNl\InternationalAutocomplete\Exception\AuthenticationException;
+use PostcodeNl\InternationalAutocomplete\Exception\ClientException;
+use PostcodeNl\InternationalAutocomplete\Exception\CurlNotLoadedException;
+use PostcodeNl\InternationalAutocomplete\Exception\ForbiddenException;
+use PostcodeNl\InternationalAutocomplete\Exception\InvalidSessionValueException;
 use PostcodeNl\InternationalAutocomplete\Exception\NotFoundException;
+use PostcodeNl\InternationalAutocomplete\Exception\ServerUnavailableException;
+use PostcodeNl\InternationalAutocomplete\Exception\TooManyRequestsException;
+use PostcodeNl\InternationalAutocomplete\Exception\UnexpectedException;
 
 class Proxy
 {
@@ -34,7 +42,15 @@ class Proxy
 		$this->_populateSession();
 		[$context, $term] = $this->_getParameters(2);
 
-		$result = $this->_client->internationalAutocomplete($context, $term, $this->_session);
+		try
+		{
+			$result = $this->_client->internationalAutocomplete($context, $term, $this->_session);
+		}
+		catch (ClientException $e)
+		{
+			$result = $this->_logException($e);
+			http_send_status(500);
+		}
 		$this->_outputJsonResponse($result);
 	}
 
@@ -43,7 +59,15 @@ class Proxy
 		$this->_populateSession();
 		[$context] = $this->_getParameters(1);
 
-		$result = $this->_client->internationalGetDetails($context, $this->_session);
+		try
+		{
+			$result = $this->_client->internationalGetDetails($context, $this->_session);
+		}
+		catch (ClientException $e)
+		{
+			$result = $this->_logException($e);
+			http_send_status(500);
+		}
 		$this->_outputJsonResponse($result);
 	}
 
@@ -125,5 +149,42 @@ class Proxy
 			throw new Exception(sprintf('Missing HTTP session header `%s`.', Client::SESSION_HEADER_KEY));
 		}
 		$this->_session = $_SERVER[$sessionHeaderKey];
+	}
+
+	protected function _logException(ClientException $e): array
+	{
+		/** @var \WC_Logger $logger */
+		$logger = wc_get_logger();
+
+		$wooCommerceErrorContext = [
+			'source' => 'PostcodeNl-WooCommerce-' . Main::VERSION,
+			'exception' => get_class($e),
+			'stackTrace' => $e->getTraceAsString(),
+		];
+
+		switch (get_class($e))
+		{
+			case CurlNotLoadedException::class:
+				$logger->emergency($e->getMessage(), $wooCommerceErrorContext);
+				break;
+			case AuthenticationException::class:
+			case ForbiddenException::class:
+				$logger->alert($e->getMessage(), $wooCommerceErrorContext);
+				break;
+			case InvalidSessionValueException::class:
+			case NotFoundException::class:
+				$logger->critical($e->getMessage(), $wooCommerceErrorContext);
+				break;
+			case TooManyRequestsException::class:
+			case ServerUnavailableException::class:
+			case UnexpectedException::class:
+				$logger->error($e->getMessage(), $wooCommerceErrorContext);
+				break;
+			default:
+				// Throw any other exceptions
+				throw $e;
+		}
+
+		return ['error' => $e->getMessage()];
 	}
 }

@@ -48,8 +48,7 @@ class Proxy
 		}
 		catch (ClientException $e)
 		{
-			$result = $this->_logException($e);
-			http_send_status(500);
+			$this->_errorResponse($this->_logException($e));
 		}
 		$this->_outputJsonResponse($result);
 	}
@@ -65,8 +64,7 @@ class Proxy
 		}
 		catch (ClientException $e)
 		{
-			$result = $this->_logException($e);
-			http_send_status(500);
+			$this->_errorResponse($this->_logException($e));
 		}
 		$this->_outputJsonResponse($result);
 	}
@@ -76,23 +74,27 @@ class Proxy
 		[$postcode, $houseNumberAndAddition] = $this->_getParameters(2);
 		if (!preg_match('/(?<houseNumber>\d+)\s?(?<addition>.*)/', $houseNumberAndAddition, $matches))
 		{
-			throw new Exception('House number could not be parsed.');
+			$this->_errorResponse($this->_logException(new Exception('House number could not be parsed.')));
 		}
 		$houseNumber = $matches['houseNumber'] ?? null;
 		if ($houseNumber === null)
 		{
-			throw new Exception('Missing house number.');
+			$this->_errorResponse($this->_logException(new Exception('Missing house number.')));
 		}
 		$houseNumberAddition = $matches['addition'] ?? null;
+
 		try
 		{
-			$result = $this->_client->dutchAddressByPostcode($postcode, (int) $houseNumber, $houseNumberAddition);
+			$this->_outputJsonResponse($this->_client->dutchAddressByPostcode($postcode, (int) $houseNumber, $houseNumberAddition));
 		}
 		catch (NotFoundException $e)
 		{
-			$result = ['error' => true, 'message' => __('Unknown postcode and house number combination, make sure your input is correct.', 'postcodenl-address-autocomplete')];
+			$this->_errorResponse(['error' => true, 'message' => __('Unknown postcode and house number combination, make sure your input is correct.', 'postcodenl-address-autocomplete')]);
 		}
-		$this->_outputJsonResponse($result);
+		catch (ClientException $e)
+		{
+			$this->_errorResponse($this->_logException($e));
+		}
 	}
 
 	public function getClient(): Client
@@ -151,7 +153,7 @@ class Proxy
 		$this->_session = $_SERVER[$sessionHeaderKey];
 	}
 
-	protected function _logException(ClientException $e): array
+	protected function _logException(\Exception $e): array
 	{
 		/** @var \WC_Logger $logger */
 		$logger = wc_get_logger();
@@ -180,11 +182,19 @@ class Proxy
 			case UnexpectedException::class:
 				$logger->error($e->getMessage(), $wooCommerceErrorContext);
 				break;
+			case Exception::class:
+				$logger->warning($e->getMessage(), $wooCommerceErrorContext);
+				break;
 			default:
 				// Throw any other exceptions
 				throw $e;
 		}
 
-		return ['error' => $e->getMessage()];
+		return ['error' => true, 'message' => $e->getMessage()];
+	}
+
+	protected function _errorResponse(array $response): void
+	{
+		wp_die(json_encode($response), 500);
 	}
 }

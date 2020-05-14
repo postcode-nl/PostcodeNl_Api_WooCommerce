@@ -69,11 +69,6 @@ PostcodeNlDutchAddressLookup.checkPostcode = function() {
 	jQuery.get(PostcodeNlAddressAutocompleteSettings.dutchAddressLookup + postcode + '/' + houseNumber, function(response) {
 		input.removeClass('postcodenl-address-autocomplete-loading');
 		PostcodeNlDutchAddressLookup.clearWarnings();
-		if (response.error)
-		{
-			input.after('<span class="postcodenl-address-autocomplete-warning">' + response.message + '</span>');
-			return;
-		}
 
 		for (let fieldName in PostcodeNlAddressFieldMapping.mapping)
 		{
@@ -112,8 +107,12 @@ PostcodeNlDutchAddressLookup.checkPostcode = function() {
 
 		// Force WooCommerce to recalculate shipping costs after address change
 		jQuery(document.body).trigger('update_checkout');
-	}).fail(function() {
+	}).fail(function(response) {
 		input.removeClass('postcodenl-address-autocomplete-loading');
+		let data = JSON.parse(response.responseText);
+
+		PostcodeNlDutchAddressLookup.clearWarnings();
+		input.after('<span class="postcodenl-address-autocomplete-warning">' + data.message + '</span>');
 	});
 };
 

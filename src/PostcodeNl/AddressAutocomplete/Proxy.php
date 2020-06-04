@@ -5,16 +5,16 @@ namespace PostcodeNl\AddressAutocomplete;
 defined('ABSPATH') || exit;
 
 use PostcodeNl\AddressAutocomplete\Exception\Exception;
-use PostcodeNl\InternationalAutocomplete\Client;
-use PostcodeNl\InternationalAutocomplete\Exception\AuthenticationException;
-use PostcodeNl\InternationalAutocomplete\Exception\ClientException;
-use PostcodeNl\InternationalAutocomplete\Exception\CurlNotLoadedException;
-use PostcodeNl\InternationalAutocomplete\Exception\ForbiddenException;
-use PostcodeNl\InternationalAutocomplete\Exception\InvalidSessionValueException;
-use PostcodeNl\InternationalAutocomplete\Exception\NotFoundException;
-use PostcodeNl\InternationalAutocomplete\Exception\ServerUnavailableException;
-use PostcodeNl\InternationalAutocomplete\Exception\TooManyRequestsException;
-use PostcodeNl\InternationalAutocomplete\Exception\UnexpectedException;
+use PostcodeNl\Api\Client;
+use PostcodeNl\Api\Exception\AuthenticationException;
+use PostcodeNl\Api\Exception\ClientException;
+use PostcodeNl\Api\Exception\CurlNotLoadedException;
+use PostcodeNl\Api\Exception\ForbiddenException;
+use PostcodeNl\Api\Exception\InvalidSessionValueException;
+use PostcodeNl\Api\Exception\NotFoundException;
+use PostcodeNl\Api\Exception\ServerUnavailableException;
+use PostcodeNl\Api\Exception\TooManyRequestsException;
+use PostcodeNl\Api\Exception\UnexpectedException;
 
 class Proxy
 {

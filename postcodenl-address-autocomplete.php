@@ -19,14 +19,16 @@ use PostcodeNl\AddressAutocomplete\Main;
 defined('ABSPATH') || exit;
 
 spl_autoload_register(static function(string $className) {
-	if (strpos($className, 'PostcodeNl\\InternationalAutocomplete\\') === 0) {
+	if (strpos($className, 'PostcodeNl\\Api\\') === 0)
+	{
 		/** @noinspection PhpIncludeInspection */
-		require_once plugin_dir_path(__FILE__) . 'libraries/' . str_replace('\\', '/', $className) . '.php';
+		require_once plugin_dir_path(__FILE__) . 'libraries/PostcodeNl_Api_Client/src/' . str_replace('\\', '/', $className) . '.php';
 
 		return;
 	}
 
-	if (strpos($className, 'PostcodeNl\\AddressAutocomplete\\') !== 0) {
+	if (strpos($className, 'PostcodeNl\\AddressAutocomplete\\') !== 0)
+	{
 		return;
 	}
 

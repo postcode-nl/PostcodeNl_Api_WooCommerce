@@ -11,7 +11,7 @@
  * Requires PHP: 7.3.0
  *
  * WC requires at least: 3.7.0
- * WC tested up to: 4.1
+ * WC tested up to: 4.2
  */
 
 use PostcodeNl\AddressAutocomplete\Main;

@@ -3,7 +3,7 @@
 namespace PostcodeNl\AddressAutocomplete;
 
 use PostcodeNl\AddressAutocomplete\Exception\Exception;
-use PostcodeNl\InternationalAutocomplete\Exception\ClientException;
+use PostcodeNl\Api\Exception\ClientException;
 
 defined('ABSPATH') || exit;
 

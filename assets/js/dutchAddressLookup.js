@@ -102,7 +102,10 @@ PostcodeNlDutchAddressLookup.checkPostcode = function() {
 					value = response.houseNumber + (' ' + (response.houseNumberAddition ? response.houseNumberAddition : '')).trim();
 					break;
 			}
-			addressContainer.find('input[name$="' + fieldName + '"]').val(value);
+			addressContainer
+				.find('input[name$="' + fieldName + '"]')
+				.val(value)
+				.trigger('change');
 		}
 
 		// Force WooCommerce to recalculate shipping costs after address change

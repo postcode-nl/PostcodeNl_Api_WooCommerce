@@ -121,11 +121,11 @@ class Main
 			'postcodeOnlyInputHint' => __('Enter a postcode and house number.', 'postcodenl-address-autocomplete'),
 		];
 
-		vprintf(
+		printf(
 			'<script type="text/javascript">
 				const PostcodeNlAddressAutocompleteSettings = %s;
 			</script>',
-			[json_encode($settings)]
+			json_encode($settings)
 		);
 	}
 

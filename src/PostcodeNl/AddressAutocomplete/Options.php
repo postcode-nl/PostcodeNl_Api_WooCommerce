@@ -3,7 +3,8 @@
 namespace PostcodeNl\AddressAutocomplete;
 
 use PostcodeNl\AddressAutocomplete\Exception\Exception;
-use PostcodeNl\InternationalAutocomplete\Exception\ClientException;
+use PostcodeNl\Api\Exception\AuthenticationException;
+use PostcodeNl\Api\Exception\ClientException;
 
 defined('ABSPATH') || exit;
 
@@ -16,6 +17,7 @@ class Options
 	protected const REQUIRED_USER_CAPABILITY = 'activate_plugins';
 
 	protected const API_ACCOUNT_STATUS_NEW = 'new';
+	protected const API_ACCOUNT_STATUS_INVALID_CREDENTIALS = 'invalidCredentials';
 	protected const API_ACCOUNT_STATUS_INACTIVE = 'inactive';
 	protected const API_ACCOUNT_STATUS_ACTIVE = 'active';
 
@@ -163,6 +165,8 @@ class Options
 				return __('not connected', 'postcodenl-address-autocomplete');
 			case static::API_ACCOUNT_STATUS_ACTIVE:
 				return __('active', 'postcodenl-address-autocomplete');
+			case static::API_ACCOUNT_STATUS_INVALID_CREDENTIALS:
+				return __('invalid key and/or secret set', 'postcodenl-address-autocomplete');
 			case static::API_ACCOUNT_STATUS_INACTIVE:
 				return __('inactive', 'postcodenl-address-autocomplete');
 			default:
@@ -175,6 +179,7 @@ class Options
 		switch ($this->_apiAccountStatus)
 		{
 			case static::API_ACCOUNT_STATUS_NEW:
+			case static::API_ACCOUNT_STATUS_INVALID_CREDENTIALS:
 				return sprintf(__('Make sure you used the correct Postcode.nl API subscription key and secret in <a href="%s">the options page</a>.', 'postcodenl-address-autocomplete'), menu_page_url(static::MENU_SLUG, false));
 			case static::API_ACCOUNT_STATUS_ACTIVE:
 				return __('The Postcode.nl API is successfully connected.', 'postcodenl-address-autocomplete');
@@ -300,6 +305,11 @@ class Options
 					$this->_apiAccountStatus = static::API_ACCOUNT_STATUS_INACTIVE;
 				}
 				$this->_apiAccountName = $accountInformation['name'] ?? null;
+			}
+			catch (AuthenticationException $e)
+			{
+				$this->_apiAccountStatus = static::API_ACCOUNT_STATUS_INVALID_CREDENTIALS;
+				$this->_apiAccountName = null;
 			}
 			catch (ClientException $e)
 			{

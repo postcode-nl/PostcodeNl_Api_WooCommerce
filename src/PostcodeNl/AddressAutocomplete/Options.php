@@ -23,14 +23,25 @@ class Options
 
 	protected const NETHERLANDS_MODE_DEFAULT = 'default';
 	protected const NETHERLANDS_MODE_POSTCODE_ONLY = 'postcodeOnly';
+	protected const NETHERLANDS_MODE_POSTCODE_ONLY_SPLIT = 'postcodeOnlySplit';
+
+	protected const NETHERLANDS_MODE_DESCRIPTIONS = [
+		self::NETHERLANDS_MODE_DEFAULT => 'Full lookup (default)',
+		self::NETHERLANDS_MODE_POSTCODE_ONLY_SPLIT => 'Postcode only, separate postcode and house number input',
+		self::NETHERLANDS_MODE_POSTCODE_ONLY => 'Postcode only',
+	];
 
 	protected const FORM_ACTION_NAME = self::FORM_NAME_PREFIX . 'submit';
 	protected const FORM_ACTION_NONCE_NAME = self::FORM_NAME_PREFIX . 'nonce';
 
 	public $apiKey = '';
 	public $apiSecret = '';
-	/** @var bool Indication whether to use the international API for the Netherlands or the Dutch address Api which only accepts postcode and house number combinations. */
-	public $netherlandsPostcodeOnly = false;
+	/**
+	 * @var string With what kind of validation Dutch addresses should be validated,
+ 	 *             the options are the international API, legacy postcode and house number validation from 1 field
+	 *             or legacy postcode and house number in separate fields.
+	 */
+	public $netherlandsMode = self::NETHERLANDS_MODE_DEFAULT;
 
 	/** @var array */
 	protected $_supportedCountries;
@@ -47,7 +58,15 @@ class Options
 		$data = \get_option(static::OPTION_KEY, []);
 		$this->apiKey = $data['apiKey'] ?? '';
 		$this->apiSecret = $data['apiSecret'] ?? '';
-		$this->netherlandsPostcodeOnly = $data['netherlandsPostcodeOnly'] ?? '';
+		// Convert legacy option to new mode
+		if (isset($data['netherlandsPostcodeOnly']) && $data['netherlandsPostcodeOnly'])
+		{
+			$this->netherlandsMode = static::NETHERLANDS_MODE_DEFAULT;
+		}
+		else
+		{
+			$this->netherlandsMode = $data['netherlandsMode'] ?? self::NETHERLANDS_MODE_DEFAULT;
+		}
 		$this->_supportedCountries = json_decode($data['supportedCountries'] ?? 'NULL', true);
 		$supportedCountriesExpiration = $data['supportedCountriesExpiration'] ?? '';
 		$this->_supportedCountriesExpiration = $supportedCountriesExpiration === '' ? null : new \DateTime($supportedCountriesExpiration);
@@ -91,14 +110,11 @@ class Options
 		);
 		$markup .= $this->_getInputRow(
 			__('Dutch address lookup method', 'postcodenl-address-autocomplete'),
-			'netherlandsPostcodeOnly',
-			$this->netherlandsPostcodeOnly ? static::NETHERLANDS_MODE_POSTCODE_ONLY : static::NETHERLANDS_MODE_DEFAULT,
+			'netherlandsMode',
+			$this->netherlandsMode,
 			'select',
 			__('Which method to use for Dutch address lookups. Full lookup allows searching through city and street names, postcode only method only supports exact postcode and house number lookups but costs less per address. See <a href="https://www.postcode.nl/en/services/adresdata/producten-overzicht" target="_blank" rel="noopener">product pricing</a>.', 'postcodenl-address-autocomplete'),
-			[
-				static::NETHERLANDS_MODE_DEFAULT => 'Full lookup (default)',
-				static::NETHERLANDS_MODE_POSTCODE_ONLY => 'Postcode only',
-			]
+			static::NETHERLANDS_MODE_DESCRIPTIONS
 		);
 		$markup .= '</table>';
 		$markup .= vsprintf(
@@ -269,9 +285,16 @@ class Options
 			{
 				continue;
 			}
-			if ($option === 'netherlandsPostcodeOnly')
+			if ($option === 'netherlandsPostcodeMode')
 			{
-				$newValue = isset($_POST[$postName]) && $_POST[$postName] === static::NETHERLANDS_MODE_POSTCODE_ONLY;
+				if (isset($_POST[$postName]) && array_key_exists($_POST[$postName], static::NETHERLANDS_MODE_DESCRIPTIONS))
+				{
+					$newValue = $_POST[$postName];
+				}
+				else
+				{
+					$newValue = static::NETHERLANDS_MODE_DEFAULT;
+				}
 			}
 			else
 			{
@@ -326,7 +349,7 @@ class Options
 		return [
 			'apiKey' => $this->apiKey,
 			'apiSecret' => $this->apiSecret,
-			'netherlandsPostcodeOnly' => $this->netherlandsPostcodeOnly,
+			'netherlandsMode' => $this->netherlandsMode,
 			'supportedCountriesExpiration' => $this->_supportedCountriesExpiration === null ? '' : $this->_supportedCountriesExpiration->format('Y-m-d H:i:s'),
 			'supportedCountries' => json_encode($this->_supportedCountries),
 			'apiAccountStatus' => $this->_apiAccountStatus,

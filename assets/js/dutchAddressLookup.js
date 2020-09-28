@@ -1,5 +1,8 @@
 const PostcodeNlDutchAddressLookup = {};
 PostcodeNlDutchAddressLookup.lookupTimeout = -1;
+PostcodeNlDutchAddressLookup.houseNumberFieldId = 'postcodenl-netherlands-housenumber';
+PostcodeNlDutchAddressLookup.previousQuery = null;
+PostcodeNlDutchAddressLookup.postcodeHouseNumberRegex = /^([1-9][0-9]{3}\s?[a-z]{2})\s?(\d+.*)?/i;
 
 PostcodeNlDutchAddressLookup.shouldUsePostcodeOnlyLookup = function(countryCode) {
 	if (countryCode !== 'NLD')
@@ -7,11 +10,33 @@ PostcodeNlDutchAddressLookup.shouldUsePostcodeOnlyLookup = function(countryCode)
 		return false;
 	}
 
-	return PostcodeNlAddressAutocompleteSettings.netherlandsPostcodeOnly;
+	return PostcodeNlAddressAutocompleteSettings.netherlandsMode !== 'default';
 };
 
 PostcodeNlDutchAddressLookup.initialize = function(queryElement) {
 	let input = jQuery(queryElement);
+	let placeholder = PostcodeNlAddressAutocompleteSettings.postcodeOnlyPlaceholder;
+	if (PostcodeNlAddressAutocompleteSettings.netherlandsMode === 'postcodeOnlySplit')
+	{
+		input.after('<input type="text" id="' + PostcodeNlDutchAddressLookup.houseNumberFieldId + '" placeholder="' + PostcodeNlAddressAutocompleteSettings.houseNumberPlaceholder + '" />');
+		let houseNumber = input.parent().find('#' + PostcodeNlDutchAddressLookup.houseNumberFieldId);
+		houseNumber.on('blur', PostcodeNlDutchAddressLookup.checkPostcode);
+		houseNumber.on('keyup', PostcodeNlDutchAddressLookup.delayCheckPostcode);
+		let addressData = input.val().match(PostcodeNlDutchAddressLookup.postcodeHouseNumberRegex);
+		if (addressData && addressData.length === 3)
+		{
+			if (addressData[1] !== undefined)
+			{
+				input.val(addressData[1]);
+			}
+			if (addressData[2] !== undefined)
+			{
+				houseNumber.val(addressData[2]);
+			}
+		}
+		placeholder = PostcodeNlAddressAutocompleteSettings.postcodeOnlyPlaceholderSplit;
+		input.addClass('postcodenl-postcode');
+	}
 	let label = input.parents('.postcodenl-address-autocomplete').find('label');
 	if (!input.data('original-placeholder'))
 	{
@@ -23,18 +48,23 @@ PostcodeNlDutchAddressLookup.initialize = function(queryElement) {
 	}
 	jQuery(queryElement).on('blur', PostcodeNlDutchAddressLookup.checkPostcode);
 	jQuery(queryElement).on('keyup', PostcodeNlDutchAddressLookup.delayCheckPostcode);
-	input.attr('placeholder', PostcodeNlAddressAutocompleteSettings.postcodeOnlyPlaceholder);
+	input.attr('placeholder', placeholder);
 	label.html(PostcodeNlAddressAutocompleteSettings.postcodeOnlyLabel);
 };
 
 PostcodeNlDutchAddressLookup.deinitialize = function(queryElement) {
 	PostcodeNlDutchAddressLookup.clearWarnings();
+	PostcodeNlDutchAddressLookup.previousQuery = null;
+	clearTimeout(PostcodeNlDutchAddressLookup.lookupTimeout);
+	PostcodeNlDutchAddressLookup.lookupTimeout = -1;
 	jQuery(queryElement).off('blur', PostcodeNlDutchAddressLookup.checkPostcode);
 	jQuery(queryElement).off('keyup', PostcodeNlDutchAddressLookup.delayCheckPostcode);
 	let input = jQuery(queryElement);
 	input.attr('placeholder', input.data('original-placeholder'));
+	input.removeClass('postcodenl-postcode');
 	let label = input.parents('.postcodenl-address-autocomplete').find('label');
 	label.html(label.data('original-label'));
+	jQuery('#' + PostcodeNlDutchAddressLookup.houseNumberFieldId).remove();
 };
 
 PostcodeNlDutchAddressLookup.delayCheckPostcode = function() {
@@ -47,22 +77,38 @@ PostcodeNlDutchAddressLookup.delayCheckPostcode = function() {
 
 PostcodeNlDutchAddressLookup.checkPostcode = function() {
 	let input = jQuery(this);
+	let query = PostcodeNlDutchAddressLookup.getPostcodeAndHouseNumber(input);
+	if (query === PostcodeNlDutchAddressLookup.previousQuery)
+	{
+		return;
+	}
 	let addressContainer = input.parents('.postcodenl-address-autocomplete').parent().parent();
-	let query = this.value;
-	let regex = /([1-9][0-9]{3}\s?[a-z]{2})\s?(\d+.*)/i;
-	let addressData = query.match(regex);
-	if (!addressData || addressData.length < 3)
+	let addressData = query.match(PostcodeNlDutchAddressLookup.postcodeHouseNumberRegex);
+	// When only postcode is entered we expect the use to follow with a house number, so no need to warn the use just yet
+	if (input.is(':focus') && addressData && addressData.length === 3 && addressData[2] === undefined)
+	{
+		return;
+	}
+
+	if (!addressData || addressData.length < 3 || addressData[2] === undefined)
 	{
 		// No postcode and house number found
-		if (query.length > 7 || !input.is(':focus'))
+		if (PostcodeNlDutchAddressLookup.hasFocus(input))
 		{
 			PostcodeNlDutchAddressLookup.clearWarnings();
-			input.after('<span class="postcodenl-address-autocomplete-warning">' + PostcodeNlAddressAutocompleteSettings.postcodeOnlyInputHint + '</span>');
+			input.parent().append('<span class="postcodenl-address-autocomplete-warning">' + PostcodeNlAddressAutocompleteSettings.postcodeOnlyInputHint + '</span>');
 		}
 
 		return;
 	}
 	input.addClass('postcodenl-address-autocomplete-loading');
+
+	PostcodeNlDutchAddressLookup.previousQuery = query;
+	let mappingFields = Object.getOwnPropertyNames(PostcodeNlAddressFieldMapping.mapping);
+	if (mappingFields.length > 0)
+	{
+		jQuery('input[name$="' + mappingFields.join('"], input[name$="') + '"]').val('');
+	}
 
 	let postcode = addressData[1];
 	let houseNumber = addressData[2];
@@ -115,8 +161,43 @@ PostcodeNlDutchAddressLookup.checkPostcode = function() {
 		let data = JSON.parse(response.responseText);
 
 		PostcodeNlDutchAddressLookup.clearWarnings();
-		input.after('<span class="postcodenl-address-autocomplete-warning">' + data.message + '</span>');
+		input.parent().append('<span class="postcodenl-address-autocomplete-warning">' + data.message + '</span>');
 	});
+};
+
+PostcodeNlDutchAddressLookup.hasFocus = function(element) {
+	if (PostcodeNlAddressAutocompleteSettings.netherlandsMode !== 'postcodeOnlySplit')
+	{
+		return element.is(':focus');
+	}
+
+	let secondElement;
+	if (element.attr('id') === PostcodeNlDutchAddressLookup.houseNumberFieldId)
+	{
+		secondElement = element.parent().find('.postcodenl-postcode');
+	}
+	else
+	{
+		secondElement = jQuery('#' + PostcodeNlDutchAddressLookup.houseNumberFieldId);
+	}
+
+	return element.is(':focus') || secondElement.is(':focus');
+};
+
+PostcodeNlDutchAddressLookup.getPostcodeAndHouseNumber = function(element) {
+	let query = element.val();
+	if (PostcodeNlAddressAutocompleteSettings.netherlandsMode !== 'postcodeOnlySplit')
+	{
+		return query;
+	}
+	if (element.attr('id') === PostcodeNlDutchAddressLookup.houseNumberFieldId)
+	{
+		return element.parent().find('.postcodenl-postcode').val() + query;
+	}
+	else
+	{
+		return query + jQuery('#' + PostcodeNlDutchAddressLookup.houseNumberFieldId).val();
+	}
 };
 
 PostcodeNlDutchAddressLookup.clearWarnings = function() {

@@ -149,6 +149,14 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 			});
 		});
 
+		queryElement.addEventListener('autocomplete-search', function() {
+			let mappingFields = Object.getOwnPropertyNames(PostcodeNlAddressFieldMapping.mapping);
+			if (mappingFields.length > 0)
+			{
+				jQuery('input[name$="' + mappingFields.join('"], input[name$="') + '"]').val('');
+			}
+		});
+
 		queryElement.setAttribute('data-autocomplete-initialized', '1');
 	});
 };

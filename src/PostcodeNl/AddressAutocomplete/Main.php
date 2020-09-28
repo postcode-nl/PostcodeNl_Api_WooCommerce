@@ -10,7 +10,7 @@ defined('ABSPATH') || exit;
 class Main
 {
 	/** @var string The version number of the plugin should be equal to the commented version number in ../../../postcodenl-address-autocomplete.php */
-	public const VERSION = '1.0.7';
+	public const VERSION = '1.0.8';
 
 	/** @var self Reference to own */
 	protected static $_instance;

@@ -628,8 +628,8 @@ var PostcodeNl = PostcodeNl || {};
 		 * Get autocomplete matches for the specified context and term.
 		 *
 		 * @see {@link https://api.postcode.nl/documentation/international/v1/Autocomplete/autocomplete}
-		 * @param {string} context - A place identifier denoting the context to search in. e.g. â€œnldâ€.
-		 * @param {string} term - The search query to process. e.g. â€œ2012ESâ€, â€œHaarlemâ€, â€œJulianâ€.
+		 * @param {string} context - A place identifier denoting the context to search in. e.g. "nld".
+		 * @param {string} term - The search query to process. e.g. "2012ES", "Haarlem", "Julian".
 		 * @param {successCallback} response - Function that handles the response.
 		 * @return {XMLHttpRequest} @see PostcodeNl.AutocompleteAddress.xhrGet.
 		 */
@@ -649,7 +649,7 @@ var PostcodeNl = PostcodeNl || {};
 		 * Get address details for the specified address identifier.
 		 *
 		 * @see {@link https://api.postcode.nl/documentation/international/v1/Autocomplete/getDetails}
-		 * @param {string} addressId - Address identifier returned by a match of precision â€œAddressâ€.
+		 * @param {string} addressId - Address identifier returned by a match of precision "Address".
 		 * @param {string} [dispatchCountry] - Dispatching country ISO3 code, used to determine country address line presence and language.
 		 * If not given, country is not added in mailLines.
 		 * @param {successCallback} response - Function that handles the response.

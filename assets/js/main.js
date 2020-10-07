@@ -29,7 +29,7 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 		let mappingFields = Object.getOwnPropertyNames(PostcodeNlAddressFieldMapping.mapping);
 		if (mappingFields.length > 0)
 		{
-			jQuery('input[name$="' + mappingFields.join('"], input[name$="') + '"]')
+			jQuery(queryElement.parentNode.parentNode.parentNode).find('input[name$="' + mappingFields.join('"], input[name$="') + '"]')
 				.on('input', function() {
 					queryElement.value = '';
 				}
@@ -153,7 +153,7 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 			let mappingFields = Object.getOwnPropertyNames(PostcodeNlAddressFieldMapping.mapping);
 			if (mappingFields.length > 0)
 			{
-				jQuery('input[name$="' + mappingFields.join('"], input[name$="') + '"]').val('');
+				jQuery(queryElement.parentNode.parentNode.parentNode).find('input[name$="' + mappingFields.join('"], input[name$="') + '"]').val('');
 			}
 		});
 

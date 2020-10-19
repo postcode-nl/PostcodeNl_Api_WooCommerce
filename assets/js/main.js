@@ -44,9 +44,15 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 				autoSelect: true,
 			});
 		};
+		// Sometimes the country select change event is triggered without it being changed
+		let previousCountryCode = null;
 		let switchToCountry = function(iso2CountryCode)
 		{
 			let countryCode = PostcodeNlAddressAutocomplete.convertCountry2CodeToCountry3Code(iso2CountryCode);
+			if (previousCountryCode === countryCode)
+			{
+				return;
+			}
 			if (PostcodeNlAddressAutocomplete.isCountrySupported(countryCode))
 			{
 				if (PostcodeNlDutchAddressLookup.shouldUsePostcodeOnlyLookup(countryCode))
@@ -72,6 +78,7 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 			{
 				autocompleteContainer.css('display', 'none');
 			}
+			previousCountryCode = countryCode;
 		};
 
 		let autocomplete = createAutocomplete(queryElement);

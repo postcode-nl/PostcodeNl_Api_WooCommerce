@@ -73,10 +73,15 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 					autocomplete.setCountry(countryCode);
 				}
 				autocompleteContainer.css('display', 'inherit');
+
+				PostcodeNlAddressAutocomplete.applyDisplayModeOnInitialize(addressContainer);
 			}
 			else
 			{
+				PostcodeNlDutchAddressLookup.deinitialize(queryElement);
 				autocompleteContainer.css('display', 'none');
+				PostcodeNlAddressAutocomplete.showAddressFields(addressContainer);
+				addressContainer.find('.postcodenl-address-autocomplete-message').remove();
 			}
 			previousCountryCode = countryCode;
 		};
@@ -153,6 +158,8 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 
 				// Force WooCommerce to recalculate shipping costs after address change
 				jQuery(document.body).trigger('update_checkout');
+
+				PostcodeNlAddressAutocomplete.applyDisplayModeOnAddressSelect(addressContainer, result.mailLines.join('<br>'));
 			});
 		});
 
@@ -201,3 +208,47 @@ PostcodeNlAddressAutocomplete.isCountrySupported = function(country3Code) {
 	return false;
 };
 
+PostcodeNlAddressAutocomplete.applyDisplayModeOnInitialize = function(container) {
+	if (PostcodeNlAddressAutocompleteSettings.displayMode === 'default' || PostcodeNlAddressAutocompleteSettings.displayMode === 'showOnAddress') {
+		PostcodeNlAddressAutocomplete.hideAddressFields(container);
+	}
+
+	// Address fields are visible after rendering
+};
+
+PostcodeNlAddressAutocomplete.applyDisplayModeOnAddressSelect = function(container, addressInformation) {
+	if (PostcodeNlAddressAutocompleteSettings.displayMode === 'showOnAddress') {
+		PostcodeNlAddressAutocomplete.showAddressFields(container);
+	}
+
+	if (PostcodeNlAddressAutocompleteSettings.displayMode === 'default') {
+		let autocompleteContainer = container.find('.postcodenl-address-autocomplete');
+		autocompleteContainer.find('.postcodenl-address-autocomplete-message').remove();
+		autocompleteContainer.append(
+			'<span class="postcodenl-address-autocomplete-message">' +
+			addressInformation +
+			'</span>'
+		);
+	}
+};
+
+PostcodeNlAddressAutocomplete.hideAddressFields = function(container) {
+	PostcodeNlAddressAutocomplete.findAddressElements(container, function(formRow) {
+		formRow.addClass('hidden').css('display', '');
+	});
+};
+
+PostcodeNlAddressAutocomplete.showAddressFields = function(container) {
+	PostcodeNlAddressAutocomplete.findAddressElements(container, function(formRow) {
+		formRow.removeClass('hidden');
+	});
+};
+
+PostcodeNlAddressAutocomplete.findAddressElements = function(container, callback) {
+	container.find('.form-row.address-field').each(function() {
+		let formRow = jQuery(this);
+		if (formRow.find('.country_select').length === 0 && formRow.css('display') !== 'none') {
+			callback(formRow);
+		}
+	});
+};

@@ -115,6 +115,7 @@ class Main
 			'getDetails' => vsprintf('%s?action=%s&parameters=', [admin_url('admin-ajax.php'), Proxy::AJAX_GET_DETAILS]),
 			'dutchAddressLookup' => vsprintf('%s?action=%s&parameters=', [admin_url('admin-ajax.php'), Proxy::AJAX_DUTCH_ADDRESS_LOOKUP]),
 			'supportedCountries' => $this->_options->getSupportedCountries(),
+			'displayMode' => $this->_options->displayMode,
 			'netherlandsMode' => $this->_options->netherlandsMode,
 			'postcodeOnlyLabel' => __('Postcode and house number', 'postcodenl-address-autocomplete'),
 			'postcodeOnlyPlaceholder' => '1234AB 1',

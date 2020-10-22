@@ -154,6 +154,7 @@ PostcodeNlDutchAddressLookup.checkPostcode = function() {
 				.trigger('change');
 		}
 
+		PostcodeNlAddressAutocomplete.applyDisplayModeOnAddressSelect(addressContainer, (response.street + " " + response.houseNumber + " " + response.houseNumberAddition).trim() + "<br>" + response.postcode + " " + response.city);
 		// Force WooCommerce to recalculate shipping costs after address change
 		jQuery(document.body).trigger('update_checkout');
 	}).fail(function(response) {

@@ -21,3 +21,18 @@
     width: 13%;
     margin-left: 2%;
 }
+
+.postcodenl-address-autocomplete-message {
+   color: green;
+   display: block;
+}
+
+.form-row.hidden, .form-row.hidden * {
+   display: none;
+   /** To prevent inline display style**/
+   opacity: 0;
+   visibility: hidden;
+   transform: scale(0);
+   margin: 0;
+   padding: 0;
+}

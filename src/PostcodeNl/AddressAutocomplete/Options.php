@@ -31,6 +31,16 @@ class Options
 		self::NETHERLANDS_MODE_POSTCODE_ONLY => 'Postcode only',
 	];
 
+	protected const DISPLAY_MODE_DEFAULT = 'default';
+	protected const DISPLAY_MODE_SHOW_ON_ADDRESS = 'showOnAddress';
+	protected const DISPLAY_MODE_SHOW_ALL = 'showAll';
+
+	protected const DISPLAY_MODE_DESCRIPTIONS = [
+		self::DISPLAY_MODE_DEFAULT => 'Hide address input fields (default)',
+		self::DISPLAY_MODE_SHOW_ON_ADDRESS => 'Hide address input fields until an address is selected',
+		self::DISPLAY_MODE_SHOW_ALL => 'Show address input fields',
+	];
+
 	protected const FORM_ACTION_NAME = self::FORM_NAME_PREFIX . 'submit';
 	protected const FORM_ACTION_NONCE_NAME = self::FORM_NAME_PREFIX . 'nonce';
 
@@ -42,6 +52,7 @@ class Options
 	 *             or legacy postcode and house number in separate fields.
 	 */
 	public $netherlandsMode = self::NETHERLANDS_MODE_DEFAULT;
+	public $displayMode = self::DISPLAY_MODE_DEFAULT;
 
 	/** @var array */
 	protected $_supportedCountries;
@@ -65,12 +76,13 @@ class Options
 		}
 		else
 		{
-			$this->netherlandsMode = $data['netherlandsMode'] ?? self::NETHERLANDS_MODE_DEFAULT;
+			$this->netherlandsMode = $data['netherlandsMode'] ?? static::NETHERLANDS_MODE_DEFAULT;
 		}
+		$this->displayMode = $data['displayMode'] ?? static::DISPLAY_MODE_DEFAULT;
 		$this->_supportedCountries = json_decode($data['supportedCountries'] ?? 'NULL', true);
 		$supportedCountriesExpiration = $data['supportedCountriesExpiration'] ?? '';
 		$this->_supportedCountriesExpiration = $supportedCountriesExpiration === '' ? null : new \DateTime($supportedCountriesExpiration);
-		$this->_apiAccountStatus = $data['apiAccountStatus'] ?? self::API_ACCOUNT_STATUS_NEW;
+		$this->_apiAccountStatus = $data['apiAccountStatus'] ?? static::API_ACCOUNT_STATUS_NEW;
 		$this->_apiAccountName = $data['apiAccountName'] ?? null;
 	}
 
@@ -107,6 +119,14 @@ class Options
 			'',
 			'password',
 			__('Your API secret as provided by Postcode.nl, only fill in this field if you want to set your secret, leave empty otherwise.', 'postcodenl-address-autocomplete')
+		);
+		$markup .= $this->_getInputRow(
+			__('Address field display mode', 'postcodenl-address-autocomplete'),
+			'displayMode',
+			$this->displayMode,
+			'select',
+			__('How to display the address fields in the checkout form. The default only shows the autocomplete field (for supported countries). Display the address input fields only after an address has been selected in the autocomplete field. Always show the address fields and autocomplete field.', 'postcodenl-address-autocomplete'),
+			static::DISPLAY_MODE_DESCRIPTIONS
 		);
 		$markup .= $this->_getInputRow(
 			__('Dutch address lookup method', 'postcodenl-address-autocomplete'),
@@ -296,6 +316,17 @@ class Options
 					$newValue = static::NETHERLANDS_MODE_DEFAULT;
 				}
 			}
+			elseif ($option === 'displayMode')
+			{
+				if (isset($_POST[$postName]) && array_key_exists($_POST[$postName], static::DISPLAY_MODE_DESCRIPTIONS))
+				{
+					$newValue = $_POST[$postName];
+				}
+				else
+				{
+					$newValue = static::DISPLAY_MODE_DEFAULT;
+				}
+			}
 			else
 			{
 				$newValue = $_POST[$postName] ?? $value;
@@ -349,6 +380,7 @@ class Options
 		return [
 			'apiKey' => $this->apiKey,
 			'apiSecret' => $this->apiSecret,
+			'displayMode' => $this->displayMode,
 			'netherlandsMode' => $this->netherlandsMode,
 			'supportedCountriesExpiration' => $this->_supportedCountriesExpiration === null ? '' : $this->_supportedCountriesExpiration->format('Y-m-d H:i:s'),
 			'supportedCountries' => json_encode($this->_supportedCountries),

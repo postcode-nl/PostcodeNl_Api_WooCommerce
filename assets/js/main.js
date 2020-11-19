@@ -164,6 +164,8 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 		});
 
 		queryElement.addEventListener('autocomplete-search', function() {
+			PostcodeNlAddressAutocomplete.applyDisplayModeOnLookup(addressContainer);
+
 			let mappingFields = Object.getOwnPropertyNames(PostcodeNlAddressFieldMapping.mapping);
 			if (mappingFields.length > 0)
 			{
@@ -231,6 +233,13 @@ PostcodeNlAddressAutocomplete.applyDisplayModeOnAddressSelect = function(contain
 		);
 	}
 };
+
+PostcodeNlAddressAutocomplete.applyDisplayModeOnLookup = function(container) {
+	if (PostcodeNlAddressAutocompleteSettings.displayMode === 'default') {
+		let autocompleteContainer = container.find('.postcodenl-address-autocomplete');
+		autocompleteContainer.find('.postcodenl-address-autocomplete-message').remove();
+	}
+}
 
 PostcodeNlAddressAutocomplete.hideAddressFields = function(container) {
 	PostcodeNlAddressAutocomplete.findAddressElements(container, function(formRow) {

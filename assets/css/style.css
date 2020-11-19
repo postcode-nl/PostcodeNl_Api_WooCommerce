@@ -25,6 +25,7 @@
 .postcodenl-address-autocomplete-message {
    color: green;
    display: block;
+   margin-top: 0.5em;
 }
 
 .form-row.hidden, .form-row.hidden * {

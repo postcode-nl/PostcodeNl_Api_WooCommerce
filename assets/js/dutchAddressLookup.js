@@ -90,6 +90,8 @@ PostcodeNlDutchAddressLookup.checkPostcode = function() {
 		return;
 	}
 
+	PostcodeNlAddressAutocomplete.applyDisplayModeOnLookup(addressContainer);
+
 	if (!addressData || addressData.length < 3 || addressData[2] === undefined)
 	{
 		// No postcode and house number found
@@ -154,7 +156,12 @@ PostcodeNlDutchAddressLookup.checkPostcode = function() {
 				.trigger('change');
 		}
 
-		PostcodeNlAddressAutocomplete.applyDisplayModeOnAddressSelect(addressContainer, (response.street + " " + response.houseNumber + " " + response.houseNumberAddition).trim() + "<br>" + response.postcode + " " + response.city);
+		PostcodeNlAddressAutocomplete.applyDisplayModeOnAddressSelect(
+			addressContainer,
+			(response.street + " " + response.houseNumber + " " + (response.houseNumberAddition ? response.houseNumberAddition : '')).trim() + "<br>"
+			+ response.postcode + " " + response.city
+		);
+
 		// Force WooCommerce to recalculate shipping costs after address change
 		jQuery(document.body).trigger('update_checkout');
 	}).fail(function(response) {

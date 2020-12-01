@@ -44,7 +44,7 @@ class Proxy
 
 		try
 		{
-			$result = $this->_client->internationalAutocomplete($context, $term, $this->_session);
+			$result = $this->_client->internationalAutocomplete($context, $term, $this->_session, $this->_getLanguage());
 		}
 		catch (ClientException $e)
 		{
@@ -196,5 +196,17 @@ class Proxy
 	protected function _errorResponse(array $response): void
 	{
 		wp_die(json_encode($response), 500);
+	}
+
+	protected function _getLanguage(): ?string
+	{
+		$locale = \get_locale();
+
+		if (preg_match('~^\w{2}_\w{2}$~', $locale) === 1)
+		{
+			return str_replace('_', '-', $locale);
+		}
+
+		return null;
 	}
 }

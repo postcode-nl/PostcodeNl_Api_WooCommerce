@@ -3,6 +3,7 @@
 namespace PostcodeNl\AddressAutocomplete;
 
 use PostcodeNl\AddressAutocomplete\Exception\Exception;
+use PostcodeNl\Api\Exception\AuthenticationException;
 use PostcodeNl\Api\Exception\ClientException;
 
 defined('ABSPATH') || exit;
@@ -16,19 +17,42 @@ class Options
 	protected const REQUIRED_USER_CAPABILITY = 'activate_plugins';
 
 	protected const API_ACCOUNT_STATUS_NEW = 'new';
+	protected const API_ACCOUNT_STATUS_INVALID_CREDENTIALS = 'invalidCredentials';
 	protected const API_ACCOUNT_STATUS_INACTIVE = 'inactive';
 	protected const API_ACCOUNT_STATUS_ACTIVE = 'active';
 
 	protected const NETHERLANDS_MODE_DEFAULT = 'default';
 	protected const NETHERLANDS_MODE_POSTCODE_ONLY = 'postcodeOnly';
+	protected const NETHERLANDS_MODE_POSTCODE_ONLY_SPLIT = 'postcodeOnlySplit';
+
+	protected const NETHERLANDS_MODE_DESCRIPTIONS = [
+		self::NETHERLANDS_MODE_DEFAULT => 'Full lookup (default)',
+		self::NETHERLANDS_MODE_POSTCODE_ONLY_SPLIT => 'Postcode only, separate postcode and house number input',
+		self::NETHERLANDS_MODE_POSTCODE_ONLY => 'Postcode only',
+	];
+
+	protected const DISPLAY_MODE_DEFAULT = 'default';
+	protected const DISPLAY_MODE_SHOW_ON_ADDRESS = 'showOnAddress';
+	protected const DISPLAY_MODE_SHOW_ALL = 'showAll';
+
+	protected const DISPLAY_MODE_DESCRIPTIONS = [
+		self::DISPLAY_MODE_DEFAULT => 'Hide address input fields (default)',
+		self::DISPLAY_MODE_SHOW_ON_ADDRESS => 'Hide address input fields until an address is selected',
+		self::DISPLAY_MODE_SHOW_ALL => 'Show address input fields',
+	];
 
 	protected const FORM_ACTION_NAME = self::FORM_NAME_PREFIX . 'submit';
 	protected const FORM_ACTION_NONCE_NAME = self::FORM_NAME_PREFIX . 'nonce';
 
 	public $apiKey = '';
 	public $apiSecret = '';
-	/** @var bool Indication whether to use the international API for the Netherlands or the Dutch address Api which only accepts postcode and house number combinations. */
-	public $netherlandsPostcodeOnly = false;
+	/**
+	 * @var string With what kind of validation Dutch addresses should be validated,
+ 	 *             the options are the international API, legacy postcode and house number validation from 1 field
+	 *             or legacy postcode and house number in separate fields.
+	 */
+	public $netherlandsMode = self::NETHERLANDS_MODE_DEFAULT;
+	public $displayMode = self::DISPLAY_MODE_DEFAULT;
 
 	/** @var array */
 	protected $_supportedCountries;
@@ -45,11 +69,20 @@ class Options
 		$data = \get_option(static::OPTION_KEY, []);
 		$this->apiKey = $data['apiKey'] ?? '';
 		$this->apiSecret = $data['apiSecret'] ?? '';
-		$this->netherlandsPostcodeOnly = $data['netherlandsPostcodeOnly'] ?? '';
+		// Convert legacy option to new mode
+		if (isset($data['netherlandsPostcodeOnly']) && $data['netherlandsPostcodeOnly'])
+		{
+			$this->netherlandsMode = static::NETHERLANDS_MODE_DEFAULT;
+		}
+		else
+		{
+			$this->netherlandsMode = $data['netherlandsMode'] ?? static::NETHERLANDS_MODE_DEFAULT;
+		}
+		$this->displayMode = $data['displayMode'] ?? static::DISPLAY_MODE_DEFAULT;
 		$this->_supportedCountries = json_decode($data['supportedCountries'] ?? 'NULL', true);
 		$supportedCountriesExpiration = $data['supportedCountriesExpiration'] ?? '';
 		$this->_supportedCountriesExpiration = $supportedCountriesExpiration === '' ? null : new \DateTime($supportedCountriesExpiration);
-		$this->_apiAccountStatus = $data['apiAccountStatus'] ?? self::API_ACCOUNT_STATUS_NEW;
+		$this->_apiAccountStatus = $data['apiAccountStatus'] ?? static::API_ACCOUNT_STATUS_NEW;
 		$this->_apiAccountName = $data['apiAccountName'] ?? null;
 	}
 
@@ -88,15 +121,20 @@ class Options
 			__('Your API secret as provided by Postcode.nl, only fill in this field if you want to set your secret, leave empty otherwise.', 'postcodenl-address-autocomplete')
 		);
 		$markup .= $this->_getInputRow(
+			__('Address field display mode', 'postcodenl-address-autocomplete'),
+			'displayMode',
+			$this->displayMode,
+			'select',
+			__('How to display the address fields in the checkout form. The default only shows the autocomplete field (for supported countries). Display the address input fields only after an address has been selected in the autocomplete field. Always show the address fields and autocomplete field.', 'postcodenl-address-autocomplete'),
+			static::DISPLAY_MODE_DESCRIPTIONS
+		);
+		$markup .= $this->_getInputRow(
 			__('Dutch address lookup method', 'postcodenl-address-autocomplete'),
-			'netherlandsPostcodeOnly',
-			$this->netherlandsPostcodeOnly ? static::NETHERLANDS_MODE_POSTCODE_ONLY : static::NETHERLANDS_MODE_DEFAULT,
+			'netherlandsMode',
+			$this->netherlandsMode,
 			'select',
 			__('Which method to use for Dutch address lookups. Full lookup allows searching through city and street names, postcode only method only supports exact postcode and house number lookups but costs less per address. See <a href="https://www.postcode.nl/en/services/adresdata/producten-overzicht" target="_blank" rel="noopener">product pricing</a>.', 'postcodenl-address-autocomplete'),
-			[
-				static::NETHERLANDS_MODE_DEFAULT => 'Full lookup (default)',
-				static::NETHERLANDS_MODE_POSTCODE_ONLY => 'Postcode only',
-			]
+			static::NETHERLANDS_MODE_DESCRIPTIONS
 		);
 		$markup .= '</table>';
 		$markup .= vsprintf(
@@ -163,6 +201,8 @@ class Options
 				return __('not connected', 'postcodenl-address-autocomplete');
 			case static::API_ACCOUNT_STATUS_ACTIVE:
 				return __('active', 'postcodenl-address-autocomplete');
+			case static::API_ACCOUNT_STATUS_INVALID_CREDENTIALS:
+				return __('invalid key and/or secret set', 'postcodenl-address-autocomplete');
 			case static::API_ACCOUNT_STATUS_INACTIVE:
 				return __('inactive', 'postcodenl-address-autocomplete');
 			default:
@@ -175,6 +215,7 @@ class Options
 		switch ($this->_apiAccountStatus)
 		{
 			case static::API_ACCOUNT_STATUS_NEW:
+			case static::API_ACCOUNT_STATUS_INVALID_CREDENTIALS:
 				return sprintf(__('Make sure you used the correct Postcode.nl API subscription key and secret in <a href="%s">the options page</a>.', 'postcodenl-address-autocomplete'), menu_page_url(static::MENU_SLUG, false));
 			case static::API_ACCOUNT_STATUS_ACTIVE:
 				return __('The Postcode.nl API is successfully connected.', 'postcodenl-address-autocomplete');
@@ -264,9 +305,27 @@ class Options
 			{
 				continue;
 			}
-			if ($option === 'netherlandsPostcodeOnly')
+			if ($option === 'netherlandsPostcodeMode')
 			{
-				$newValue = isset($_POST[$postName]) && $_POST[$postName] === static::NETHERLANDS_MODE_POSTCODE_ONLY;
+				if (isset($_POST[$postName]) && array_key_exists($_POST[$postName], static::NETHERLANDS_MODE_DESCRIPTIONS))
+				{
+					$newValue = $_POST[$postName];
+				}
+				else
+				{
+					$newValue = static::NETHERLANDS_MODE_DEFAULT;
+				}
+			}
+			elseif ($option === 'displayMode')
+			{
+				if (isset($_POST[$postName]) && array_key_exists($_POST[$postName], static::DISPLAY_MODE_DESCRIPTIONS))
+				{
+					$newValue = $_POST[$postName];
+				}
+				else
+				{
+					$newValue = static::DISPLAY_MODE_DEFAULT;
+				}
 			}
 			else
 			{
@@ -301,6 +360,11 @@ class Options
 				}
 				$this->_apiAccountName = $accountInformation['name'] ?? null;
 			}
+			catch (AuthenticationException $e)
+			{
+				$this->_apiAccountStatus = static::API_ACCOUNT_STATUS_INVALID_CREDENTIALS;
+				$this->_apiAccountName = null;
+			}
 			catch (ClientException $e)
 			{
 				// Set account status to off
@@ -316,7 +380,8 @@ class Options
 		return [
 			'apiKey' => $this->apiKey,
 			'apiSecret' => $this->apiSecret,
-			'netherlandsPostcodeOnly' => $this->netherlandsPostcodeOnly,
+			'displayMode' => $this->displayMode,
+			'netherlandsMode' => $this->netherlandsMode,
 			'supportedCountriesExpiration' => $this->_supportedCountriesExpiration === null ? '' : $this->_supportedCountriesExpiration->format('Y-m-d H:i:s'),
 			'supportedCountries' => json_encode($this->_supportedCountries),
 			'apiAccountStatus' => $this->_apiAccountStatus,

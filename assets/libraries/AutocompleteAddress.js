@@ -26,7 +26,9 @@ var PostcodeNl = PostcodeNl || {};
 		KEY_ENTER = 'Enter',
 		KEY_TAB = 'Tab',
 		KEY_UP = 'ArrowUp',
+		KEY_UP_LEGACY = 'Up',
 		KEY_DOWN = 'ArrowDown',
+		KEY_DOWN_LEGACY = 'Down',
 
 		/**
 		 * Default options.
@@ -125,15 +127,25 @@ var PostcodeNl = PostcodeNl || {};
 			},
 
 			/**
+			 * Automatically calculate menu width. Disable to define width in CSS.
+			 * @type {boolean}
+			 */
+			autoResize: {
+				value: true,
+				writable: true,
+			},
+
+			/**
 			 * Get screen reader text for a successful response with at least one match.
 			 * Override this function to translate the message.
 			 * @type {Function}
 			 *
 			 * @param {number} count - Number of matches. Will be at least one.
+			 * @param {string} languageTag - Language tag, if specified via language option or setLanguage().
 			 * @return {string} Screen reader message based on the number of matches.
 			 */
 			getResponseMessage: {
-				value: function (count)
+				value: function (count, languageTag)
 				{
 					let message;
 
@@ -150,6 +162,13 @@ var PostcodeNl = PostcodeNl || {};
 
 					return message;
 				},
+				writable: true,
+			},
+
+			/**
+			 * The language used for API calls.
+			 */
+			language: {
 				writable: true,
 			},
 		});
@@ -180,7 +199,11 @@ var PostcodeNl = PostcodeNl || {};
 				const rect = element.getBoundingClientRect();
 				wrapper.style.top = rect.bottom + (window.scrollY || window.pageYOffset) + 'px';
 				wrapper.style.left = rect.left + (window.scrollX || window.pageXOffset) + 'px';
-				wrapper.style.width = rect.width + 'px';
+
+				if (options.autoResize)
+				{
+					wrapper.style.width = rect.width + 'px';
+				}
 			},
 
 			/**
@@ -234,11 +257,11 @@ var PostcodeNl = PostcodeNl || {};
 					ul.scrollTop = (item.offsetHeight + item.offsetTop) - ul.clientHeight;
 				}
 
-				// Update the input element value unless the focus event was cancelled.
-				if (setValue && true === inputElement.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'focus', {cancelable: true})))
-				{
-					const data = elementData.get(item);
+				const data = elementData.get(item);
 
+				// Update the input element value unless the focus event was cancelled.
+				if (setValue && true === inputElement.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'focus', {detail: data, cancelable: true})))
+				{
 					inputElement.value = data.value;
 					elementData.get(inputElement).context = data.context;
 				}
@@ -439,6 +462,18 @@ var PostcodeNl = PostcodeNl || {};
 		this.focusNext = moveItemFocus.bind(this, true);
 
 		/**
+		 * Remove the item focus CSS class and clear the active item, if any.
+		 */
+		this.blur = function ()
+		{
+			if (item !== null)
+			{
+				item.classList.remove(classNames.itemFocus);
+				item = null;
+			}
+		}
+
+		/**
 		 * Select the active menu item, update and focus the associated input element.
 		 */
 		this.select = function ()
@@ -545,6 +580,10 @@ var PostcodeNl = PostcodeNl || {};
 		liveRegion.classList.add(options.cssPrefix + liveRegion.id);
 		document.body.appendChild(liveRegion);
 
+		window.addEventListener('beforeunload', function () {
+			window.clearTimeout(searchTimeoutId);
+		});
+
 		/**
 		 * Announce screen reader text via the live region.
 		 *
@@ -589,21 +628,28 @@ var PostcodeNl = PostcodeNl || {};
 		 * Get autocomplete matches for the specified context and term.
 		 *
 		 * @see {@link https://api.postcode.nl/documentation/international/v1/Autocomplete/autocomplete}
-		 * @param {string} context - A place identifier denoting the context to search in. e.g. “nld”.
-		 * @param {string} term - The search query to process. e.g. “2012ES”, “Haarlem”, “Julian”.
+		 * @param {string} context - A place identifier denoting the context to search in. e.g. "nld".
+		 * @param {string} term - The search query to process. e.g. "2012ES", "Haarlem", "Julian".
 		 * @param {successCallback} response - Function that handles the response.
 		 * @return {XMLHttpRequest} @see PostcodeNl.AutocompleteAddress.xhrGet.
 		 */
 		this.getSuggestions = function (context, term, response)
 		{
-			return this.xhrGet(this.options.autocompleteUrl + '/' + encodeURIComponent(context) + '/' + encodeURIComponent(term), response);
+			let url = this.options.autocompleteUrl + '/' + encodeURIComponent(context) + '/' + encodeURIComponent(term);
+
+			if (typeof options.language !== 'undefined')
+			{
+				url += '/' + options.language;
+			}
+
+			return this.xhrGet(url, response);
 		}
 
 		/**
 		 * Get address details for the specified address identifier.
 		 *
 		 * @see {@link https://api.postcode.nl/documentation/international/v1/Autocomplete/getDetails}
-		 * @param {string} addressId - Address identifier returned by a match of precision “Address”.
+		 * @param {string} addressId - Address identifier returned by a match of precision "Address".
 		 * @param {string} [dispatchCountry] - Dispatching country ISO3 code, used to determine country address line presence and language.
 		 * If not given, country is not added in mailLines.
 		 * @param {successCallback} response - Function that handles the response.
@@ -719,6 +765,16 @@ var PostcodeNl = PostcodeNl || {};
 		}
 
 		/**
+		 * Set the language used for API calls.
+		 *
+		 * @param {string} languageTag - Language tag, e.g. "nl", "nl_NL", "en-GB" or "de-DE".
+		 */
+		this.setLanguage = function (languageTag)
+		{
+			options.language = languageTag;
+		}
+
+		/**
 		 * Trigger a search on the specified input element. If invoked without a term, the current input's value is used.
 		 *
 		 * @param {HTMLElement} element - Input element associated with the autocomplete instance.
@@ -742,6 +798,7 @@ var PostcodeNl = PostcodeNl || {};
 		{
 			previousValue = null;
 			previousContext = null;
+			matches = [];
 
 			menu.clear();
 
@@ -824,6 +881,7 @@ var PostcodeNl = PostcodeNl || {};
 				switch (e.key)
 				{
 					case KEY_UP:
+					case KEY_UP_LEGACY:
 						if (menu.isOpen)
 						{
 							menu.focusPrevious();
@@ -837,6 +895,7 @@ var PostcodeNl = PostcodeNl || {};
 						break;
 
 					case KEY_DOWN:
+					case KEY_DOWN_LEGACY:
 						if (menu.isOpen)
 						{
 							menu.focusNext();
@@ -868,10 +927,9 @@ var PostcodeNl = PostcodeNl || {};
 							menu.select();
 							e.preventDefault();
 						}
-						else if (menu.isOpen)
+						else
 						{
 							menu.close();
-							e.preventDefault();
 						}
 						break;
 
@@ -882,6 +940,8 @@ var PostcodeNl = PostcodeNl || {};
 
 			element.addEventListener('input', eventHandlers.input = function (e) {
 				element.classList.remove(inputBlankClassName);
+				menu.blur(); // Prevent focus on old menu item when value has changed.
+				matches = []; // Prevent auto-selecting old menu item on blur.
 
 				// Skip key event to prevent searching twice.
 				if (isKeyEvent)
@@ -981,12 +1041,13 @@ var PostcodeNl = PostcodeNl || {};
 
 			const data = elementData.get(element);
 
-			if (element.value.length < options.minLength)
+			// Bug #51485 - this shouldn't happen, but it does in IE
+			/*
+			if (typeof data.context === 'undefined')
 			{
-				data.context = options.context;
-				menu.clear();
 				return;
 			}
+			*/
 
 			if (element.value === previousValue && data.context === previousContext)
 			{
@@ -997,6 +1058,14 @@ var PostcodeNl = PostcodeNl || {};
 			previousValue = element.value;
 			previousContext = data.context;
 			data.match = {};
+
+			// Reset context if we are below minimum length and clear menu instead of searching.
+			if (element.value.length < options.minLength)
+			{
+				data.context = options.context;
+				menu.clear();
+				return;
+			}
 
 			// Trigger the search event. Cancel this event to prevent the request for address suggestions.
 			if (false === element.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'search', {cancelable: true})))
@@ -1010,7 +1079,7 @@ var PostcodeNl = PostcodeNl || {};
 				// Trigger the response event. Cancel this event to prevent rendering address suggestions.
 				if (true === element.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'response', {detail: result, cancelable: true})))
 				{
-					matches = result.matches;
+					matches = result.matches || [];
 
 					if (hasSubstring && matches.length === 0)
 					{
@@ -1018,7 +1087,7 @@ var PostcodeNl = PostcodeNl || {};
 					}
 
 					menu.setItems(matches, self.renderItem.bind(self));
-					self.announce(options.getResponseMessage(matches.length));
+					self.announce(options.getResponseMessage(matches.length, options.language));
 
 					if (options.autoFocus)
 					{

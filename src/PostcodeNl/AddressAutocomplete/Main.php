@@ -10,7 +10,7 @@ defined('ABSPATH') || exit;
 class Main
 {
 	/** @var string The version number of the plugin should be equal to the commented version number in ../../../postcodenl-address-autocomplete.php */
-	public const VERSION = '1.0.7';
+	public const VERSION = '1.0.8';
 
 	/** @var self Reference to own */
 	protected static $_instance;
@@ -115,17 +115,20 @@ class Main
 			'getDetails' => vsprintf('%s?action=%s&parameters=', [admin_url('admin-ajax.php'), Proxy::AJAX_GET_DETAILS]),
 			'dutchAddressLookup' => vsprintf('%s?action=%s&parameters=', [admin_url('admin-ajax.php'), Proxy::AJAX_DUTCH_ADDRESS_LOOKUP]),
 			'supportedCountries' => $this->_options->getSupportedCountries(),
-			'netherlandsPostcodeOnly' => $this->_options->netherlandsPostcodeOnly,
+			'displayMode' => $this->_options->displayMode,
+			'netherlandsMode' => $this->_options->netherlandsMode,
 			'postcodeOnlyLabel' => __('Postcode and house number', 'postcodenl-address-autocomplete'),
 			'postcodeOnlyPlaceholder' => '1234AB 1',
+			'postcodeOnlyPlaceholderSplit' => '1234AB',
 			'postcodeOnlyInputHint' => __('Enter a postcode and house number.', 'postcodenl-address-autocomplete'),
+			'houseNumberPlaceholder' => '1',
 		];
 
-		vprintf(
+		printf(
 			'<script type="text/javascript">
 				const PostcodeNlAddressAutocompleteSettings = %s;
 			</script>',
-			[json_encode($settings)]
+			json_encode($settings)
 		);
 	}
 

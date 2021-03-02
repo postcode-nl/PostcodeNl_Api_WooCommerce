@@ -53,8 +53,12 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 			{
 				return;
 			}
+
 			if (PostcodeNlAddressAutocomplete.isCountrySupported(countryCode))
 			{
+				// Empty all fields when switching to a supported country
+				PostcodeNlAddressAutocomplete.setAddress(addressContainer, null);
+
 				if (PostcodeNlDutchAddressLookup.shouldUsePostcodeOnlyLookup(countryCode))
 				{
 					autocomplete.destroy();
@@ -118,47 +122,7 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 				return;
 			}
 			autocomplete.getDetails(event.detail.context, function (result) {
-				for (let fieldName in PostcodeNlAddressFieldMapping.mapping)
-				{
-					if (!PostcodeNlAddressFieldMapping.mapping.hasOwnProperty(fieldName))
-					{
-						continue;
-					}
-
-					let addressPart = PostcodeNlAddressFieldMapping.mapping[fieldName];
-					let value;
-					switch (addressPart) {
-						case PostcodeNlAddressFieldMapping.street:
-							value = result.address.street;
-							break;
-						case PostcodeNlAddressFieldMapping.houseNumber:
-							value = result.address.buildingNumber;
-							break;
-						case PostcodeNlAddressFieldMapping.houseNumberAddition:
-							value = result.address.buildingNumberAddition ? result.address.buildingNumberAddition : '';
-							break;
-						case PostcodeNlAddressFieldMapping.postcode:
-							value = result.address.postcode;
-							break;
-						case PostcodeNlAddressFieldMapping.city:
-							value = result.address.locality;
-							break;
-						case PostcodeNlAddressFieldMapping.streetAndHouseNumber:
-							value = result.address.street + ' ' + result.address.building;
-							break;
-						case PostcodeNlAddressFieldMapping.houseNumberAndAddition:
-							value = result.address.building;
-							break;
-					}
-					addressContainer
-						.find('input[name$="' + fieldName + '"]')
-						.val(value)
-						.trigger('change');
-				}
-
-				// Force WooCommerce to recalculate shipping costs after address change
-				jQuery(document.body).trigger('update_checkout');
-
+				PostcodeNlAddressAutocomplete.setAddress(addressContainer, result.address);
 				PostcodeNlAddressAutocomplete.applyDisplayModeOnAddressSelect(addressContainer, result.mailLines.join('<br>'));
 			});
 		});
@@ -260,4 +224,53 @@ PostcodeNlAddressAutocomplete.findAddressElements = function(container, callback
 			callback(formRow);
 		}
 	});
+};
+
+/**
+ * Set the address for the container. Empty all address fields by specifying null for the address argument.
+ */
+PostcodeNlAddressAutocomplete.setAddress = function(container, address) {
+	for (let fieldName in PostcodeNlAddressFieldMapping.mapping)
+	{
+		if (!PostcodeNlAddressFieldMapping.mapping.hasOwnProperty(fieldName))
+		{
+			continue;
+		}
+
+		let addressPart = PostcodeNlAddressFieldMapping.mapping[fieldName];
+		let value = '';
+
+		if (address !== null) {
+			switch (addressPart) {
+				case PostcodeNlAddressFieldMapping.street:
+					value = address.street;
+					break;
+				case PostcodeNlAddressFieldMapping.houseNumber:
+					value = address.buildingNumber;
+					break;
+				case PostcodeNlAddressFieldMapping.houseNumberAddition:
+					value = address.buildingNumberAddition ? address.buildingNumberAddition : '';
+					break;
+				case PostcodeNlAddressFieldMapping.postcode:
+					value = address.postcode;
+					break;
+				case PostcodeNlAddressFieldMapping.city:
+					value = address.locality;
+					break;
+				case PostcodeNlAddressFieldMapping.streetAndHouseNumber:
+					value = address.street + ' ' + address.building;
+					break;
+				case PostcodeNlAddressFieldMapping.houseNumberAndAddition:
+					value = address.building;
+					break;
+			}
+		}
+		container
+			.find('input[name$="' + fieldName + '"]')
+			.val(value)
+			.trigger('change');
+	}
+
+	// Force WooCommerce to recalculate shipping costs after address change
+	jQuery(document.body).trigger('update_checkout');
 };

@@ -218,12 +218,20 @@ PostcodeNlAddressAutocomplete.showAddressFields = function(container) {
 };
 
 PostcodeNlAddressAutocomplete.findAddressElements = function(container, callback) {
-	container.find('.form-row.address-field').each(function() {
-		let formRow = jQuery(this);
-		if (formRow.find('.country_select').length === 0 && formRow.css('display') !== 'none') {
+	for (let fieldName in PostcodeNlAddressFieldMapping.mapping)
+	{
+		if (!PostcodeNlAddressFieldMapping.mapping.hasOwnProperty(fieldName))
+		{
+			continue;
+		}
+
+		let element = container.find('input[name$="' + fieldName + '"]');
+		// Select the .form-row 2 elements above
+		let formRow = element.parent().parent();
+		if (formRow.parents('.form-row').css('display') !== 'none') {
 			callback(formRow);
 		}
-	});
+	}
 };
 
 /**

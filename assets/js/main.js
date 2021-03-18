@@ -41,7 +41,6 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 				autocompleteUrl: PostcodeNlAddressAutocompleteSettings.autocomplete,
 				addressDetailsUrl: PostcodeNlAddressAutocompleteSettings.getDetails,
 				autoFocus: true,
-				autoSelect: true,
 			});
 		};
 		// Sometimes the country select change event is triggered without it being changed

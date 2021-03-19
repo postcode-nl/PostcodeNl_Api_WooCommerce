@@ -57,6 +57,8 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 			{
 				// Empty all fields when switching to a supported country
 				PostcodeNlAddressAutocomplete.setAddress(addressContainer, null);
+				// Remove formatted address if applicable
+				PostcodeNlAddressAutocomplete.applyDisplayModeOnLookup(addressContainer);
 
 				if (PostcodeNlDutchAddressLookup.shouldUsePostcodeOnlyLookup(countryCode))
 				{

@@ -41,7 +41,6 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 				autocompleteUrl: PostcodeNlAddressAutocompleteSettings.autocomplete,
 				addressDetailsUrl: PostcodeNlAddressAutocompleteSettings.getDetails,
 				autoFocus: true,
-				autoSelect: true,
 			});
 		};
 		// Sometimes the country select change event is triggered without it being changed
@@ -58,6 +57,8 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 			{
 				// Empty all fields when switching to a supported country
 				PostcodeNlAddressAutocomplete.setAddress(addressContainer, null);
+				// Remove formatted address if applicable
+				PostcodeNlAddressAutocomplete.applyDisplayModeOnLookup(addressContainer);
 
 				if (PostcodeNlDutchAddressLookup.shouldUsePostcodeOnlyLookup(countryCode))
 				{
@@ -74,6 +75,8 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 						autocomplete = createAutocomplete(queryElement);
 					}
 
+					// Reset to clear up menu input and suggestions from previous country
+					autocomplete.reset();
 					autocomplete.setCountry(countryCode);
 				}
 				autocompleteContainer.css('display', 'inherit');
@@ -218,6 +221,19 @@ PostcodeNlAddressAutocomplete.showAddressFields = function(container) {
 };
 
 PostcodeNlAddressAutocomplete.findAddressElements = function(container, callback) {
+	for (let fieldName in PostcodeNlAddressFieldMapping.mapping)
+	{
+		if (!PostcodeNlAddressFieldMapping.mapping.hasOwnProperty(fieldName))
+		{
+			continue;
+		}
+
+		let element = container.find('input[name$="' + fieldName + '"]');
+		// Select the .form-row 2 elements above
+		callback(element.parent().parent());
+	}
+
+	// Also loop over the address fields, since we want to toggle address fields we do not populate too like canton (for Switzerland) and address line 2 for others
 	container.find('.form-row.address-field').each(function() {
 		let formRow = jQuery(this);
 		if (formRow.find('.country_select').length === 0 && formRow.css('display') !== 'none') {

@@ -226,10 +226,7 @@ PostcodeNlAddressAutocomplete.findAddressElements = function(container, callback
 
 		let element = container.find('input[name$="' + fieldName + '"]');
 		// Select the .form-row 2 elements above
-		let formRow = element.parent().parent();
-		if (formRow.parents('.form-row').css('display') !== 'none') {
-			callback(formRow);
-		}
+		callback(element.parent().parent());
 	}
 };
 

@@ -230,6 +230,14 @@ PostcodeNlAddressAutocomplete.findAddressElements = function(container, callback
 		// Select the .form-row 2 elements above
 		callback(element.parent().parent());
 	}
+
+	// Also loop over the address fields, since we want to toggle address fields we do not populate too like canton (for Switzerland) and address line 2 for others
+	container.find('.form-row.address-field').each(function() {
+		let formRow = jQuery(this);
+		if (formRow.find('.country_select').length === 0 && formRow.css('display') !== 'none') {
+			callback(formRow);
+		}
+	});
 };
 
 /**

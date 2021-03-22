@@ -59,8 +59,6 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 				PostcodeNlAddressAutocomplete.setAddress(addressContainer, null);
 				// Remove formatted address if applicable
 				PostcodeNlAddressAutocomplete.applyDisplayModeOnLookup(addressContainer);
-				// Reset input value as well to prevent confusion
-				queryElement.value = '';
 
 				if (PostcodeNlDutchAddressLookup.shouldUsePostcodeOnlyLookup(countryCode))
 				{
@@ -77,6 +75,8 @@ PostcodeNlAddressAutocomplete.initialize = function() {
 						autocomplete = createAutocomplete(queryElement);
 					}
 
+					// Reset to clear up menu input and suggestions from previous country
+					autocomplete.reset();
 					autocomplete.setCountry(countryCode);
 				}
 				autocompleteContainer.css('display', 'inherit');

@@ -181,6 +181,7 @@ class Main
 				[
 					__('Postcode.nl Address Autocomplete: Set your credentials', 'postcodenl-address-autocomplete'),
 					vsprintf(
+						/* translators: %s: options URL */
 						__('Please set your Postcode.nl API key and secret in <a href="%s">the options</a> to start using the Autocomplete in your WooCommerce checkout.', 'postcodenl-address-autocomplete'),
 						[menu_page_url(Options::MENU_SLUG, false)]
 					),
@@ -201,7 +202,11 @@ class Main
 				<p>%s</p>
 			</div>',
 			[
-				sprintf(__('Postcode.nl Address Autocomplete: Your API account is %s', 'postcodenl-address-autocomplete'), $this->_options->getApiStatusDescription()),
+				sprintf(
+					/* translators: %s: API account status. */
+					__('Postcode.nl Address Autocomplete: Your API account is %s', 'postcodenl-address-autocomplete'),
+					$this->_options->getApiStatusDescription()
+				),
 				$this->_options->getApiStatusHint(),
 			]
 		);

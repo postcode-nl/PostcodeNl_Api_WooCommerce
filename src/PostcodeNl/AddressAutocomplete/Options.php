@@ -216,7 +216,11 @@ class Options
 		{
 			case static::API_ACCOUNT_STATUS_NEW:
 			case static::API_ACCOUNT_STATUS_INVALID_CREDENTIALS:
-				return sprintf(__('Make sure you used the correct Postcode.nl API subscription key and secret in <a href="%s">the options page</a>.', 'postcodenl-address-autocomplete'), menu_page_url(static::MENU_SLUG, false));
+				return sprintf(
+					/* translators: %s: options URL */
+					__('Make sure you used the correct Postcode.nl API subscription key and secret in <a href="%s">the options page</a>.', 'postcodenl-address-autocomplete'),
+					menu_page_url(static::MENU_SLUG, false)
+				);
 			case static::API_ACCOUNT_STATUS_ACTIVE:
 				return __('The Postcode.nl API is successfully connected.', 'postcodenl-address-autocomplete');
 			case static::API_ACCOUNT_STATUS_INACTIVE:

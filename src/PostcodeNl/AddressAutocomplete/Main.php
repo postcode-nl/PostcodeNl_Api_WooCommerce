@@ -10,7 +10,7 @@ defined('ABSPATH') || exit;
 class Main
 {
 	/** @var string The version number of the plugin should be equal to the commented version number in ../../../postcodenl-address-autocomplete.php */
-	public const VERSION = '1.0.10';
+	public const VERSION = '2.0';
 
 	/** @var self Reference to own */
 	protected static $_instance;
@@ -39,6 +39,8 @@ class Main
 		add_filter('woocommerce_default_address_fields', [$this, 'addressFields']);
 		add_filter('plugin_action_links_' . $this->getPluginFileAndPath(), [$this, 'pluginActionLinks']);
 
+		add_action('admin_enqueue_scripts', [$this, 'enqueueAdminScripts']);
+
 		add_action('wp_enqueue_scripts', [$this, 'enqueueScripts']);
 
 		add_action('wp_ajax_' . Proxy::AJAX_AUTOCOMPLETE, [$this->_proxy, 'autocomplete']);
@@ -56,6 +58,9 @@ class Main
 		add_action('admin_menu', [$this->_options, 'addPluginPage']);
 
 		add_action('admin_notices', [$this, 'adminNotice']);
+
+		// Fix path for language files.
+		load_plugin_textdomain('postcodenl-address-autocomplete', false, basename(dirname(__FILE__, 4)) . '/languages');
 	}
 
 	public function addressFields(array $fields): array
@@ -65,17 +70,61 @@ class Main
 			return $fields;
 		}
 
-		$fields['postcodeNl_address_autocomplete'] = [
+		$fields['postcodeEuAutofillIntl'] = [
 			'type' => 'text',
-			'label' => __('Autocomplete address', 'postcodenl-address-autocomplete'),
-			'placeholder' => __('Start typing the address', 'postcodenl-address-autocomplete'),
+			'label' => __('Start typing your address or zip/postal code', 'postcodenl-address-autocomplete'),
 			'required' => false,
 			'class' => [
 				'form-row-wide',
-				'postcodenl-address-autocomplete',
+				'postcode-eu-autofill',
+				'postcode-eu-autofill-intl',
 			],
 			'autocomplete' => 'off',
 			'priority' => 45,
+		];
+
+		$fields['postcodeEuAutofillNlPostcode'] = [
+			'type' => 'text',
+			'label' => __('Postcode', 'postcodenl-address-autocomplete'),
+			'placeholder' => __('1234 AB', 'postcodenl-address-autocomplete'),
+			'required' => false,
+			'class' => [
+				'form-row-first',
+				'postcode-eu-autofill',
+				'postcode-eu-autofill-nl',
+				'postcode-eu-autofill-nl-postcode',
+			],
+			'autocomplete' => 'off',
+			'priority' => 46,
+		];
+
+		$fields['postcodeEuAutofillNlHouseNumberWithAddition'] = [
+			'type' => 'text',
+			'label' => __('House number and addition', 'postcodenl-address-autocomplete'),
+			'placeholder' => __('123 A', 'postcodenl-address-autocomplete'),
+			'required' => false,
+			'class' => [
+				'form-row-last',
+				'postcode-eu-autofill',
+				'postcode-eu-autofill-nl',
+				'postcode-eu-autofill-nl-house-number',
+			],
+			'autocomplete' => 'off',
+			'priority' => 47,
+		];
+
+		$fields['postcodeEuAutofillNlHouseNumberSelect'] = [
+			'type' => 'select',
+			'label' => __('Which house number do you mean?', 'postcodenl-address-autocomplete'),
+			'required' => false,
+			'class' => [
+				'form-row-wide',
+				'postcode-eu-autofill',
+				'postcode-eu-autofill-nl',
+				'postcode-eu-autofill-nl-house-number-select',
+			],
+			'options' => [__('- Select house number -', 'postcodenl-address-autocomplete')],
+			'priority' => 48,
 		];
 
 		return $fields;
@@ -94,13 +143,47 @@ class Main
 
 	public function enqueueScripts(): void
 	{
-		wp_enqueue_style('postcodeNlAutocompleteAddress', plugins_url('../../../', __FILE__) . 'assets/libraries/autocomplete-address.css', [], static::VERSION);
-		wp_enqueue_style('postcodenl-address-autocomplete', plugins_url('../../../', __FILE__) . 'assets/css/style.css', ['postcodeNlAutocompleteAddress'], static::VERSION);
+		$pluginsUrl = plugins_url(basename(dirname(__FILE__, 4)));
 
-		wp_enqueue_script('postcodeNlAutocompleteAddress', plugins_url('../../../', __FILE__) . 'assets/libraries/AutocompleteAddress.js', [],static::VERSION, true);
-		wp_enqueue_script('postcodenl-field-mapping', plugins_url('../../../', __FILE__) . 'assets/js/addressFieldMapping.js', [], static::VERSION, true);
-		wp_enqueue_script('postcodenl-address-autocomplete', plugins_url('../../../', __FILE__) . 'assets/js/main.js', ['postcodeNlAutocompleteAddress', 'postcodenl-field-mapping', 'jquery'], static::VERSION, true);
-		wp_enqueue_script('postcodenl-address-autocomplete-dutch-address-lookup', plugins_url('../../../', __FILE__) . 'assets/js/dutchAddressLookup.js', ['postcodenl-address-autocomplete'], static::VERSION, true);
+		// CSS
+		wp_enqueue_style(
+			'postcode-eu-autocomplete-address-library',
+			$pluginsUrl . '/assets/libraries/postcode-eu-autocomplete-address.css',
+			[],
+			static::VERSION
+		);
+		wp_enqueue_style(
+			'postcode-eu-autofill',
+			$pluginsUrl . '/assets/css/style.css',
+			['postcode-eu-autocomplete-address-library'],
+			static::VERSION
+		);
+
+		// Javascript
+		wp_enqueue_script(
+			'postcode-eu-autocomplete-address-library',
+			$pluginsUrl . '/assets/libraries/postcode-eu-autocomplete-address.js',
+			[],
+			static::VERSION,
+			true
+		);
+		wp_enqueue_script(
+			'postcode-eu-autofill',
+			$pluginsUrl . '/assets/js/postcode-eu-autofill.js',
+			['postcode-eu-autocomplete-address-library', 'wp-i18n'],
+			static::VERSION,
+			true
+		);
+		wp_set_script_translations(
+			'postcode-eu-autofill',
+			'postcodenl-address-autocomplete',
+			realpath(dirname(__FILE__, 4) . '/languages')
+		);
+	}
+
+	public function enqueueAdminScripts(): void
+	{
+		wp_enqueue_style('postcode-eu-autofill-admin', plugins_url(basename(dirname(__FILE__, 4))) . '/assets/css/admin.css', array(), static::VERSION);
 	}
 
 	public function afterCheckoutForm(): void
@@ -118,15 +201,14 @@ class Main
 			'displayMode' => $this->_options->displayMode,
 			'netherlandsMode' => $this->_options->netherlandsMode,
 			'postcodeOnlyLabel' => __('Postcode and house number', 'postcodenl-address-autocomplete'),
-			'postcodeOnlyPlaceholder' => '1234AB 1',
-			'postcodeOnlyPlaceholderSplit' => '1234AB',
+			'postcodeOnlyPlaceholder' => '1234 AB',
 			'postcodeOnlyInputHint' => __('Enter a postcode and house number.', 'postcodenl-address-autocomplete'),
-			'houseNumberPlaceholder' => '1',
+			'houseNumberPlaceholder' => '123 A',
 		];
 
 		printf(
 			'<script type="text/javascript">
-				const PostcodeNlAddressAutocompleteSettings = %s;
+				const PostcodeEuSettings = %s;
 			</script>',
 			json_encode($settings)
 		);
@@ -158,8 +240,8 @@ class Main
 				<p>%s</p>
 			</div>',
 				[
-					__('Postcode.nl Address Autocomplete: WooCommerce is required', 'postcodenl-address-autocomplete'),
-					__('Postcode.nl Address Autocomplete requires the WooCommerce plugin to be activated to be able to add address autocomplete to the checkout form.', 'postcodenl-address-autocomplete'),
+					__('Postcode.eu Address Autocomplete: WooCommerce is required', 'postcodenl-address-autocomplete'),
+					__('Postcode.eu Address Autocomplete requires the WooCommerce plugin to be activated to be able to add address autocomplete to the checkout form.', 'postcodenl-address-autocomplete'),
 				]
 			);
 		}
@@ -179,10 +261,10 @@ class Main
 				<p>%s</p>
 			</div>',
 				[
-					__('Postcode.nl Address Autocomplete: Set your credentials', 'postcodenl-address-autocomplete'),
+					__('Postcode.eu Address Autocomplete: Set your credentials', 'postcodenl-address-autocomplete'),
 					vsprintf(
 						/* translators: %s: options URL */
-						__('Please set your Postcode.nl API key and secret in <a href="%s">the options</a> to start using the Autocomplete in your WooCommerce checkout.', 'postcodenl-address-autocomplete'),
+						__('Please set your Postcode.eu API key and secret in <a href="%s">the options</a> to start using the Autocomplete in your WooCommerce checkout.', 'postcodenl-address-autocomplete'),
 						[menu_page_url(Options::MENU_SLUG, false)]
 					),
 				]
@@ -204,7 +286,7 @@ class Main
 			[
 				sprintf(
 					/* translators: %s: API account status. */
-					__('Postcode.nl Address Autocomplete: Your API account is %s', 'postcodenl-address-autocomplete'),
+					__('Postcode.eu Address Autocomplete: Your API account is %s', 'postcodenl-address-autocomplete'),
 					$this->_options->getApiStatusDescription()
 				),
 				$this->_options->getApiStatusHint(),

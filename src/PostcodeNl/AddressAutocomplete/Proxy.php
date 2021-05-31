@@ -72,29 +72,41 @@ class Proxy
 	public function dutchAddressLookup(): void
 	{
 		[$postcode, $houseNumberAndAddition] = $this->_getParameters(2);
-		if (!preg_match('/(?<houseNumber>\d+)\s?(?<addition>.*)/', $houseNumberAndAddition, $matches))
-		{
-			$this->_errorResponse($this->_logException(new Exception('House number could not be parsed.')));
-		}
-		$houseNumber = $matches['houseNumber'] ?? null;
+
+		preg_match('/^(?<houseNumber>\d{1,5})(?<addition>\D.*)?$/', $houseNumberAndAddition, $matches);
+		$houseNumber = isset($matches['houseNumber']) ? (int)$matches['houseNumber'] : null;
+		$houseNumberAddition = isset($matches['addition']) ? trim($matches['addition']) : null;
+		$address = null;
+
 		if ($houseNumber === null)
 		{
 			$this->_errorResponse($this->_logException(new Exception('Missing house number.')));
 		}
-		$houseNumberAddition = $matches['addition'] ?? null;
 
 		try
 		{
-			$this->_outputJsonResponse($this->_client->dutchAddressByPostcode($postcode, (int) $houseNumber, $houseNumberAddition));
+			$address = $this->_client->dutchAddressByPostcode($postcode, (int)$houseNumber, $houseNumberAddition);
+			$status = 'valid';
+
+			if (!is_null($houseNumberAddition) && (is_null($address['houseNumberAddition']) || strcasecmp($houseNumberAddition, $address['houseNumberAddition']) != 0)
+			)
+			{
+				$status = 'houseNumberAdditionIncorrect';
+			}
 		}
 		catch (NotFoundException $e)
 		{
-			$this->_errorResponse(['error' => true, 'message' => __('Unknown postcode and house number combination, make sure your input is correct.', 'postcodenl-address-autocomplete')]);
+			$status = 'notFound';
 		}
 		catch (ClientException $e)
 		{
 			$this->_errorResponse($this->_logException($e));
 		}
+
+		$this->_outputJsonResponse([
+			'status' => $status,
+			'address' => $address,
+		]);
 	}
 
 	public function getClient(): Client

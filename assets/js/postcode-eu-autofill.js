@@ -347,14 +347,15 @@
 
 		const fillAddressFields = function (address)
 		{
-			const addition = address.buildingNumberAddition || '';
+			const number = address.buildingNumber || '',
+				addition = address.buildingNumberAddition || '';
 
 			new Map([
-				['address_1', address.street + ' ' + (address.buildingNumber + ' ' + addition).trim()],
+				['address_1', address.street + ' ' + (number + ' ' + addition).trim()],
 				['postcode', address.postcode],
 				['city', address.locality],
 				['street_name', address.street],
-				['house_number', address.buildingNumber],
+				['house_number', number],
 				['house_number_suffix', addition],
 			]).forEach(function (value, key) {
 				addressFields[key].val(value);

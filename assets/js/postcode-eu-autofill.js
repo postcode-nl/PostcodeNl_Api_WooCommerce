@@ -8,15 +8,18 @@
 
 	const $ = jQuery,
 		__ = wp.i18n.__,
-		settings = PostcodeEuSettings;
+		settings = PostcodeEuSettings,
+		initializedElements = new Set();
 
 	const initialize = function ()
 	{
 		$('.postcode-eu-autofill-intl').closest('div').each(function () {
-			if ($(this).find('.postcodenl-autocomplete-address-input').length > 0)
+			if (initializedElements.has(this))
 			{
 				return; // Already initialized.
 			}
+
+			initializedElements.add(this);
 
 			addAddressAutocompleteNl($(this));
 			addAddressAutocompleteIntl($(this));

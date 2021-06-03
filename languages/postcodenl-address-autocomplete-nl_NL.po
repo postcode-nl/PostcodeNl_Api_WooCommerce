@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Postcode.nl Address Autocomplete\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-05-20 13:18+0000\n"
-"PO-Revision-Date: 2021-05-31 09:17+0000\n"
+"PO-Revision-Date: 2021-06-03 12:29+0000\n"
 "Last-Translator: \n"
 "Language-Team: Nederlands\n"
 "Language: nl_NL\n"
@@ -45,7 +45,7 @@ msgstr ""
 "Er is een fout opgetreden. Probeer het later nog eens of neem contact met "
 "ons op."
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:148
+#: src/PostcodeNl/AddressAutocomplete/Main.php:138
 msgid "API account"
 msgstr ""
 
@@ -69,7 +69,7 @@ msgstr ""
 msgid "Dutch address lookup method"
 msgstr "Zoekmethode Nederlandse adressen"
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:215
+#: src/PostcodeNl/AddressAutocomplete/Main.php:205
 msgid "Enter a postcode and house number."
 msgstr "Vul een postcode en huisnummer in."
 
@@ -124,7 +124,7 @@ msgid "Please enter a valid zip/postal code."
 msgstr "Vul alstublieft een geldige postcode in."
 
 #. %s: options URL
-#: src/PostcodeNl/AddressAutocomplete/Main.php:277
+#: src/PostcodeNl/AddressAutocomplete/Main.php:267
 #, php-format
 msgid ""
 "Please set your Postcode.eu API key and secret in <a href=\"%s\">the "
@@ -137,7 +137,7 @@ msgstr ""
 msgid "Postcode"
 msgstr ""
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:213
+#: src/PostcodeNl/AddressAutocomplete/Main.php:203
 msgid "Postcode and house number"
 msgstr "Postcode en huisnummer"
 
@@ -145,7 +145,7 @@ msgstr "Postcode en huisnummer"
 msgid "Postcode.eu Address Autocomplete options"
 msgstr "Postcode.nl Address Autocomplete opties"
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:254
+#: src/PostcodeNl/AddressAutocomplete/Main.php:244
 msgid ""
 "Postcode.eu Address Autocomplete requires the WooCommerce plugin to be "
 "activated to be able to add address autocomplete to the checkout form."
@@ -154,16 +154,16 @@ msgstr ""
 "geactiveerd is om adres autocomplete aan het checkout formulier toe te "
 "kunnen voegen."
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:274
+#: src/PostcodeNl/AddressAutocomplete/Main.php:264
 msgid "Postcode.eu Address Autocomplete: Set your credentials"
 msgstr "Postcode.nl Address Autocomplete: inloggegevens instellen"
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:253
+#: src/PostcodeNl/AddressAutocomplete/Main.php:243
 msgid "Postcode.eu Address Autocomplete: WooCommerce is required"
 msgstr "Postcode.nl Address Autocomplete: WooCommerce is vereist"
 
 #. %s: API account status.
-#: src/PostcodeNl/AddressAutocomplete/Main.php:299
+#: src/PostcodeNl/AddressAutocomplete/Main.php:289
 #, php-format
 msgid "Postcode.eu Address Autocomplete: Your API account is %s"
 msgstr "Postcode.nl Address Autocomplete: Uw API account is %s"
@@ -188,7 +188,7 @@ msgstr ""
 msgid "Save changes"
 msgstr "Wijzigingen opslaan"
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:147
+#: src/PostcodeNl/AddressAutocomplete/Main.php:137
 msgid "Settings"
 msgstr "Instellingen"
 
@@ -231,17 +231,18 @@ msgstr "Welk huisnummer bedoel je?"
 
 #: src/PostcodeNl/AddressAutocomplete/Options.php:132
 msgid ""
-"Which method to use for Dutch address lookups. Full lookup allows searching "
-"through city and street names, postcode only method only supports exact "
-"postcode and house number lookups but costs less per address. See <a "
-"href=\"https://www.postcode.nl/en/services/adresdata/producten-overzicht\" "
-"target=\"_blank\" rel=\"noopener\">product pricing</a>."
+"Which method to use for Dutch address lookups. \"Full lookup\" allows "
+"searching through city and street names, the \"Postcode and house number "
+"only\" method only supports exact postcode and house number lookups but "
+"costs less per address. See <a href=\"https://www.postcode."
+"nl/en/services/adresdata/producten-overzicht\" target=\"_blank\" "
+"rel=\"noopener\">product pricing</a>."
 msgstr ""
 "Welke methode te gebruiken voor Nederlandse adres zoekacties. \"Full "
-"lookup\" maakt zoeken op plaats- en straatnamen mogelijk, de \"postcode "
-"only\" methode ondersteunt alleen exacte postcode en huisnummer zoekacties "
-"maar kost minder per adres. Zie <a href=\"https://www.postcode."
-"nl/en/services/adresdata/producten-overzicht\" target=\"_blank\" "
+"lookup\" maakt zoeken op plaats- en straatnamen mogelijk, de \"Postcode and "
+"house number only\" methode ondersteunt alleen exacte postcode en huisnummer "
+"zoekacties maar kost minder per adres. Zie <a href=\"https://www.postcode."
+"nl/en/services/adresdata/producten-overzicht target=\"_blank\" "
 "rel=\"noopener\">productprijzen</a>."
 
 #: src/PostcodeNl/AddressAutocomplete/Options.php:117

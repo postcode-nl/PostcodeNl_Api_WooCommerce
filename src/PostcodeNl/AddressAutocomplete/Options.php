@@ -26,7 +26,7 @@ class Options
 
 	protected const NETHERLANDS_MODE_DESCRIPTIONS = [
 		self::NETHERLANDS_MODE_DEFAULT => 'Full lookup (default)',
-		self::NETHERLANDS_MODE_POSTCODE_ONLY => 'Postcode only, separate postcode and house number input',
+		self::NETHERLANDS_MODE_POSTCODE_ONLY => 'Postcode and house number only',
 	];
 
 	protected const DISPLAY_MODE_DEFAULT = 'default';
@@ -129,7 +129,7 @@ class Options
 			'netherlandsMode',
 			$this->netherlandsMode,
 			'select',
-			__('Which method to use for Dutch address lookups. Full lookup allows searching through city and street names, postcode only method only supports exact postcode and house number lookups but costs less per address. See <a href="https://www.postcode.nl/en/services/adresdata/producten-overzicht" target="_blank" rel="noopener">product pricing</a>.', 'postcodenl-address-autocomplete'),
+			__('Which method to use for Dutch address lookups. "Full lookup" allows searching through city and street names, the "Postcode and house number only" method only supports exact postcode and house number lookups but costs less per address. See <a href="https://www.postcode.nl/en/services/adresdata/producten-overzicht" target="_blank" rel="noopener">product pricing</a>.', 'postcodenl-address-autocomplete'),
 			static::NETHERLANDS_MODE_DESCRIPTIONS
 		);
 		$markup .= '</table>';

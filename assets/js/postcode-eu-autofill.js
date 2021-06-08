@@ -19,26 +19,30 @@
 				return; // Already initialized.
 			}
 
+			const container = $(this);
+
 			initializedElements.add(this);
 
-			addAddressAutocompleteNl($(this));
-			addAddressAutocompleteIntl($(this));
+			addAddressAutocompleteNl(container);
+			addAddressAutocompleteIntl(container);
 
 			if (settings.displayMode === 'default')
 			{
-				addFormattedAddressOutput($(this));
+				addFormattedAddressOutput(container);
 			}
-
-			const addressFields = getAddressFields($(this));
 
 			if (settings.displayMode === 'showAll')
 			{
 				return;
 			}
 
-			$(this).find('.country_to_state').on('change.postcode-eu.address-fields', function () {
+			container.find('.country_to_state').on('change.postcode-eu.address-fields', function () {
+				const selectedCountry = this.value;
+
 				// Wrap in timeout to execute after Woocommerce field logic:
-				window.setTimeout(toggleAddressFields, 0, addressFields, !isSupportedCountry(this.value), true);
+				window.setTimeout(function () {
+					toggleAddressFields(getAddressFields(container), !isSupportedCountry(selectedCountry), true);
+				});
 			}).trigger('change.postcode-eu.address-fields');
 		})
 	}
@@ -61,22 +65,23 @@
 
 	const getAddressFields = function (form)
 	{
-		return {
-			'address_1': form.find('[name$="_address_1"]'),
-			'address_2': form.find('[name$="_address_2"]'),
-			'postcode': form.find('[name$="_postcode"]'),
-			'city': form.find('[name$="_city"]'),
-			'street_name': form.find('[name$="_street_name"]'),
-			'house_number': form.find('[name$="_house_number"]'),
-			'house_number_suffix': form.find('[name$="_house_number_suffix"]'),
-		};
+		const fields = {};
+
+		for (let key in PostcodeNlAddressFieldMapping.mapping)
+		{
+			fields[key] = form.find('[name$="' + key + '"]');
+		}
+
+		return fields;
 	}
 
 	const resetAddressFields = function (addressFields)
 	{
 		for (let i in addressFields)
 		{
-			addressFields[i].val('');
+			addressFields[i]
+				.val('')
+				.trigger('input'); // Clears field validation.
 		}
 	}
 
@@ -96,7 +101,27 @@
 
 		for (let i in addressFields)
 		{
-			addressFields[i].closest('.form-row').toggle(state);
+			let field = addressFields[i];
+
+			if (field.length > 0 && field.prop('type') !== 'hidden')
+			{
+				field.closest('.form-row').toggle(state);
+			}
+		}
+	}
+
+	const fillAddressFields = function (addressFields, mappedValues)
+	{
+		for (let key in PostcodeNlAddressFieldMapping.mapping)
+		{
+			const addressPart = PostcodeNlAddressFieldMapping.mapping[key];
+
+			if (mappedValues.has(addressPart))
+			{
+				addressFields[key]
+					.val(mappedValues.get(addressPart))
+					.trigger('change');
+			}
 		}
 	}
 
@@ -203,7 +228,7 @@
 		postcodeField.on('address-result', function (e, data) {
 			if (data.status === 'valid')
 			{
-				fillAddressFields(data.address);
+				fillAddressFieldsNl(data.address);
 			}
 		});
 
@@ -222,7 +247,7 @@
 			toggleAddressFields(addressFields, true);
 			address.houseNumberAddition = this.value;
 			postcodeField.trigger('address-result', {address: address, status: 'valid'});
-			fillAddressFields(address, this.value);
+			fillAddressFieldsNl(address, this.value);
 		});
 
 		const getAddress = function ()
@@ -284,7 +309,7 @@
 			houseNumberSelect.append(options);
 		}
 
-		const fillAddressFields = function (address, houseNumberAddition)
+		const fillAddressFieldsNl = function (address, houseNumberAddition)
 		{
 			if (typeof houseNumberAddition !== 'undefined')
 			{
@@ -293,16 +318,15 @@
 
 			const addition = address.houseNumberAddition || '';
 
-			new Map([
-				['address_1', address.street + ' ' + (address.houseNumber + ' ' + addition).trim()],
-				['postcode', address.postcode],
-				['city', address.city],
-				['street_name', address.street],
-				['house_number', address.houseNumber],
-				['house_number_suffix', addition],
-			]).forEach(function (value, key) {
-				addressFields[key].val(value);
-			});
+			fillAddressFields(addressFields, new Map([
+				[PostcodeNlAddressFieldMapping.street, address.street],
+				[PostcodeNlAddressFieldMapping.houseNumber, address.houseNumber],
+				[PostcodeNlAddressFieldMapping.houseNumberAddition, addition],
+				[PostcodeNlAddressFieldMapping.postcode, address.postcode],
+				[PostcodeNlAddressFieldMapping.city, address.city],
+				[PostcodeNlAddressFieldMapping.streetAndHouseNumber, address.street + ' ' + (address.houseNumber + ' ' + addition).trim()],
+				[PostcodeNlAddressFieldMapping.houseNumberAndAddition, (address.houseNumber + ' ' + addition).trim()],
+			]));
 
 			// Force WooCommerce to recalculate shipping costs after address change
 			$(document.body).trigger('update_checkout');
@@ -321,7 +345,6 @@
 			countryIso2 = countryToState.val(),
 			intlFormRow = form.find('.postcode-eu-autofill-intl'),
 			intlField = intlFormRow.find('input'),
-			addressFields = getAddressFields(form),
 			countryIsoMap = (function () {
 				const map = new Map();
 
@@ -333,7 +356,8 @@
 				return map;
 			})();
 
-		let autocompleteInstance = null;
+		let autocompleteInstance = null,
+			addressFields = getAddressFields(form);
 
 		const isSupportedCountryIntl = function (countryIso2)
 		{
@@ -345,21 +369,20 @@
 			return isSupportedCountry(countryIso2);
 		}
 
-		const fillAddressFields = function (address)
+		const fillAddressFieldsIntl = function (address)
 		{
 			const number = address.buildingNumber || '',
 				addition = address.buildingNumberAddition || '';
 
-			new Map([
-				['address_1', address.street + ' ' + (number + ' ' + addition).trim()],
-				['postcode', address.postcode],
-				['city', address.locality],
-				['street_name', address.street],
-				['house_number', number],
-				['house_number_suffix', addition],
-			]).forEach(function (value, key) {
-				addressFields[key].val(value);
-			});
+			fillAddressFields(addressFields, new Map([
+				[PostcodeNlAddressFieldMapping.street, address.street],
+				[PostcodeNlAddressFieldMapping.houseNumber, number],
+				[PostcodeNlAddressFieldMapping.houseNumberAddition, addition],
+				[PostcodeNlAddressFieldMapping.postcode, address.postcode],
+				[PostcodeNlAddressFieldMapping.city, address.locality],
+				[PostcodeNlAddressFieldMapping.streetAndHouseNumber, address.street + ' ' + (number + ' ' + addition).trim()],
+				[PostcodeNlAddressFieldMapping.houseNumberAndAddition, (number + ' ' + addition).trim()],
+			]));
 
 			$(document.body).trigger('update_checkout');
 		}
@@ -382,7 +405,7 @@
 					intlField.addClass('postcodenl-address-autocomplete-loading');
 
 					autocompleteInstance.getDetails(e.detail.context, function (result) {
-						fillAddressFields(result.address);
+						fillAddressFieldsIntl(result.address);
 						toggleAddressFields(addressFields, true);
 						intlField
 							.removeClass('postcodenl-address-autocomplete-loading')
@@ -407,19 +430,21 @@
 
 		intlFormRow.toggle(isSupportedCountryIntl(countryToState.val()));
 
-		countryToState.on('change', function () {
-			const isSupported = isSupportedCountryIntl(this.value);
+		countryToState.on('change', window.setTimeout.bind(window, function () {
+				addressFields = getAddressFields(form);
 
-			if (isSupported && autocompleteInstance !== null)
-			{
-				resetAddressFields(addressFields);
-				autocompleteInstance.reset();
-				autocompleteInstance.setCountry(countryIsoMap.get(this.value));
-			}
+				const isSupported = isSupportedCountryIntl(countryToState.val());
 
-			intlFormRow.toggle(isSupported);
-		});
+				if (isSupported && autocompleteInstance !== null)
+				{
+					resetAddressFields(addressFields);
+					autocompleteInstance.reset();
+					autocompleteInstance.setCountry(countryIsoMap.get(countryToState.val()));
+				}
 
+				intlFormRow.toggle(isSupported);
+			})
+		);
 	}
 
 	const addFormattedAddressOutput = function (form)

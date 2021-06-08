@@ -168,9 +168,16 @@ class Main
 			true
 		);
 		wp_enqueue_script(
+			'postcode-eu-autocomplete-address-field-mapping',
+			$pluginsUrl . '/assets/js/addressFieldMapping.js',
+			[],
+			static::VERSION,
+			true
+		);
+		wp_enqueue_script(
 			'postcode-eu-autofill',
 			$pluginsUrl . '/assets/js/postcode-eu-autofill.js',
-			['postcode-eu-autocomplete-address-library', 'wp-i18n'],
+			['postcode-eu-autocomplete-address-library', 'postcode-eu-autocomplete-address-field-mapping', 'wp-i18n'],
 			static::VERSION,
 			true
 		);

@@ -1,0 +1,60 @@
+.postcode-eu table {
+	max-width: 900px;
+}
+
+.postcode-eu table [type=text],
+.postcode-eu table select,
+.postcode-eu table [type=password] {
+	min-width: 400px;
+}
+
+.postcode-eu dt {
+	min-width: 220px;
+	padding: 5px 0;
+	float: left;
+	font-weight: 700;
+}
+
+.postcode-eu dd {
+	overflow: hidden;
+	padding: 5px 0;
+	margin: 0;
+}
+
+.postcode-eu-api-status {
+	margin-top: 20px;
+	padding-top: 20px;
+	border-top: 1px solid #ccc;
+}
+
+.postcode-eu .subscription-status {
+	display: inline-block;
+	padding: 1px 10px 2px 10px;
+	border-radius: 20px;
+	font-weight: 700;
+	color: #fff;
+}
+
+.postcode-eu .subscription-status-new {
+	background-color: #00759a;
+}
+
+.postcode-eu .subscription-status-active {
+	background-color: #007819;
+}
+
+.postcode-eu .subscription-status-invalidCredentials {
+	background-color: #a51700;
+}
+
+.postcode-eu .subscription-status-inactive {
+	background-color: #666;
+}
+
+.postcode-eu-supported-countries-list li {
+	display: inline;
+}
+
+.postcode-eu-supported-countries-list li:nth-last-child(n+2):after {
+	content: ', ';
+}

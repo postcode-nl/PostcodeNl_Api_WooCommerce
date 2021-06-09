@@ -10,7 +10,7 @@ Postcode.nl Account
 =============
 
 A [Postcode.nl account](https://www.postcode.nl/en/services/adresdata/producten-overzicht) is required.
-Testing is free. After testing you can choose to purchase a subscription. 
+Testing is free. After testing you can choose to purchase a subscription.
 
 
 How to install
@@ -28,12 +28,12 @@ In your WordPress administration panel go to `Plugins > Installed Plugins` and l
 
 ## Translations
 
-The plugins texts are in English, if you want to translate any of the plugins texts you can find out how to do so here:
+The plugins texts are in English and Dutch, if you want to translate any of the plugins texts you can find out how to do so here:
 [WordPress Localization](https://developer.wordpress.org/plugins/internationalization/localization/)
 
 ## Address form field mapping
 
-Depending on your checkout form fields the selected address data might not be placed in the form fields you would like. 
+Depending on your checkout form fields the selected address data might not be placed in the form fields you would like.
 The mapping from form field names to address data is defined in [addressFieldMapping.js](https://github.com/postcode-nl/PostcodeNl_Api_WooCommerce/blob/master/assets/js/addressFieldMapping.js).
 By changing `PostcodeNlAddressFieldMapping.mapping` you can assign your own preferred address data parts to their respective form fields.
 

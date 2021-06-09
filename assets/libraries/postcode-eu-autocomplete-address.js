@@ -8,7 +8,7 @@
  * https://tldrlegal.com/l/mit
  *
  * @author Postcode.nl
- * @version 1.2.2
+ * @version 1.2.3
  */
 
 (function (global, factory) {
@@ -692,11 +692,12 @@
 
 		// Create an ARIA live region for screen readers.
 		// See https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Live_Regions
-		const liveRegion = document.createElement('div');
-		liveRegion.id = getUniqueId('aria-live-region');
+		const liveRegion = document.createElement('div'),
+			liveRegionId = 'aria-live-region';
+		liveRegion.id = getUniqueId(liveRegionId);
 		liveRegion.setAttribute('aria-role', 'status');
 		liveRegion.setAttribute('aria-live', 'assertive');
-		liveRegion.classList.add(options.cssPrefix + liveRegion.id);
+		liveRegion.classList.add(options.cssPrefix + liveRegionId);
 		document.body.appendChild(liveRegion);
 
 		window.addEventListener('beforeunload', function () {
@@ -875,12 +876,12 @@
 		}
 
 		/**
-		 * Highlight matched portions in the item label.
-		 *
-		 * @param {string} str - Item label to highlight.
-		 * @param {Array.Array.<number>} indices - Array of character offset pairs.
-		 * @return {string} Highlighted string (using "mark" elements).
-		 */
+		* Highlight matched portions in the item label.
+		*
+		* @param {string} str - Item label to highlight.
+		* @param {Array.Array.<number>} indices - Array of character offset pairs.
+		* @return {string} Highlighted string (using "mark" elements).
+		*/
 		this.highlight = function (str, indices)
 		{
 			if (indices.length === 0)
@@ -1050,7 +1051,7 @@
 						}
 
 						e.preventDefault();
-						break;
+					break;
 
 					case KEY_DOWN:
 					case KEY_DOWN_LEGACY:
@@ -1064,12 +1065,12 @@
 						}
 
 						e.preventDefault();
-						break;
+					break;
 
 					case KEY_ESC:
 					case KEY_ESC_LEGACY:
 						menu.close(true);
-						break;
+					break;
 
 					case KEY_TAB:
 						if (menu.hasFocus)
@@ -1077,7 +1078,7 @@
 							menu.select();
 							e.preventDefault();
 						}
-						break;
+					break;
 
 					case KEY_ENTER:
 						if (menu.hasFocus)
@@ -1089,7 +1090,7 @@
 						{
 							menu.close();
 						}
-						break;
+					break;
 
 					default:
 						searchDebounced(element);

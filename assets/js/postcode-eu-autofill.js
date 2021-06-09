@@ -371,17 +371,14 @@
 
 		const fillAddressFieldsIntl = function (address)
 		{
-			const number = address.buildingNumber || '',
-				addition = address.buildingNumberAddition || '';
-
 			fillAddressFields(addressFields, new Map([
 				[PostcodeNlAddressFieldMapping.street, address.street],
-				[PostcodeNlAddressFieldMapping.houseNumber, number],
-				[PostcodeNlAddressFieldMapping.houseNumberAddition, addition],
+				[PostcodeNlAddressFieldMapping.houseNumber, address.buildingNumber || ''],
+				[PostcodeNlAddressFieldMapping.houseNumberAddition, address.buildingNumberAddition || ''],
 				[PostcodeNlAddressFieldMapping.postcode, address.postcode],
 				[PostcodeNlAddressFieldMapping.city, address.locality],
-				[PostcodeNlAddressFieldMapping.streetAndHouseNumber, address.street + ' ' + (number + ' ' + addition).trim()],
-				[PostcodeNlAddressFieldMapping.houseNumberAndAddition, (number + ' ' + addition).trim()],
+				[PostcodeNlAddressFieldMapping.streetAndHouseNumber, (address.street + ' ' + address.building).trim()],
+				[PostcodeNlAddressFieldMapping.houseNumberAndAddition, address.building],
 			]));
 
 			$(document.body).trigger('update_checkout');

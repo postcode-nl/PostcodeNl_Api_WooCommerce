@@ -136,22 +136,22 @@
 		fields.siblings('.postcodenl-address-autocomplete-warning').remove();
 	}
 
-	const addAddressAutocompleteNl = function (form)
+	const addAddressAutocompleteNl = function (container)
 	{
 		if (settings.netherlandsMode !== 'postcodeOnly')
 		{
 			return;
 		}
 
-		const countryToState = form.find('.country_to_state'),
-			nlFields = form.find('.postcode-eu-autofill-nl'),
+		const countryToState = container.find('.country_to_state'),
+			nlFields = container.find('.postcode-eu-autofill-nl'),
 			lookupDelay = 750,
 			postcodeRegex = /[1-9][0-9]{3}\s*[a-z]{2}/i,
 			houseNumberRegex = /[1-9]\d{0,4}(?:\D.*)?$/i,
-			postcodeField = form.find('.postcode-eu-autofill-nl-postcode input'),
-			houseNumberField = form.find('.postcode-eu-autofill-nl-house-number input'),
-			houseNumberSelect = form.find('.postcode-eu-autofill-nl-house-number-select select'),
-			addressFields = getAddressFields(form);
+			postcodeField = container.find('.postcode-eu-autofill-nl-postcode input'),
+			houseNumberField = container.find('.postcode-eu-autofill-nl-house-number input'),
+			houseNumberSelect = container.find('.postcode-eu-autofill-nl-house-number-select select'),
+			addressFields = getAddressFields(container);
 
 		let lookupTimeout;
 
@@ -339,11 +339,11 @@
 		}
 	}
 
-	const addAddressAutocompleteIntl = function (form)
+	const addAddressAutocompleteIntl = function (container)
 	{
-		const countryToState = form.find('.country_to_state'),
+		const countryToState = container.find('.country_to_state'),
 			countryIso2 = countryToState.val(),
-			intlFormRow = form.find('.postcode-eu-autofill-intl'),
+			intlFormRow = container.find('.postcode-eu-autofill-intl'),
 			intlField = intlFormRow.find('input'),
 			countryIsoMap = (function () {
 				const map = new Map();
@@ -357,7 +357,7 @@
 			})();
 
 		let autocompleteInstance = null,
-			addressFields = getAddressFields(form);
+			addressFields = getAddressFields(container);
 
 		const isSupportedCountryIntl = function (countryIso2)
 		{
@@ -385,7 +385,7 @@
 		}
 
 		const intlFieldObserver = new MutationObserver(function () {
-			if (autocompleteInstance !== null || intlFormRow.is(':hidden'))
+			if (autocompleteInstance !== null)
 			{
 				return;
 			}
@@ -428,7 +428,7 @@
 		intlFormRow.toggle(isSupportedCountryIntl(countryToState.val()));
 
 		countryToState.on('change', window.setTimeout.bind(window, function () {
-				addressFields = getAddressFields(form);
+				addressFields = getAddressFields(container);
 
 				const isSupported = isSupportedCountryIntl(countryToState.val());
 
@@ -444,23 +444,23 @@
 		);
 	}
 
-	const addFormattedAddressOutput = function (form)
+	const addFormattedAddressOutput = function (container)
 	{
 		const formRow = $('<div>', {class: 'form-row form-row-wide postcode-eu-autofill'}),
 			addressElement = $('<address>', {class: 'postcode-eu-autofill-address'}).appendTo(formRow);
 
-		form.find('.postcode-eu-autofill').last().after(formRow);
+		container.find('.postcode-eu-autofill').last().after(formRow);
 
-		form.find('.country_to_state').on('change', function () {
+		container.find('.country_to_state').on('change', function () {
 			formRow.hide();
 		});
 
-		form.find('.postcode-eu-autofill-intl').on('address-result', function (e, result) {
+		container.find('.postcode-eu-autofill-intl').on('address-result', function (e, result) {
 			addressElement.html(result.mailLines[0] + '<br>' + result.mailLines[1]);
 			formRow.show();
 		});
 
-		form.find('.postcode-eu-autofill-nl').on('address-result', function (e, result) {
+		container.find('.postcode-eu-autofill-nl').on('address-result', function (e, result) {
 			if (result.status !== 'valid')
 			{
 				formRow.hide();

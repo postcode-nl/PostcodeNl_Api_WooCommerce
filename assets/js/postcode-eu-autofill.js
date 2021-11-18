@@ -254,7 +254,7 @@
 		{
 			const postcode = postcodeRegex.exec(postcodeField.val())[0].replace(/\s/g, ''),
 				houseNumber = houseNumberRegex.exec(houseNumberField.val())[0].trim(),
-				url = settings.dutchAddressLookup + postcode + '/' + houseNumber;
+				url = settings.dutchAddressLookup + postcode + '/' + encodeURIComponent(encodeURIComponent(houseNumber));
 
 			resetHouseNumberSelect();
 			resetAddressFields(addressFields);
@@ -395,6 +395,13 @@
 				addressDetailsUrl: settings.getDetails,
 				context: (countryIsoMap.get(countryToState.val()) || 'nld').toLowerCase(),
 			});
+
+			const getSuggestions = autocompleteInstance.getSuggestions;
+
+			autocompleteInstance.getSuggestions = function () {
+				arguments[1] = encodeURIComponent(arguments[1]); // Term needs double encoding because of autodecoding of superglobals.
+				getSuggestions.apply(this, arguments);
+			}
 
 			intlField[0].addEventListener('autocomplete-select', function (e) {
 				if (e.detail.precision === 'Address')

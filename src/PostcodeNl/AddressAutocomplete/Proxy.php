@@ -41,6 +41,7 @@ class Proxy
 	{
 		$this->_populateSession();
 		[$context, $term] = $this->_getParameters(2);
+		$term = wp_check_invalid_utf8(rawurldecode($term));
 
 		try
 		{
@@ -72,6 +73,7 @@ class Proxy
 	public function dutchAddressLookup(): void
 	{
 		[$postcode, $houseNumberAndAddition] = $this->_getParameters(2);
+		$houseNumberAndAddition = wp_check_invalid_utf8(rawurldecode($houseNumberAndAddition));
 
 		preg_match('/^(?<houseNumber>\d{1,5})(?<addition>\D.*)?$/', $houseNumberAndAddition, $matches);
 		$houseNumber = isset($matches['houseNumber']) ? (int)$matches['houseNumber'] : null;

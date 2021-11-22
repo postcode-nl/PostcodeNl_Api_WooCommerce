@@ -40,8 +40,8 @@ class Proxy
 	public function autocomplete(): void
 	{
 		$this->_populateSession();
-		[$context, $term] = $this->_getParameters(2);
-		$term = wp_check_invalid_utf8(rawurldecode($term));
+		$context = stripslashes($_GET['context']);
+		$term = wp_check_invalid_utf8(stripslashes($_GET['term']));
 
 		try
 		{
@@ -57,7 +57,7 @@ class Proxy
 	public function getDetails(): void
 	{
 		$this->_populateSession();
-		[$context] = $this->_getParameters(1);
+		$context = stripslashes($_GET['context']);
 
 		try
 		{
@@ -72,8 +72,8 @@ class Proxy
 
 	public function dutchAddressLookup(): void
 	{
-		[$postcode, $houseNumberAndAddition] = $this->_getParameters(2);
-		$houseNumberAndAddition = wp_check_invalid_utf8(rawurldecode($houseNumberAndAddition));
+		$postcode = wp_check_invalid_utf8(stripslashes($_GET['postcode']));
+		$houseNumberAndAddition = wp_check_invalid_utf8(stripslashes($_GET['houseNumberAndAddition']));
 
 		preg_match('/^(?<houseNumber>\d{1,5})(?<addition>\D.*)?$/', $houseNumberAndAddition, $matches);
 		$houseNumber = isset($matches['houseNumber']) ? (int)$matches['houseNumber'] : null;

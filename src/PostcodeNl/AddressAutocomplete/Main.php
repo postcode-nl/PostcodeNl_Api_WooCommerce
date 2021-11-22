@@ -10,7 +10,7 @@ defined('ABSPATH') || exit;
 class Main
 {
 	/** @var string The version number of the plugin should be equal to the commented version number in ../../../postcodenl-address-autocomplete.php */
-	public const VERSION = '2.0.2';
+	public const VERSION = '2.0.3';
 
 	/** @var self Reference to own */
 	protected static $_instance;
@@ -201,9 +201,9 @@ class Main
 		}
 
 		$settings = [
-			'autocomplete' => vsprintf('%s?action=%s&parameters=', [admin_url('admin-ajax.php'), Proxy::AJAX_AUTOCOMPLETE]),
-			'getDetails' => vsprintf('%s?action=%s&parameters=', [admin_url('admin-ajax.php'), Proxy::AJAX_GET_DETAILS]),
-			'dutchAddressLookup' => vsprintf('%s?action=%s&parameters=', [admin_url('admin-ajax.php'), Proxy::AJAX_DUTCH_ADDRESS_LOOKUP]),
+			'autocomplete' => vsprintf('%s?action=%s&context=${context}&term=${term}', [admin_url('admin-ajax.php'), Proxy::AJAX_AUTOCOMPLETE]),
+			'getDetails' => vsprintf('%s?action=%s&context=${context}', [admin_url('admin-ajax.php'), Proxy::AJAX_GET_DETAILS]),
+			'dutchAddressLookup' => vsprintf('%s?action=%s&postcode=${postcode}&houseNumberAndAddition=${houseNumberAndAddition}', [admin_url('admin-ajax.php'), Proxy::AJAX_DUTCH_ADDRESS_LOOKUP]),
 			'supportedCountries' => $this->_options->getSupportedCountries(),
 			'displayMode' => $this->_options->displayMode,
 			'netherlandsMode' => $this->_options->netherlandsMode,

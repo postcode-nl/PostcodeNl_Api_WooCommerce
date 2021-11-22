@@ -253,8 +253,8 @@
 		const getAddress = function ()
 		{
 			const postcode = postcodeRegex.exec(postcodeField.val())[0].replace(/\s/g, ''),
-				houseNumber = houseNumberRegex.exec(houseNumberField.val())[0].trim(),
-				url = settings.dutchAddressLookup + postcode + '/' + encodeURIComponent(encodeURIComponent(houseNumber));
+				houseNumberAndAddition = houseNumberRegex.exec(houseNumberField.val())[0].trim(),
+				url = settings.dutchAddressLookup.replace('${postcode}', encodeURIComponent(postcode)).replace('${houseNumberAndAddition}', encodeURIComponent(houseNumberAndAddition));
 
 			resetHouseNumberSelect();
 			resetAddressFields(addressFields);
@@ -398,9 +398,17 @@
 
 			const getSuggestions = autocompleteInstance.getSuggestions;
 
-			autocompleteInstance.getSuggestions = function () {
-				arguments[1] = encodeURIComponent(arguments[1]); // Term needs double encoding because of autodecoding of superglobals.
-				getSuggestions.apply(this, arguments);
+			autocompleteInstance.getSuggestions = function (context, term, response) {
+				const url = this.options.autocompleteUrl.replace('${context}', encodeURIComponent(context)).replace('${term}', encodeURIComponent(term));
+				return this.xhrGet(url, response);
+			}
+
+			const getDetails = autocompleteInstance.getDetails;
+
+			autocompleteInstance.getDetails = function (addressId, response)
+			{
+				const url = this.options.addressDetailsUrl.replace('${context}', encodeURIComponent(addressId));
+				return this.xhrGet(url, response);
 			}
 
 			intlField[0].addEventListener('autocomplete-select', function (e) {

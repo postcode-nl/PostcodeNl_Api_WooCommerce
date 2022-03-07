@@ -118,9 +118,8 @@
 
 			if (mappedValues.has(addressPart))
 			{
-				addressFields[key]
-					.val(mappedValues.get(addressPart))
-					.trigger('change');
+				const field = addressFields[key].val(mappedValues.get(addressPart))[0];
+				field.dispatchEvent(new Event('change'));
 			}
 		}
 	}

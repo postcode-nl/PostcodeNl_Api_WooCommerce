@@ -10,7 +10,7 @@ defined('ABSPATH') || exit;
 class Main
 {
 	/** @var string The version number of the plugin should be equal to the commented version number in ../../../postcodenl-address-autocomplete.php */
-	public const VERSION = '2.0.4';
+	public const VERSION = '2.0.5';
 
 	/** @var self Reference to own */
 	protected static $_instance;
@@ -37,7 +37,7 @@ class Main
 	public function wordPressInit(): void
 	{
 		add_filter('woocommerce_default_address_fields', [$this, 'addressFields']);
-		add_filter('plugin_action_links_' . $this->getPluginFileAndPath(), [$this, 'pluginActionLinks']);
+		add_filter('plugin_action_links_' . $this->_getPluginFileAndPath(), [$this, 'pluginActionLinks']);
 
 		add_action('admin_enqueue_scripts', [$this, 'enqueueAdminScripts']);
 
@@ -54,6 +54,7 @@ class Main
 
 		add_action('woocommerce_after_checkout_form', [$this, 'afterCheckoutForm']);
 		add_action('woocommerce_after_edit_account_address_form', [$this, 'afterCheckoutForm']);
+		add_action('woocommerce_after_checkout_validation', [$this, 'afterCheckoutValidation'], 10, 2);
 
 		add_action('admin_menu', [$this->_options, 'addPluginPage']);
 
@@ -221,6 +222,61 @@ class Main
 		);
 	}
 
+	public function afterCheckoutValidation($fields, $errors)
+	{
+		if (!$this->_options->hasKeyAndSecret() || $this->_options->hasEditableAddressFields())
+		{
+			return $fields;
+		}
+
+		$fieldNames = ['address_1', 'postcode', 'city'];
+		$errorCodes = $errors->get_error_codes();
+
+		if ($this->_isSupportedCountryIso2($fields['billing_country']))
+		{
+			$billingRequiredCodes = array_map(fn($name) => 'billing_' . $name . '_required', $fieldNames);
+
+			if (count(array_intersect($errorCodes, $billingRequiredCodes)) > 0)
+			{
+				foreach ($billingRequiredCodes as $code)
+				{
+					$errors->remove($code);
+				}
+			   
+				if ($this->_options->isNlModePostcodeOnly() && $fields['billing_country'] === 'NL')
+				{
+					$errors->add('validation', __('<strong>Please enter a postcode and house number for the billing address.</strong>', 'postcodenl-address-autocomplete'));
+				}
+				else
+				{
+					$errors->add('validation', __('<strong>Please enter and select a billing address.</strong>', 'postcodenl-address-autocomplete'));
+				}
+			}
+		}
+
+		if ($this->_isSupportedCountryIso2($fields['shipping_country']))
+		{
+			$shippingRequiredCodes = array_map(fn($name) => 'shipping_' . $name . '_required', $fieldNames);
+
+			if (count(array_intersect($errorCodes, $shippingRequiredCodes)) > 0)
+			{
+				foreach ($shippingRequiredCodes as $code)
+				{
+					$errors->remove($code);
+				}
+				
+				if ($this->_options->isNlModePostcodeOnly() && $fields['shipping_country'] === 'NL')
+				{
+					$errors->add('validation', __('<strong>Please enter a postcode and house number for the shipping address.</strong>', 'postcodenl-address-autocomplete'));
+				}
+				else
+				{
+					$errors->add('validation', __('<strong>Please enter and select a shipping address.</strong>', 'postcodenl-address-autocomplete'));
+				}
+			}
+		}
+	}
+
 	public function getOptions(): Options
 	{
 		return $this->_options;
@@ -306,8 +362,22 @@ class Main
 		return static::$_instance;
 	}
 
-	protected function getPluginFileAndPath(): string
+	protected function _getPluginFileAndPath(): string
 	{
 		return plugin_basename(dirname(__FILE__, 4) . '/postcodenl-address-autocomplete.php');
 	}
+
+	protected function _isSupportedCountryIso2($countryCode): bool
+	{
+		foreach ($this->_options->getSupportedCountries() as $country)
+		{
+			if ($countryCode === $country['iso2'])
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 }

@@ -393,6 +393,7 @@
 				autocompleteUrl: settings.autocomplete,
 				addressDetailsUrl: settings.getDetails,
 				context: (countryIsoMap.get(countryToState.val()) || 'nld').toLowerCase(),
+				autoFocus: true,
 			});
 
 			const getSuggestions = autocompleteInstance.getSuggestions;
@@ -472,6 +473,10 @@
 		container.find('.postcode-eu-autofill-intl').on('address-result', function (e, result) {
 			addressElement.html(result.mailLines[0] + '<br>' + result.mailLines[1]);
 			formRow.show();
+		});
+
+		container.find('.postcode-eu-autofill-intl input').on('autocomplete-search', function () {
+			formRow.hide();
 		});
 
 		container.find('.postcode-eu-autofill-nl').on('address-result', function (e, result) {

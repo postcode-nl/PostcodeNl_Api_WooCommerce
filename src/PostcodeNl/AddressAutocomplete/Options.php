@@ -393,4 +393,14 @@ class Options
 			'apiAccountName' => $this->_apiAccountName,
 		];
 	}
+
+	public function hasEditableAddressFields(): bool
+	{
+		return $this->displayMode === static::DISPLAY_MODE_SHOW_ALL;
+	}
+
+	public function isNlModePostcodeOnly(): bool
+	{
+		return $this->netherlandsMode === static::NETHERLANDS_MODE_POSTCODE_ONLY;
+	}
 }

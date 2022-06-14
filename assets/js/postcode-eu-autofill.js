@@ -504,7 +504,7 @@
 				return;
 			}
 
-			const line1 = result.address.street + ' ' + (result.address.houseNumber + ' ' + result.address.houseNumberAddition).trim(),
+			const line1 = result.address.street + ' ' + result.address.houseNumber + (result.address.houseNumberAddition ? ' ' + result.address.houseNumberAddition : ''),
 				line2 = result.address.postcode + ' ' + result.address.city;
 
 			addressElement.html(line1 + '<br>' + line2);

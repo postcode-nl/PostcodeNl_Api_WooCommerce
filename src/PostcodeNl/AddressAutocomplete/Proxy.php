@@ -91,9 +91,7 @@ class Proxy
 			$status = 'valid';
 
             if (
-                (isset($address['parsedHouseNumberAddition']) && strcasecmp($address['parsedHouseNumberAddition'], $address['houseNumberAddition'] ?? '') != 0)
-                ||
-                (!isset($address['parsedHouseNumberAddition']) && strcasecmp($address['houseNumberAddition'] ?? '', $houseNumberAddition ?? '') != 0)
+                (strcasecmp($address['houseNumberAddition'] ?? '', $houseNumberAddition ?? '') != 0)
                 ||
                 (!empty($address['houseNumberAdditions']) && is_null($address['houseNumberAddition']))
             )

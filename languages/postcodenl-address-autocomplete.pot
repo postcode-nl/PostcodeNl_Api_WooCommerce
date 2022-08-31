@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the Postcode.nl Address Autocomplete plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Postcode.nl Address Autocomplete 2.0.5\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/postcodenl-address-autocomplete\n"
+"Project-Id-Version: Postcode.nl Address Autocomplete 2.0.6\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/postcode-nl-api\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2022-04-21T12:41:16+00:00\n"
+"POT-Creation-Date: 2022-08-31T12:51:52+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.6.0\n"
 "X-Domain: postcodenl-address-autocomplete\n"
@@ -219,4 +219,12 @@ msgstr ""
 
 #: assets/js/postcode-eu-autofill.js:288
 msgid "An error has occurred. Please try again later or contact us."
+msgstr ""
+
+#: assets/js/postcode-eu-autofill.js:441
+msgid "An error has occurred while retrieving address data. Please contact us if the problem persists."
+msgstr ""
+
+#: assets/js/postcode-eu-autofill.js:453
+msgid "Please enter an address and select it."
 msgstr ""

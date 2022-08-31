@@ -422,6 +422,12 @@
 						intlField
 							.removeClass('postcodenl-address-autocomplete-loading')
 							.trigger('address-result', result);
+
+						intlFormRow
+							.removeClass('woocommerce-invalid')
+							.addClass('woocommerce-validated');
+
+						clearFieldErrors(intlField);
 					});
 				}
 			});
@@ -429,12 +435,23 @@
 			document.addEventListener('autocomplete-xhrerror', function (e) {
 				console.error('Autocomplete XHR error', e);
 				toggleAddressFields(addressFields, true);
-				intlField.removeClass('postcodenl-address-autocomplete-loading');
+				intlField
+					.removeClass('postcodenl-address-autocomplete-loading woocommerce-validated')
+					.addClass('woocommerce-invalid');
+				setFieldError(intlField, __('An error has occurred while retrieving address data. Please contact us if the problem persists.', 'postcodenl-address-autocomplete'));
 			});
 
 			// Clear the previous values when searching for a new address.
 			intlField[0].addEventListener('autocomplete-search', function () {
 				resetAddressFields(addressFields);
+			});
+
+			intlField.on('change', function (e) {
+				intlFormRow
+					.removeClass('woocommerce-invalid woocommerce-validated')
+					.addClass('woocommerce-invalid');
+				setFieldError(intlField, __('Please enter an address and select it.',  'postcodenl-address-autocomplete'));
+				e.stopPropagation(); // Prevent default validation via delegated event handler.
 			});
 		});
 

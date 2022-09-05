@@ -435,8 +435,9 @@
 			document.addEventListener('autocomplete-xhrerror', function (e) {
 				console.error('Autocomplete XHR error', e);
 				toggleAddressFields(addressFields, true);
-				intlField
-					.removeClass('postcodenl-address-autocomplete-loading woocommerce-validated')
+				intlField.removeClass('postcodenl-address-autocomplete-loading')
+				intlFormRow
+					.removeClass('woocommerce-validated')
 					.addClass('woocommerce-invalid');
 				setFieldError(intlField, __('An error has occurred while retrieving address data. Please contact us if the problem persists.', 'postcodenl-address-autocomplete'));
 			});
@@ -448,7 +449,7 @@
 
 			intlField.on('change', function (e) {
 				intlFormRow
-					.removeClass('woocommerce-invalid woocommerce-validated')
+					.removeClass('woocommerce-validated')
 					.addClass('woocommerce-invalid');
 				setFieldError(intlField, __('Please enter an address and select it.',  'postcodenl-address-autocomplete'));
 				e.stopPropagation(); // Prevent default validation via delegated event handler.

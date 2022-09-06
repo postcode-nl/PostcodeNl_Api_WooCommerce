@@ -356,7 +356,8 @@
 			})();
 
 		let autocompleteInstance = null,
-			addressFields = getAddressFields(container);
+			addressFields = getAddressFields(container),
+			matches = [];
 
 		const isSupportedCountryIntl = function (countryIso2)
 		{
@@ -389,6 +390,25 @@
 				return;
 			}
 
+			const selectAutocompleteAddress = function (item)
+			{
+				intlField.addClass('postcodenl-address-autocomplete-loading');
+
+				autocompleteInstance.getDetails(item.context, function (result) {
+					fillAddressFieldsIntl(result.address);
+					toggleAddressFields(addressFields, true);
+					intlField
+						.removeClass('postcodenl-address-autocomplete-loading')
+						.trigger('address-result', result);
+
+					intlFormRow
+						.removeClass('woocommerce-invalid')
+						.addClass('woocommerce-validated');
+
+					clearFieldErrors(intlField);
+				});
+			}
+
 			autocompleteInstance = new PostcodeNl.AutocompleteAddress(intlField[0], {
 				autocompleteUrl: settings.autocomplete,
 				addressDetailsUrl: settings.getDetails,
@@ -396,14 +416,11 @@
 				autoFocus: true,
 			});
 
-			const getSuggestions = autocompleteInstance.getSuggestions;
-
-			autocompleteInstance.getSuggestions = function (context, term, response) {
+			autocompleteInstance.getSuggestions = function (context, term, response)
+			{
 				const url = this.options.autocompleteUrl.replace('${context}', encodeURIComponent(context)).replace('${term}', encodeURIComponent(term));
 				return this.xhrGet(url, response);
 			}
-
-			const getDetails = autocompleteInstance.getDetails;
 
 			autocompleteInstance.getDetails = function (addressId, response)
 			{
@@ -414,21 +431,7 @@
 			intlField[0].addEventListener('autocomplete-select', function (e) {
 				if (e.detail.precision === 'Address')
 				{
-					intlField.addClass('postcodenl-address-autocomplete-loading');
-
-					autocompleteInstance.getDetails(e.detail.context, function (result) {
-						fillAddressFieldsIntl(result.address);
-						toggleAddressFields(addressFields, true);
-						intlField
-							.removeClass('postcodenl-address-autocomplete-loading')
-							.trigger('address-result', result);
-
-						intlFormRow
-							.removeClass('woocommerce-invalid')
-							.addClass('woocommerce-validated');
-
-						clearFieldErrors(intlField);
-					});
+					selectAutocompleteAddress(e.detail);
 				}
 			});
 
@@ -445,6 +448,21 @@
 			// Clear the previous values when searching for a new address.
 			intlField[0].addEventListener('autocomplete-search', function () {
 				resetAddressFields(addressFields);
+			});
+
+			intlField[0].addEventListener('autocomplete-response', function (e) {
+				matches =  e.detail.matches;
+			});
+
+			intlField.on('blur', function (e) {
+				if (matches.length === 1 && matches[0].precision === 'Address')
+				{
+					// Auto-select single address match.
+					intlField.val(matches[0].value);
+					selectAutocompleteAddress(matches[0]);
+				}
+
+				matches = [];
 			});
 
 			intlField.on('change', function (e) {

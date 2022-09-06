@@ -66,7 +66,7 @@ class Main
 
 	public function addressFields(array $fields): array
 	{
-		if (!$this->_options->hasKeyAndSecret())
+		if (!$this->_options->isApiActive())
 		{
 			return $fields;
 		}
@@ -196,7 +196,7 @@ class Main
 
 	public function afterCheckoutForm(): void
 	{
-		if (!$this->_options->hasKeyAndSecret())
+		if (!$this->_options->isApiActive())
 		{
 			return;
 		}
@@ -224,7 +224,7 @@ class Main
 
 	public function afterCheckoutValidation($fields, $errors)
 	{
-		if (!$this->_options->hasKeyAndSecret() || $this->_options->hasEditableAddressFields())
+		if (!$this->_options->isApiActive() || $this->_options->hasEditableAddressFields())
 		{
 			return $fields;
 		}

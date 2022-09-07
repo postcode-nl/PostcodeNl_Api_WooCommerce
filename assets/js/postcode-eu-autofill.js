@@ -408,7 +408,11 @@
 						.addClass('woocommerce-validated');
 
 					clearFieldErrors(intlField);
-					deferred.resolve();
+
+					if (typeof deferred !== 'undefined')
+					{
+						deferred.resolve();
+					}
 				});
 			}
 
@@ -455,6 +459,15 @@
 
 			intlField[0].addEventListener('autocomplete-response', function (e) {
 				matches =  e.detail.matches;
+
+				deferred = $.Deferred();
+
+				deferred.fail(function () {
+					intlFormRow
+						.removeClass('woocommerce-validated')
+						.addClass('woocommerce-invalid');
+					setFieldError(intlField, __('Please enter an address and select it.',  'postcodenl-address-autocomplete'));
+				});
 			});
 
 			intlField.on('blur', function (e) {
@@ -473,15 +486,6 @@
 			});
 
 			intlField.on('change', function (e) {
-				deferred = $.Deferred();
-
-				deferred.fail(function () {
-					intlFormRow
-						.removeClass('woocommerce-validated')
-						.addClass('woocommerce-invalid');
-					setFieldError(intlField, __('Please enter an address and select it.',  'postcodenl-address-autocomplete'));
-				});
-
 				e.stopPropagation(); // Prevent default validation via delegated event handler.
 			});
 		});

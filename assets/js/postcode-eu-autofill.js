@@ -390,6 +390,8 @@
 				return;
 			}
 
+			let deferred;
+
 			const selectAutocompleteAddress = function (item)
 			{
 				intlField.addClass('postcodenl-address-autocomplete-loading');
@@ -406,6 +408,7 @@
 						.addClass('woocommerce-validated');
 
 					clearFieldErrors(intlField);
+					deferred.resolve();
 				});
 			}
 
@@ -461,15 +464,24 @@
 					intlField.val(matches[0].value);
 					selectAutocompleteAddress(matches[0]);
 				}
+				else if (!autocompleteInstance.elements.menu.classList.contains('postcodenl-autocomplete-menu-open'))
+				{
+					deferred.reject();
+				}
 
 				matches = [];
 			});
 
 			intlField.on('change', function (e) {
-				intlFormRow
-					.removeClass('woocommerce-validated')
-					.addClass('woocommerce-invalid');
-				setFieldError(intlField, __('Please enter an address and select it.',  'postcodenl-address-autocomplete'));
+				deferred = $.Deferred();
+
+				deferred.fail(function () {
+					intlFormRow
+						.removeClass('woocommerce-validated')
+						.addClass('woocommerce-invalid');
+					setFieldError(intlField, __('Please enter an address and select it.',  'postcodenl-address-autocomplete'));
+				});
+
 				e.stopPropagation(); // Prevent default validation via delegated event handler.
 			});
 		});

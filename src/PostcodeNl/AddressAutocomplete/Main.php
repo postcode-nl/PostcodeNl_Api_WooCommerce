@@ -10,7 +10,7 @@ defined('ABSPATH') || exit;
 class Main
 {
 	/** @var string The version number of the plugin should be equal to the commented version number in ../../../postcodenl-address-autocomplete.php */
-	public const VERSION = '2.0.5';
+	public const VERSION = '2.0.6';
 
 	/** @var self Reference to own */
 	protected static $_instance;
@@ -66,7 +66,7 @@ class Main
 
 	public function addressFields(array $fields): array
 	{
-		if (!$this->_options->hasKeyAndSecret())
+		if (!$this->_options->isApiActive())
 		{
 			return $fields;
 		}
@@ -196,7 +196,7 @@ class Main
 
 	public function afterCheckoutForm(): void
 	{
-		if (!$this->_options->hasKeyAndSecret())
+		if (!$this->_options->isApiActive())
 		{
 			return;
 		}
@@ -224,7 +224,7 @@ class Main
 
 	public function afterCheckoutValidation($fields, $errors)
 	{
-		if (!$this->_options->hasKeyAndSecret() || $this->_options->hasEditableAddressFields())
+		if (!$this->_options->isApiActive() || $this->_options->hasEditableAddressFields())
 		{
 			return $fields;
 		}
@@ -242,7 +242,7 @@ class Main
 				{
 					$errors->remove($code);
 				}
-			   
+
 				if ($this->_options->isNlModePostcodeOnly() && $fields['billing_country'] === 'NL')
 				{
 					$errors->add('validation', __('<strong>Please enter a postcode and house number for the billing address.</strong>', 'postcodenl-address-autocomplete'));
@@ -264,7 +264,7 @@ class Main
 				{
 					$errors->remove($code);
 				}
-				
+
 				if ($this->_options->isNlModePostcodeOnly() && $fields['shipping_country'] === 'NL')
 				{
 					$errors->add('validation', __('<strong>Please enter a postcode and house number for the shipping address.</strong>', 'postcodenl-address-autocomplete'));

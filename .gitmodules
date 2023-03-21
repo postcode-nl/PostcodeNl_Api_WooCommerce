@@ -1,3 +1,0 @@
-[submodule "libraries/PostcodeNl_Api_Client"]
-	path = libraries/PostcodeNl_Api_Client
-	url = git@github.com:postcode-nl/PostcodeNl_Api_Client.git

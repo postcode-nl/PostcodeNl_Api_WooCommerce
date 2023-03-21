@@ -52,9 +52,9 @@
 
 	const isSupportedCountry = function (countryIso2)
 	{
-		for (let i in settings.supportedCountries)
+		for (let i in settings.enabledCountries)
 		{
-			if (settings.supportedCountries[i].iso2 === countryIso2)
+			if (settings.enabledCountries[i].iso2 === countryIso2)
 			{
 				return true;
 			}
@@ -347,9 +347,9 @@
 			countryIsoMap = (function () {
 				const map = new Map();
 
-				for (let i in settings.supportedCountries)
+				for (let i in settings.enabledCountries)
 				{
-					map.set(settings.supportedCountries[i].iso2, settings.supportedCountries[i].iso3);
+					map.set(settings.enabledCountries[i].iso2, settings.enabledCountries[i].iso3);
 				}
 
 				return map;

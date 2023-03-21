@@ -2,9 +2,12 @@
 
 namespace PostcodeNl\AddressAutocomplete;
 
+use DateTime;
 use PostcodeNl\AddressAutocomplete\Exception\Exception;
 use PostcodeNl\Api\Exception\AuthenticationException;
 use PostcodeNl\Api\Exception\ClientException;
+use function get_option;
+use function update_option;
 
 defined('ABSPATH') || exit;
 
@@ -41,6 +44,9 @@ class Options
 
 	protected const FORM_ACTION_NAME = self::FORM_NAME_PREFIX . 'submit';
 	protected const FORM_ACTION_NONCE_NAME = self::FORM_NAME_PREFIX . 'nonce';
+	protected const FORM_PER_COUNTRY_NAME = 'enableCountry';
+
+	protected const SUPPORTED_COUNTRY_LIST_EXPIRATION = '-1 day';
 
 	public $apiKey = '';
 	public $apiSecret = '';
@@ -50,19 +56,30 @@ class Options
 	 */
 	public $displayMode = self::DISPLAY_MODE_DEFAULT;
 
+	/** @var string The mode used for Dutch address validation.  */
+	public $netherlandsMode;
+
 	/** @var array */
 	protected $_supportedCountries;
-	/** @var \DateTime */
-	protected $_supportedCountriesExpiration;
+	/** @var \DateTime|null The most recent date time Api account information was imported. */
+	protected $_apiAccountInfoDateTime;
 	/** @var string The status of the account since the last time the credentials changed */
 	protected $_apiAccountStatus;
 	/** @var string|null The Postcode.eu API account name associated with the configured credentials, or null if it has not been retrieved yet. */
 	protected $_apiAccountName;
+	/** @var string|null The Postcode.eu API account limit. */
+	protected $_apiAccountLimit;
+	/** @var string|null The Postcode.eu API account usage of the current subscription period. */
+	protected $_apiAccountUsage;
+	/** @var string|null The Postcode.eu API account subscription start period. */
+	protected $_apiAccountStartDate;
+	/** @var array List of country codes for which the autocomplete API is disabled, even though it is supported. */
+	protected $_apiDisabledCountries;
 
 
 	public function __construct()
 	{
-		$data = \get_option(static::OPTION_KEY, []);
+		$data = get_option(static::OPTION_KEY, []);
 		$this->apiKey = $data['apiKey'] ?? '';
 		$this->apiSecret = $data['apiSecret'] ?? '';
 		// Convert legacy option to new mode
@@ -76,10 +93,14 @@ class Options
 		}
 		$this->displayMode = $data['displayMode'] ?? static::DISPLAY_MODE_DEFAULT;
 		$this->_supportedCountries = json_decode($data['supportedCountries'] ?? 'NULL', true);
-		$supportedCountriesExpiration = $data['supportedCountriesExpiration'] ?? '';
-		$this->_supportedCountriesExpiration = $supportedCountriesExpiration === '' ? null : new \DateTime($supportedCountriesExpiration);
+		$apiAccountInfoDateTime = $data['apiAccountInfoDateTime'] ?? '';
+		$this->_apiAccountInfoDateTime = $apiAccountInfoDateTime === '' ? null : new DateTime($apiAccountInfoDateTime);
 		$this->_apiAccountStatus = $data['apiAccountStatus'] ?? static::API_ACCOUNT_STATUS_NEW;
 		$this->_apiAccountName = $data['apiAccountName'] ?? null;
+		$this->_apiAccountLimit = $data['apiAccountLimit'] ?? null;
+		$this->_apiAccountUsage = $data['apiAccountUsage'] ?? null;
+		$this->_apiAccountStartDate = $data['apiAccountStartDate'] ?? null;
+		$this->_apiDisabledCountries = $data['apiDisabledCountries'] ?? [];
 	}
 
 	public function show(): void
@@ -132,6 +153,30 @@ class Options
 			__('Which method to use for Dutch address lookups. "Full lookup" allows searching through city and street names, the "Postcode and house number only" method only supports exact postcode and house number lookups but costs less per address. See <a href="https://www.postcode.nl/en/services/adresdata/producten-overzicht" target="_blank" rel="noopener">product pricing</a>.', 'postcodenl-address-autocomplete'),
 			static::NETHERLANDS_MODE_DESCRIPTIONS
 		);
+
+		if ($this->hasKeyAndSecret())
+		{
+			foreach ($this->getSupportedCountries() as $supportedCountry)
+			{
+				//
+				if ($supportedCountry['iso3'] === 'NLD' && $this->netherlandsMode === static::NETHERLANDS_MODE_POSTCODE_ONLY)
+				{
+					continue;
+				}
+				$markup .= $this->_getInputRow(
+					$supportedCountry['name'],
+					static::FORM_PER_COUNTRY_NAME . $supportedCountry['iso3'],
+					isset($this->_apiDisabledCountries[$supportedCountry['iso3']]) ? 'disabled' : 'enabled',
+					'select',
+					sprintf(__('Use autocomplete input for the country %s.', 'postcodenl-address-autocomplete'), $supportedCountry['name']),
+					[
+						'enabled' => __('Active', 'postcodenl-address-autocomplete'),
+						'disabled' => __('Disabled', 'postcodenl-address-autocomplete'),
+					]
+				);
+			}
+		}
+
 		$markup .= '</table>';
 		$markup .= vsprintf(
 			'<p class="submit"><input type="submit" name="%s" id="submit" class="button button-primary" value="%s"></p>',
@@ -142,25 +187,32 @@ class Options
 		$markup .= '<div class="postcode-eu-api-status">';
 		$markup .= sprintf('<h3>%s</h3>', __('API connection', 'postcodenl-address-autocomplete'));
 		$markup .= sprintf('<dl><dt>%s</dt><dd><span class="subscription-status subscription-status-%s">%s</span></dd>', __('Subscription status', 'postcodenl-address-autocomplete'), $this->_apiAccountStatus, $this->getApiStatusDescription());
+		$markup .= sprintf(
+			'<dl><dt>%s</dt><dd><span class="subscription-status-date">%s</span></dd>',
+			__('Subscription status retrieved', 'postcodenl-address-autocomplete'),
+			$this->_apiAccountInfoDateTime === null ? __('Never', 'postcodenl-address-autocomplete') : wp_date(get_option('date_format') . ' ' . get_option('time_format'), $this->_apiAccountInfoDateTime->getTimestamp())
+		);
 
 		if ($this->_apiAccountName !== null)
 		{
 			$markup .= sprintf('<dt>%s</dt><dd>%s</dd>', __('API account name', 'postcodenl-address-autocomplete'), $this->_apiAccountName);
 		}
+		if ($this->_apiAccountStartDate !== null)
+		{
+			$markup .= sprintf('<dt>%s</dt><dd>%s</dd>', __('API subscription start date', 'postcodenl-address-autocomplete'), wp_date(get_option('date_format'), (new DateTime($this->_apiAccountStartDate))->getTimestamp()));
+		}
+		if ($this->_apiAccountLimit !== null && $this->_apiAccountUsage !== null)
+		{
+			$markup .= sprintf(
+				'<dt>%s</dt><dd>%s / %s %s</dd>',
+				__('API subscription usage', 'postcodenl-address-autocomplete'),
+				$this->_apiAccountUsage,
+				$this->_apiAccountLimit,
+				__('euro', 'postcodenl-address-autocomplete')
+			);
+		}
 
 		$markup .= '</dl>';
-
-		if ($this->hasKeyAndSecret())
-		{
-			$countryNames = array_column($this->getSupportedCountries(), 'name');
-
-			if (count($countryNames) > 0)
-			{
-				sort($countryNames);
-				$markup .= vsprintf('<h3>%s</h3>', [__('Supported countries', 'postcodenl-address-autocomplete')]);
-				$markup .= vsprintf('<ul class="postcode-eu-supported-countries-list"><li>%s</li></ul>', [implode('</li><li>', $countryNames)]);
-			}
-		}
 
 		$markup .= '</div></div>';
 
@@ -180,7 +232,7 @@ class Options
 
 	public function save(): void
 	{
-		\update_option(static::OPTION_KEY, $this->_getData());
+		update_option(static::OPTION_KEY, $this->_getData());
 	}
 
 	public function hasKeyAndSecret(): bool
@@ -232,12 +284,12 @@ class Options
 
 	public function getSupportedCountries(): array
 	{
-		if ($this->_supportedCountriesExpiration === null || $this->_supportedCountriesExpiration < new \DateTime())
+		if ($this->_apiAccountInfoDateTime === null || $this->_apiAccountInfoDateTime < new DateTime(static::SUPPORTED_COUNTRY_LIST_EXPIRATION))
 		{
 			try
 			{
 				$this->_supportedCountries = Main::getInstance()->getProxy()->getClient()->internationalGetSupportedCountries();
-				$this->_supportedCountriesExpiration = new \DateTime('+1 days');
+				$this->_apiAccountInfoDateTime = new DateTime();
 				$this->save();
 			}
 			catch (ClientException $e)
@@ -294,13 +346,23 @@ class Options
 
 	protected function _handleSubmit(): void
 	{
-		if (!isset($_POST[static::FORM_ACTION_NONCE_NAME]) || !wp_verify_nonce($_POST[static::FORM_ACTION_NONCE_NAME], static::FORM_ACTION_NAME)) {
+		if (!isset($_POST[static::FORM_ACTION_NONCE_NAME]) || !wp_verify_nonce($_POST[static::FORM_ACTION_NONCE_NAME], static::FORM_ACTION_NAME))
+		{
 			return;
 		}
 
 		$options = Main::getInstance()->getOptions();
 		$existingKey = $options->apiKey;
 		$existingSecret = $options->apiSecret;
+		$this->_apiDisabledCountries = [];
+		foreach (array_column($this->getSupportedCountries(), 'iso3') as $countryCode)
+		{
+			$name = static::FORM_NAME_PREFIX . static::FORM_PER_COUNTRY_NAME . $countryCode;
+			if ($_POST[$name] === 'disabled')
+			{
+				$this->_apiDisabledCountries[$countryCode] = $countryCode;
+			}
+		}
 
 		foreach ($options as $option => $value)
 		{
@@ -310,6 +372,12 @@ class Options
 			{
 				continue;
 			}
+
+			if (in_array($option, ['_supportedCountries', '_apiAccountInfoDateTime'], true))
+			{
+				continue;
+			}
+
 			if ($option === 'netherlandsPostcodeMode')
 			{
 				if (isset($_POST[$postName]) && array_key_exists($_POST[$postName], static::NETHERLANDS_MODE_DESCRIPTIONS))
@@ -358,12 +426,16 @@ class Options
 				if ($accountInformation['hasAccess'] ?? false)
 				{
 					$this->_apiAccountStatus = static::API_ACCOUNT_STATUS_ACTIVE;
+					$this->_apiAccountInfoDateTime = new DateTime();
 				}
 				else
 				{
 					$this->_apiAccountStatus = static::API_ACCOUNT_STATUS_INACTIVE;
 				}
 				$this->_apiAccountName = $accountInformation['name'] ?? null;
+				$this->_apiAccountLimit = $accountInformation['subscription']['limit'] ?? null;
+				$this->_apiAccountUsage = $accountInformation['subscription']['usage'] ?? null;
+				$this->_apiAccountStartDate = $accountInformation['subscription']['startDate'] ?? null;
 			}
 			catch (AuthenticationException $e)
 			{
@@ -387,10 +459,14 @@ class Options
 			'apiSecret' => $this->apiSecret,
 			'displayMode' => $this->displayMode,
 			'netherlandsMode' => $this->netherlandsMode,
-			'supportedCountriesExpiration' => $this->_supportedCountriesExpiration === null ? '' : $this->_supportedCountriesExpiration->format('Y-m-d H:i:s'),
+			'apiAccountInfoDateTime' => $this->_apiAccountInfoDateTime === null ? '' : $this->_apiAccountInfoDateTime->format('Y-m-d H:i:s'),
 			'supportedCountries' => json_encode($this->_supportedCountries),
 			'apiAccountStatus' => $this->_apiAccountStatus,
 			'apiAccountName' => $this->_apiAccountName,
+			'apiAccountLimit' => $this->_apiAccountLimit,
+			'apiAccountUsage' => $this->_apiAccountUsage,
+			'apiAccountStartDate' => $this->_apiAccountStartDate,
+			'apiDisabledCountries' => $this->_apiDisabledCountries,
 		];
 	}
 
@@ -402,5 +478,19 @@ class Options
 	public function isNlModePostcodeOnly(): bool
 	{
 		return $this->netherlandsMode === static::NETHERLANDS_MODE_POSTCODE_ONLY;
+	}
+
+	public function getEnabledCountries(): array
+	{
+		$enabledCountries = [];
+		foreach ($this->getSupportedCountries() as $supportedCountry)
+		{
+			if (in_array($supportedCountry['iso3'], $this->_apiDisabledCountries, true))
+			{
+				continue;
+			}
+			$enabledCountries[] = $supportedCountry;
+		}
+		return $enabledCountries;
 	}
 }

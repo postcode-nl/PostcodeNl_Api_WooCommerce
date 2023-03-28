@@ -33,11 +33,13 @@ class Options
 	];
 
 	protected const DISPLAY_MODE_DEFAULT = 'default';
+	protected const DISPLAY_MODE_MANUAL_ON_ERROR = 'allowManual';
 	protected const DISPLAY_MODE_SHOW_ON_ADDRESS = 'showOnAddress';
 	protected const DISPLAY_MODE_SHOW_ALL = 'showAll';
 
 	protected const DISPLAY_MODE_DESCRIPTIONS = [
 		self::DISPLAY_MODE_DEFAULT => 'Hide fields and show a formatted address instead (default)',
+		self::DISPLAY_MODE_MANUAL_ON_ERROR => 'Hide fields, unless user selects manual address input',
 		self::DISPLAY_MODE_SHOW_ON_ADDRESS => 'Hide fields until an address is selected',
 		self::DISPLAY_MODE_SHOW_ALL => 'Show fields',
 	];
@@ -158,7 +160,6 @@ class Options
 		{
 			foreach ($this->getSupportedCountries() as $supportedCountry)
 			{
-				//
 				if ($supportedCountry['iso3'] === 'NLD' && $this->netherlandsMode === static::NETHERLANDS_MODE_POSTCODE_ONLY)
 				{
 					continue;

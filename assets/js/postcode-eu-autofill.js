@@ -36,12 +36,29 @@
 				return;
 			}
 
+			if (settings.displayMode === 'allowManual')
+			{
+				addFormattedAddressOutput(container);
+				container.find('.postcode-eu-autofill-intl').append(`<a href="#manual-input" class="manual-input-trigger">${settings.manualInputLabel}</a>`);
+				container.find('.manual-input-trigger').on('click', function(event) {
+					event.preventDefault();
+					let addressFields = getAddressFields(container);
+					toggleAddressFields(addressFields, true, true);
+					$(this).addClass('hidden');
+					container.find('.postcode-eu-autofill-intl').addClass('hidden');
+					container.find('.postcode-eu-autofill-address-container').addClass('hidden');
+				});
+			}
+
 			container.find('.country_to_state').on('change.postcode-eu.address-fields', function () {
 				const selectedCountry = this.value;
 
 				// Wrap in timeout to execute after Woocommerce field logic:
 				window.setTimeout(function () {
 					toggleAddressFields(getAddressFields(container), !isSupportedCountry(selectedCountry), true);
+					container.find('.postcode-eu-autofill-intl').removeClass('hidden');
+					container.find('.manual-input-trigger').removeClass('hidden');
+					container.find('.postcode-eu-autofill-address-container').removeClass('hidden');
 				});
 			}).trigger('change.postcode-eu.address-fields');
 		})
@@ -96,6 +113,10 @@
 			else if (settings.displayMode === 'showAll')
 			{
 				state = true;
+			}
+			else if (settings.displayMode === 'allowManual')
+			{
+				state = $(Object.values(addressFields)[0]).parents('div').find('.manual-input-trigger.hidden').length === 1;
 			}
 		}
 
@@ -341,7 +362,6 @@
 	const addAddressAutocompleteIntl = function (container)
 	{
 		const countryToState = container.find('.country_to_state'),
-			countryIso2 = countryToState.val(),
 			intlFormRow = container.find('.postcode-eu-autofill-intl'),
 			intlField = intlFormRow.find('input'),
 			countryIsoMap = (function () {
@@ -513,7 +533,7 @@
 
 	const addFormattedAddressOutput = function (container)
 	{
-		const formRow = $('<div>', {class: 'form-row form-row-wide postcode-eu-autofill'}),
+		const formRow = $('<div>', {class: 'form-row form-row-wide postcode-eu-autofill postcode-eu-autofill-address-container'}),
 			addressElement = $('<address>', {class: 'postcode-eu-autofill-address'}).appendTo(formRow);
 
 		container.find('.postcode-eu-autofill').last().after(formRow);

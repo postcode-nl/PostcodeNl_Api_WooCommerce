@@ -3,17 +3,24 @@ const PostcodeNlAddressFieldMapping = {
 	 * These constants define address parts which can be used to populate form fields.
 	 * The values in PostcodeNlAddressFieldMapping.mapping can be any of the constants below.
 	 */
-	street:					'street',
-	houseNumber:			'houseNumber',
-	houseNumberAddition:	'houseNumberAddition',
-	city:					'city',
-	postcode:				'postcode',
+	street:                 'street',
+	houseNumber:            'houseNumber',
+	houseNumberAddition:    'houseNumberAddition',
+	city:                   'city',
+	streetAndHouseNumber:   'streetAndHouseNumber',
 
 	// A combination of street and house number (including house number addition)
-	streetAndHouseNumber:	'streetAndHouseNumber',
+	postcode:               'postcode',
 
 	// A combination of house number and house number addition
-	houseNumberAndAddition:	'houseNumberAndAddition',
+	houseNumberAndAddition: 'houseNumberAndAddition',
+
+	/**
+	 *  Contains the province or similar administrative level for specific countries:
+	 *    Spain - Province
+	 *    Switzerland - Canton
+	 */
+	province:               'province',
 };
 
 /**
@@ -24,12 +31,12 @@ const PostcodeNlAddressFieldMapping = {
  *  - Use a value of null to toggle the field without changing its value.
  */
 PostcodeNlAddressFieldMapping.mapping = {
-	_address_1:				PostcodeNlAddressFieldMapping.streetAndHouseNumber,
-	_address_2:				null, // Address line 2
-	_postcode:				PostcodeNlAddressFieldMapping.postcode,
-	_city:					PostcodeNlAddressFieldMapping.city,
-	_state:					null, // E.g. used for optional canton field for Switzerland.
-	_street_name:			PostcodeNlAddressFieldMapping.street,
-	_house_number:			PostcodeNlAddressFieldMapping.houseNumber,
-	_house_number_suffix:	PostcodeNlAddressFieldMapping.houseNumberAddition
+	_address_1:           PostcodeNlAddressFieldMapping.streetAndHouseNumber,
+	_address_2:           null, // Address line 2
+	_postcode:            PostcodeNlAddressFieldMapping.postcode,
+	_city:                PostcodeNlAddressFieldMapping.city,
+	_state:               PostcodeNlAddressFieldMapping.province,
+	_street_name:         PostcodeNlAddressFieldMapping.street,
+	_house_number:        PostcodeNlAddressFieldMapping.houseNumber,
+	_house_number_suffix: PostcodeNlAddressFieldMapping.houseNumberAddition
 };

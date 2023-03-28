@@ -389,8 +389,18 @@
 			return isSupportedCountry(countryIso2);
 		}
 
-		const fillAddressFieldsIntl = function (address)
+		const fillAddressFieldsIntl = function (result)
 		{
+			let address = result.address;
+			let province = null;
+			if (result.country.iso3Code === 'ESP')
+			{
+				province = PostcodeNlStateToValueMapping.ESP[result.details.espProvince.name];
+			}
+			else if(result.country.iso3Code === 'CHE')
+			{
+				province = PostcodeNlStateToValueMapping.CHE[result.details.cheCanton.name];
+			}
 			fillAddressFields(addressFields, new Map([
 				[PostcodeNlAddressFieldMapping.street, address.street],
 				[PostcodeNlAddressFieldMapping.houseNumber, address.buildingNumber || ''],
@@ -399,6 +409,7 @@
 				[PostcodeNlAddressFieldMapping.city, address.locality],
 				[PostcodeNlAddressFieldMapping.streetAndHouseNumber, (address.street + ' ' + address.building).trim()],
 				[PostcodeNlAddressFieldMapping.houseNumberAndAddition, address.building],
+				[PostcodeNlAddressFieldMapping.province, province],
 			]));
 
 			$(document.body).trigger('update_checkout');
@@ -417,7 +428,7 @@
 				intlField.addClass('postcodenl-address-autocomplete-loading');
 
 				autocompleteInstance.getDetails(item.context, function (result) {
-					fillAddressFieldsIntl(result.address);
+					fillAddressFieldsIntl(result);
 					toggleAddressFields(addressFields, true);
 					intlField
 						.removeClass('postcodenl-address-autocomplete-loading')
@@ -543,7 +554,7 @@
 		});
 
 		container.find('.postcode-eu-autofill-intl').on('address-result', function (e, result) {
-			addressElement.html(result.mailLines[0] + '<br>' + result.mailLines[1]);
+			addressElement.html(result.mailLines.join('<br>'));
 			formRow.show();
 		});
 

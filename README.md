@@ -31,6 +31,12 @@ In your WordPress administration panel go to `Plugins > Installed Plugins` and l
 The plugins texts are in English and Dutch, if you want to translate any of the plugins texts you can find out how to do so here:
 [WordPress Localization](https://developer.wordpress.org/plugins/internationalization/localization/)
 
+## Limiting orders from regions of a country
+
+Shipping can be limited by setting up [Shipping Zones in WooCommerce](https://woocommerce.com/document/setting-up-shipping-zones/).
+
+For example, limiting shipping to French overseas territories, set up a shipping zone for France and add a postcode range of 97000...99000. Add specific shipping options, or only local pick up. Make sure the shipping zone is near the top of the list, shipping zones are matched from top to bottom.
+
 ## Address form field mapping
 
 Depending on your checkout form fields the selected address data might not be placed in the form fields you would like.

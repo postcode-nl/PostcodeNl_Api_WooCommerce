@@ -359,7 +359,7 @@ class Options
 		foreach (array_column($this->getSupportedCountries(), 'iso3') as $countryCode)
 		{
 			$name = static::FORM_NAME_PREFIX . static::FORM_PER_COUNTRY_NAME . $countryCode;
-			if ($_POST[$name] === 'disabled')
+			if (($_POST[$name] ?? null) === 'disabled')
 			{
 				$this->_apiDisabledCountries[$countryCode] = $countryCode;
 			}

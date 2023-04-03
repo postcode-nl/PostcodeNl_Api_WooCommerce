@@ -421,7 +421,7 @@
 				return;
 			}
 
-			let deferred;
+			let deferred = $.Deferred();
 
 			const selectAutocompleteAddress = function (item)
 			{
@@ -439,11 +439,7 @@
 						.addClass('woocommerce-validated');
 
 					clearFieldErrors(intlField);
-
-					if (typeof deferred !== 'undefined')
-					{
-						deferred.resolve();
-					}
+					deferred.resolve();
 				});
 			}
 

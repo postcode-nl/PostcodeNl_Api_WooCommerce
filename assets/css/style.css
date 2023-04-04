@@ -15,7 +15,7 @@
     background-repeat: no-repeat;
 }
 
-.form-row.hidden, .form-row.hidden *, .manual-input-trigger.hidden {
+.form-row.hidden, .form-row.hidden * {
    display: none;
    /** To prevent inline display style**/
    opacity: 0;
@@ -29,4 +29,14 @@
 	padding: 20px;
 	font-size: 120%;
 	background-color: #f8f8f8;
+}
+
+.postcode-eu-autofill-intl-bypass-link {
+	display: none;
+	cursor: pointer;
+	font-size: 85%;
+}
+
+.woocommerce-invalid .postcode-eu-autofill-intl-bypass-link {
+	display: initial;
 }

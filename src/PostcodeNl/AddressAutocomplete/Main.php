@@ -219,7 +219,8 @@ class Main
 			'postcodeOnlyPlaceholder' => '1234 AB',
 			'postcodeOnlyInputHint' => __('Enter a postcode and house number.', 'postcodenl-address-autocomplete'),
 			'houseNumberPlaceholder' => '123 A',
-			'manualInputLabel' => __('Enter an address', 'postcodenl-address-autocomplete'),
+			'autofillIntlBypassLinkText' => __('Enter an address', 'postcodenl-address-autocomplete'),
+			'allowAutofillIntlBypass' => $this->_options->allowAutofillIntlBypass,
 		];
 
 		printf(

@@ -36,18 +36,9 @@
 				return;
 			}
 
-			if (settings.displayMode === 'allowManual')
+			if (settings.allowAutofillIntlBypass === 'y')
 			{
-				addFormattedAddressOutput(container);
-				container.find('.postcode-eu-autofill-intl').append(`<a href="#manual-input" class="manual-input-trigger">${settings.manualInputLabel}</a>`);
-				container.find('.manual-input-trigger').on('click', function(event) {
-					event.preventDefault();
-					let addressFields = getAddressFields(container);
-					toggleAddressFields(addressFields, true, true);
-					$(this).addClass('hidden');
-					container.find('.postcode-eu-autofill-intl').addClass('hidden');
-					container.find('.postcode-eu-autofill-address-container').addClass('hidden');
-				});
+				addAutofillIntlBypassLink(container);
 			}
 
 			container.find('.country_to_state').on('change.postcode-eu.address-fields', function () {
@@ -56,9 +47,6 @@
 				// Wrap in timeout to execute after Woocommerce field logic:
 				window.setTimeout(function () {
 					toggleAddressFields(getAddressFields(container), !isSupportedCountry(selectedCountry), true);
-					container.find('.postcode-eu-autofill-intl').removeClass('hidden');
-					container.find('.manual-input-trigger').removeClass('hidden');
-					container.find('.postcode-eu-autofill-address-container').removeClass('hidden');
 				});
 			}).trigger('change.postcode-eu.address-fields');
 		})
@@ -540,7 +528,7 @@
 
 	const addFormattedAddressOutput = function (container)
 	{
-		const formRow = $('<div>', {class: 'form-row form-row-wide postcode-eu-autofill postcode-eu-autofill-address-container'}),
+		const formRow = $('<div>', {class: 'form-row form-row-wide postcode-eu-autofill'}),
 			addressElement = $('<address>', {class: 'postcode-eu-autofill-address'}).appendTo(formRow);
 
 		container.find('.postcode-eu-autofill').last().after(formRow);
@@ -572,4 +560,19 @@
 			formRow.show();
 		});
 	}
+
+	const addAutofillIntlBypassLink = function (container)
+	{
+		const formRow = container.find('.form-row.postcode-eu-autofill-intl'),
+			link = $('<a>', {'class': 'postcode-eu-autofill-intl-bypass-link', text: settings.autofillIntlBypassLinkText});
+
+		link.on('click', function () {
+			toggleAddressFields(getAddressFields(container), true, true);
+			formRow.hide();
+			return false;
+		});
+
+		formRow.append(link);
+	}
+
 })();

@@ -33,13 +33,11 @@ class Options
 	];
 
 	protected const DISPLAY_MODE_DEFAULT = 'default';
-	protected const DISPLAY_MODE_MANUAL_ON_ERROR = 'allowManual';
 	protected const DISPLAY_MODE_SHOW_ON_ADDRESS = 'showOnAddress';
 	protected const DISPLAY_MODE_SHOW_ALL = 'showAll';
 
 	protected const DISPLAY_MODE_DESCRIPTIONS = [
 		self::DISPLAY_MODE_DEFAULT => 'Hide fields and show a formatted address instead (default)',
-		self::DISPLAY_MODE_MANUAL_ON_ERROR => 'Hide fields, unless user selects manual address input',
 		self::DISPLAY_MODE_SHOW_ON_ADDRESS => 'Hide fields until an address is selected',
 		self::DISPLAY_MODE_SHOW_ALL => 'Show fields',
 	];
@@ -61,6 +59,8 @@ class Options
 	/** @var string The mode used for Dutch address validation.  */
 	public $netherlandsMode;
 
+	public $allowAutofillIntlBypass;
+
 	/** @var array */
 	protected $_supportedCountries;
 	/** @var \DateTime|null The most recent date time Api account information was imported. */
@@ -78,7 +78,6 @@ class Options
 	/** @var array List of country codes for which the autocomplete API is disabled, even though it is supported. */
 	protected $_apiDisabledCountries;
 
-
 	public function __construct()
 	{
 		$data = get_option(static::OPTION_KEY, []);
@@ -94,6 +93,7 @@ class Options
 			$this->netherlandsMode = $data['netherlandsMode'] ?? static::NETHERLANDS_MODE_DEFAULT;
 		}
 		$this->displayMode = $data['displayMode'] ?? static::DISPLAY_MODE_DEFAULT;
+		$this->allowAutofillIntlBypass = $data['allowAutofillIntlBypass'] ?? 'n';
 		$this->_supportedCountries = json_decode($data['supportedCountries'] ?? 'NULL', true);
 		$apiAccountInfoDateTime = $data['apiAccountInfoDateTime'] ?? '';
 		$this->_apiAccountInfoDateTime = $apiAccountInfoDateTime === '' ? null : new DateTime($apiAccountInfoDateTime);
@@ -148,6 +148,14 @@ class Options
 			static::DISPLAY_MODE_DESCRIPTIONS
 		);
 		$markup .= $this->_getInputRow(
+			__('Add manual entry link', 'postcodenl-address-autocomplete'),
+			'allowAutofillIntlBypass',
+			$this->allowAutofillIntlBypass,
+			'select',
+			__('Allows users to skip the autocomplete field and manually enter an address.', 'postcodenl-address-autocomplete'),
+			['n' => __('No'), 'y' => __('Yes')]
+		);
+		$markup .= $this->_getInputRow(
 			__('Dutch address lookup method', 'postcodenl-address-autocomplete'),
 			'netherlandsMode',
 			$this->netherlandsMode,
@@ -171,7 +179,7 @@ class Options
 					'select',
 					sprintf(__('Use autocomplete input for the country %s.', 'postcodenl-address-autocomplete'), $supportedCountry['name']),
 					[
-						'enabled' => __('Active', 'postcodenl-address-autocomplete'),
+						'enabled' => __('Enabled', 'postcodenl-address-autocomplete'),
 						'disabled' => __('Disabled', 'postcodenl-address-autocomplete'),
 					]
 				);
@@ -459,6 +467,7 @@ class Options
 			'apiKey' => $this->apiKey,
 			'apiSecret' => $this->apiSecret,
 			'displayMode' => $this->displayMode,
+			'allowAutofillIntlBypass' => $this->allowAutofillIntlBypass,
 			'netherlandsMode' => $this->netherlandsMode,
 			'apiAccountInfoDateTime' => $this->_apiAccountInfoDateTime === null ? '' : $this->_apiAccountInfoDateTime->format('Y-m-d H:i:s'),
 			'supportedCountries' => json_encode($this->_supportedCountries),

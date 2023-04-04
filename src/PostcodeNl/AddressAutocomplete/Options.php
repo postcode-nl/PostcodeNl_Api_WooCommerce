@@ -173,11 +173,11 @@ class Options
 					continue;
 				}
 				$markup .= $this->_getInputRow(
-					$supportedCountry['name'],
+					$this->_getCountryName($supportedCountry),
 					static::FORM_PER_COUNTRY_NAME . $supportedCountry['iso3'],
 					isset($this->_apiDisabledCountries[$supportedCountry['iso3']]) ? 'disabled' : 'enabled',
 					'select',
-					sprintf(__('Use autocomplete input for the country %s.', 'postcodenl-address-autocomplete'), $supportedCountry['name']),
+					sprintf(__('Use autocomplete input for the country %s.', 'postcodenl-address-autocomplete'), $this->_getCountryName($supportedCountry)),
 					[
 						'enabled' => __('Enabled', 'postcodenl-address-autocomplete'),
 						'disabled' => __('Disabled', 'postcodenl-address-autocomplete'),
@@ -503,4 +503,10 @@ class Options
 		}
 		return $enabledCountries;
 	}
+
+	protected function _getCountryName(array $supportedCountry): string
+	{
+		return WC()->countries->get_countries()[$supportedCountry['iso2']] ?? $supportedCountry['name'];
+	}
+
 }

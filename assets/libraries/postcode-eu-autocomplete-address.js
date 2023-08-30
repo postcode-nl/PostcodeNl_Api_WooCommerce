@@ -4,11 +4,11 @@
  * https://api.postcode.nl
  *
  * Copyright Postcode.nl
- * Released under the MIT license
- * https://tldrlegal.com/l/mit
+ * Released under the Apple MIT License (AML)
+ * https://www.tldrlegal.com/license/apple-mit-license-aml
  *
  * @author Postcode.nl
- * @version 1.3.0
+ * @version 1.3.3
  */
 
 (function (global, factory) {
@@ -31,7 +31,7 @@
 	const document = window.document,
 		$ = function (selector) { return document.querySelectorAll(selector); },
 		elementData = new WeakMap(),
-		VERSION = '1.3.0',
+		VERSION = '1.3.3',
 		EVENT_NAMESPACE = 'autocomplete-',
 		PRECISION_ADDRESS = 'Address',
 		KEY_ESC = 'Escape',
@@ -265,7 +265,7 @@
 				const data = elementData.get(item);
 
 				// Update the input element value unless the focus event was cancelled.
-				if (setValue && true === inputElement.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'focus', {detail: data, cancelable: true})))
+				if (setValue && true === inputElement.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'focus', {detail: data, cancelable: true, bubbles: true})))
 				{
 					inputElement.value = data.value;
 					elementData.get(inputElement).context = data.context;
@@ -337,6 +337,10 @@
 				get: function () {
 					return ul;
 				},
+			},
+			suppress: {
+				value: false,
+				writable: true,
 			},
 		});
 
@@ -429,7 +433,7 @@
 				this.focusNext(false);
 			}
 
-			if (isOpen)
+			if (isOpen || this.suppress)
 			{
 				return;
 			}
@@ -438,7 +442,7 @@
 			wrapper.classList.add(classNames.menuOpen);
 			ul.scrollTop = 0;
 			isOpen = true;
-			inputElement.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'open'));
+			inputElement.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'open', {bubbles: true}));
 		}
 
 		/**
@@ -463,7 +467,7 @@
 			item = null;
 			wrapper.classList.remove(classNames.menuOpen);
 			isOpen = false;
-			inputElement.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'close'));
+			inputElement.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'close', {bubbles: true}));
 		}
 
 		/**
@@ -496,7 +500,7 @@
 			const selectedMatch = elementData.get(item);
 
 			// Update the input element value unless the select event was cancelled.
-			if (true === inputElement.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'select', {detail: selectedMatch, cancelable: true})))
+			if (true === inputElement.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'select', {detail: selectedMatch, cancelable: true, bubbles: true})))
 			{
 				inputElement.value = selectedMatch.value;
 			}
@@ -539,9 +543,10 @@
 	/**
 	 * Get a random session identifier.
 	 *
-	 * @return {string} Cached session identifier.
+	 * @return {string} Session identifier.
 	 */
-	const getSessionId = (function () {
+	const getSessionId = function ()
+	{
 		const length = 32,
 			randomIntegers = new Uint8Array(length),
 			randomCharacters = [],
@@ -554,12 +559,8 @@
 			randomCharacters.push(characterSet[randomIntegers[i] % j]);
 		}
 
-		const id = randomCharacters.join('');
-
-		return function () {
-			return id;
-		};
-	})();
+		return randomCharacters.join('');
+	};
 
 	/**
 	 * Get a unique element identifier.
@@ -596,6 +597,20 @@
 		}
 
 		return target;
+	}
+
+	/**
+	 * Returns the name of the class of an object.
+	 *
+	 * To be used instead of typeof or instanceof, which are broken.
+	 * @see {@link https://github.com/BonsaiDen/JavaScript-Garden/blob/master/doc/en/types/typeof.md}
+	 *
+	 * @param {*} value - Any value.
+	 * @return {string} Class name extracted from internal [[class]] property.
+	 */
+	const getClass = function (value)
+	{
+		return Object.prototype.toString.call(value).slice(8, -1);
 	}
 
 	if (typeof window.CustomEvent !== 'function')
@@ -649,7 +664,7 @@
 	{
 		let inputElements;
 
-		if (typeof elementsOrSelector === 'string')
+		if (getClass(elementsOrSelector) === 'String')
 		{
 			inputElements = $(elementsOrSelector);
 		}
@@ -693,7 +708,8 @@
 
 		const self = this,
 			menu = new Menu(options),
-			inputBlankClassName = options.cssPrefix + 'address-input-blank';
+			inputBlankClassName = options.cssPrefix + 'address-input-blank',
+			instanceSessionId = getSessionId();
 
 		// Create an ARIA live region for screen readers.
 		// See https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Live_Regions
@@ -758,6 +774,8 @@
 				}
 			});
 
+			let sessionId = instanceSessionId;
+
 			if (activeElement !== null)
 			{
 				const element = activeElement,
@@ -765,9 +783,11 @@
 					{
 						if (this.status !== 200)
 						{
-							element.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'error', {detail: {'event': e, request: this}}));
+							element.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'error', {detail: {'event': e, request: this}, bubbles: true}));
 						}
 					};
+
+				sessionId = elementData.get(element).sessionId;
 
 				// Trigger an error event for failed requests.
 				xhr.addEventListener('error', xhrErrorHandler);
@@ -781,7 +801,7 @@
 			}
 
 			xhr.open('GET', url);
-			xhr.setRequestHeader('X-Autocomplete-Session', getSessionId());
+			xhr.setRequestHeader('X-Autocomplete-Session', sessionId);
 			xhr.send();
 
 			return xhr;
@@ -849,7 +869,7 @@
 
 			li.classList.add(this.options.cssPrefix + 'item');
 			label.classList.add(this.options.cssPrefix + 'item-label');
-			label.innerHTML = this.highlight(item.label, item.highlights, item.precision);
+			label.innerHTML = this.highlight(item.label, item.highlights);
 			li.appendChild(label);
 
 			if (item.precision !== PRECISION_ADDRESS)
@@ -881,12 +901,12 @@
 		}
 
 		/**
-		 * Highlight matched portions in the item label.
-		 *
-		 * @param {string} str - Item label to highlight.
-		 * @param {Array.Array.<number>} indices - Array of character offset pairs.
-		 * @return {string} Highlighted string (using "mark" elements).
-		 */
+		* Highlight matched portions in the item label.
+		*
+		* @param {string} str - Item label to highlight.
+		* @param {Array.Array.<number>} indices - Array of character offset pairs.
+		* @return {string} Highlighted string (using "mark" elements).
+		*/
 		this.highlight = function (str, indices)
 		{
 			if (indices.length === 0)
@@ -938,21 +958,53 @@
 		}
 
 		/**
+		 * @typedef SearchOptions
+		 * @type {Object}
+		 * @property {string} term - Search query, optional.
+		 * @property {string} context - Autocomplete context, optional.
+		 * @property {boolean} showMenu - Wether to show the menu, optional. Default is true.
+		 */
+
+		/**
 		 * Trigger a search on the specified input element. If invoked without a term, the current input's value is used.
 		 *
 		 * @param {HTMLElement} element - Input element associated with the autocomplete instance.
-		 * @param {string} term - Search query.
+		 * @param {(string|SearchOptions)} [term] - Search query, optional. Or SearchOptions object, optional.
+		 * @param {string} [context] - Autocomplete context, optional. Ignored if using SearchOptions.
 		 */
-		this.search = function (element, term)
+		this.search = function (element)
 		{
-			if (typeof term !== 'undefined')
+			let options;
+
+			if (getClass(arguments[1]) === 'Object')
 			{
-				element.value = term;
+				options = arguments[1];
 			}
+			else
+			{
+				options = { term: arguments[1], context: arguments[2] };
+			}
+
+			if (typeof options.term !== 'undefined')
+			{
+				element.value = options.term;
+			}
+
+			if (typeof options.context !== 'undefined')
+			{
+				const data = elementData.get(element);
+				data.context = options.context;
+				elementData.set(element, data);
+			}
+
+			const currentMenuSuppress = menu.suppress;
+			menu.suppress = !(typeof options.showMenu === 'undefined' || options.showMenu);
 
 			activeElement = element;
 			element.classList.toggle(inputBlankClassName, element.value === '');
 			search(element);
+
+			menu.suppress = currentMenuSuppress;
 		}
 
 		/**
@@ -1031,6 +1083,7 @@
 					autocomplete: element.hasAttribute('autocomplete') ? element.getAttribute('autocomplete') : null,
 					'aria-controls': element.hasAttribute('aria-controls') ? element.getAttribute('aria-controls') : null,
 				},
+				sessionId: getSessionId(),
 			});
 
 			if (false === element.hasAttribute('autocomplete'))
@@ -1060,7 +1113,7 @@
 						}
 
 						e.preventDefault();
-						break;
+					break;
 
 					case KEY_DOWN:
 					case KEY_DOWN_LEGACY:
@@ -1074,12 +1127,12 @@
 						}
 
 						e.preventDefault();
-						break;
+					break;
 
 					case KEY_ESC:
 					case KEY_ESC_LEGACY:
 						menu.close(true);
-						break;
+					break;
 
 					case KEY_TAB:
 						if (menu.hasFocus)
@@ -1087,7 +1140,7 @@
 							menu.select();
 							e.preventDefault();
 						}
-						break;
+					break;
 
 					case KEY_ENTER:
 						if (menu.hasFocus)
@@ -1099,7 +1152,7 @@
 						{
 							menu.close();
 						}
-						break;
+					break;
 
 					default:
 						searchDebounced(element);
@@ -1168,7 +1221,7 @@
 				element.classList.toggle(inputBlankClassName, element.value === '');
 			});
 
-			element.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'create', {detail: self}));
+			element.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'create', {detail: self, bubbles: true}));
 		});
 
 		/**
@@ -1203,20 +1256,16 @@
 			const data = elementData.get(element);
 			activeElement = element;
 
-			// Bug #51485 - this shouldn't happen, but it does in IE
-			/*
-			if (typeof data.context === 'undefined')
-			{
-				return;
-			}
-			*/
-
 			if (element.value === previousValue && data.context === previousContext)
 			{
 				return;
 			}
 
-			const hasSubstring = data.context === previousContext && previousValue !== null && (element.value.indexOf(previousValue) === 0 || previousValue.indexOf(element.value) === 0);
+			const hasSubstring = (
+				data.context === previousContext
+				&& previousValue !== null
+				&& (element.value.indexOf(previousValue) === 0 || previousValue.indexOf(element.value) === 0)
+			);
 			previousValue = element.value;
 			previousContext = data.context;
 			data.match = {};
@@ -1230,14 +1279,20 @@
 			}
 
 			// Trigger the search event. Cancel this event to prevent the request for address suggestions.
-			if (false === element.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'search', {cancelable: true})))
+			if (false === element.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'search', {cancelable: true, bubbles: true})))
 			{
 				return;
 			}
 
 			self.getSuggestions.call(self, data.context, element.value, function (result) {
+				if (getClass(result.newContext) === 'String')
+				{
+					// Forced switch away from current context - current context no longer valid given user input.
+					data.context = result.newContext;
+				}
+
 				// Trigger the response event. Cancel this event to prevent rendering address suggestions.
-				if (true === element.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'response', {detail: result, cancelable: true})))
+				if (true === element.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + 'response', {detail: result, cancelable: true, bubbles: true})))
 				{
 					matches = result.matches || [];
 

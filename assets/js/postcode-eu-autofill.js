@@ -9,7 +9,8 @@
 	const $ = jQuery,
 		__ = wp.i18n.__,
 		settings = PostcodeEuSettings,
-		initializedElements = new Set();
+		initializedElements = new Set(),
+		addressDetailsCache = new Map();
 
 	const initialize = function ()
 	{
@@ -20,6 +21,11 @@
 			}
 
 			const container = $(this);
+
+			if (false === container.is(':visible'))
+			{
+				return; // Skip if the container is not visible. Will try again on update_checkout.
+			}
 
 			initializedElements.add(this);
 
@@ -133,15 +139,27 @@
 		}
 	}
 
-	const setFieldError = function (field, message)
+	const setFieldValidity = function (field, errorMessage)
 	{
-		clearFieldErrors(field);
-		field.after($('<span>', {class: 'postcodenl-address-autocomplete-warning', text: message}));
+		errorMessage = errorMessage || '';
+		console.assert($.type(errorMessage) === 'string', 'Error message must be a string.');
+		clearFieldValidity(field);
+
+		if (errorMessage === '')
+		{
+			field.closest('.form-row').addClass('woocommerce-validated');
+		}
+		else
+		{
+			field.closest('.form-row').addClass('woocommerce-invalid');
+			field.after($('<span>', {class: 'postcodenl-address-autocomplete-warning', text: errorMessage}));
+		}
 	}
 
-	const clearFieldErrors = function (fields)
+	const clearFieldValidity = function (field)
 	{
-		fields.siblings('.postcodenl-address-autocomplete-warning').remove();
+		field.closest('.form-row').removeClass('woocommerce-validated woocommerce-invalid');
+		field.siblings('.postcodenl-address-autocomplete-warning').remove();
 	}
 
 	const addAddressAutocompleteNl = function (container)
@@ -161,7 +179,8 @@
 			houseNumberSelect = container.find('.postcode-eu-autofill-nl-house-number-select select'),
 			addressFields = getAddressFields(container);
 
-		let lookupTimeout;
+		let lookupTimeout,
+			currentAddress = null;
 
 		const toggleNlFields = function (state)
 		{
@@ -174,66 +193,68 @@
 			return countryToState.val() === 'NL';
 		}
 
-		toggleNlFields(isNl());
+		const isPostcodeValid = () => postcodeRegex.test(postcodeField.val());
 
-		countryToState.on('change', function () {
+		const isHouseNumberValid = () => houseNumberRegex.test(houseNumberField.val());
+
+		postcodeField.on('input', () => {
+			window.clearTimeout(lookupTimeout);
+			clearFieldValidity(postcodeField);
+			resetHouseNumberSelect();
+
+			if (isPostcodeValid() && isHouseNumberValid())
+			{
+				lookupTimeout = window.setTimeout(getAddress, lookupDelay);
+			}
+		});
+
+		houseNumberField.on('input', () => {
+			window.clearTimeout(lookupTimeout);
+			clearFieldValidity(houseNumberField);
+			resetHouseNumberSelect();
+
+			if (isHouseNumberValid() && isPostcodeValid())
+			{
+				lookupTimeout = window.setTimeout(getAddress, lookupDelay);
+			}
+		});
+
+		// Replace WooCommerce checkout validation.
+		postcodeField.on('change', (e) => {
+			e.stopPropagation();
+
+			setFieldValidity(
+				postcodeField,
+				isPostcodeValid() ? '' : __('Please enter a valid postcode.', 'postcodenl-address-autocomplete')
+			);
+		});
+
+		houseNumberField.on('change', (e) => {
+			e.stopPropagation();
+
+			setFieldValidity(
+				houseNumberField,
+				isHouseNumberValid() ? '' : __('Please enter a valid house number.', 'postcodenl-address-autocomplete')
+			);
+		});
+
+		countryToState.on('change', () => {
 			toggleNlFields(isNl());
-		});
 
-		postcodeField.on('input', function () {
-			window.clearTimeout(lookupTimeout);
-
-			if (this.value === '')
+			if (!isNl())
 			{
-				clearFieldErrors(postcodeField);
 				return;
 			}
 
-			lookupTimeout = window.setTimeout(function () {
-				if (postcodeRegex.test(this.value))
-				{
-					clearFieldErrors(postcodeField);
+			resetAddressFields(addressFields);
 
-					if (houseNumberRegex.test(houseNumberField.val()))
-					{
-						getAddress();
-					}
-
-					return;
-				}
-
-				setFieldError(postcodeField, __('Please enter a valid zip/postal code.',  'postcodenl-address-autocomplete'));
-				resetHouseNumberSelect();
-			}.bind(this), lookupDelay);
-		});
-
-		houseNumberField.on('input', function () {
-			window.clearTimeout(lookupTimeout);
-
-			if (this.value === '')
+			if (isPostcodeValid() && isHouseNumberValid())
 			{
-				resetHouseNumberSelect();
-				clearFieldErrors(houseNumberField);
-				return;
+				getAddress();
 			}
-
-			lookupTimeout = window.setTimeout(function () {
-				if (houseNumberRegex.test(this.value)) {
-					clearFieldErrors(houseNumberField);
-
-					if (postcodeRegex.test(postcodeField.val())) {
-						getAddress();
-					}
-
-					return;
-				}
-
-				setFieldError(houseNumberField, __('Please enter a valid house number.',  'postcodenl-address-autocomplete'));
-				resetHouseNumberSelect();
-			}.bind(this), lookupDelay);
 		});
 
-		postcodeField.on('address-result', function (e, data) {
+		postcodeField.on('address-result', function (_, data) {
 			if (data.status === 'valid')
 			{
 				fillAddressFieldsNl(data.address);
@@ -241,21 +262,19 @@
 		});
 
 		houseNumberSelect.on('change', function () {
-			const address = postcodeField.data('address');
-
-			if (this.value === '0')
+			if (this.value === '0') // '0' is the select-house-number label.
 			{
-				address.houseNumberAddition = null;
-				postcodeField.trigger('address-result', {address: address, status: 'houseNumberAdditionIncorrect'});
+				currentAddress.houseNumberAddition = null;
+				postcodeField.trigger('address-result', {address: currentAddress, status: 'houseNumberAdditionIncorrect'});
 				toggleAddressFields(addressFields, false);
 				resetAddressFields(addressFields);
 				return;
 			}
 
 			toggleAddressFields(addressFields, true);
-			address.houseNumberAddition = this.value;
-			postcodeField.trigger('address-result', {address: address, status: 'valid'});
-			fillAddressFieldsNl(address, this.value);
+			currentAddress.houseNumberAddition = this.value;
+			postcodeField.trigger('address-result', {address: currentAddress, status: 'valid'});
+			fillAddressFieldsNl(currentAddress, this.value);
 		});
 
 		const getAddress = function ()
@@ -266,10 +285,8 @@
 
 			resetHouseNumberSelect();
 			resetAddressFields(addressFields);
-
-			postcodeField
-				.removeData('address')
-				.addClass('postcodenl-address-autocomplete-loading');
+			currentAddress = null;
+			postcodeField.addClass('postcodenl-address-autocomplete-loading');
 
 			$.get({
 				url: url,
@@ -277,13 +294,12 @@
 				dataType: 'json',
 				success: function (response) {
 					if (response.status === 'notFound') {
-						setFieldError(houseNumberField, __('Address not found.',  'postcodenl-address-autocomplete'));
+						setFieldValidity(houseNumberField, __('Address not found.', 'postcodenl-address-autocomplete'));
 						return;
 					}
 
-					postcodeField
-						.data('address', response.address)
-						.trigger('address-result', response);
+					currentAddress = response.address;
+					postcodeField.trigger('address-result', response);
 
 					if (response.status === 'houseNumberAdditionIncorrect') {
 						setHouseNumberOptions(response.address);
@@ -294,7 +310,7 @@
 					}
 				}
 			}).fail(function () {
-				setFieldError(houseNumberField, __('An error has occurred. Please try again later or contact us.',  'postcodenl-address-autocomplete'));
+				setFieldValidity(houseNumberField, __('An error has occurred. Please try again later or contact us.', 'postcodenl-address-autocomplete'));
 			}).always(function () {
 				postcodeField.removeClass('postcodenl-address-autocomplete-loading');
 			});
@@ -324,7 +340,11 @@
 				address.houseNumberAddition = houseNumberAddition;
 			}
 
-			const addition = address.houseNumberAddition || '';
+			const addition = address.houseNumberAddition || '',
+				building = `${address.houseNumber} ${addition}`.trim();
+
+			postcodeField.val(address.postcode);
+			houseNumberField.val(building);
 
 			fillAddressFields(addressFields, new Map([
 				[PostcodeNlAddressFieldMapping.street, address.street],
@@ -332,8 +352,8 @@
 				[PostcodeNlAddressFieldMapping.houseNumberAddition, addition],
 				[PostcodeNlAddressFieldMapping.postcode, address.postcode],
 				[PostcodeNlAddressFieldMapping.city, address.city],
-				[PostcodeNlAddressFieldMapping.streetAndHouseNumber, address.street + ' ' + (address.houseNumber + ' ' + addition).trim()],
-				[PostcodeNlAddressFieldMapping.houseNumberAndAddition, (address.houseNumber + ' ' + addition).trim()],
+				[PostcodeNlAddressFieldMapping.streetAndHouseNumber, address.street + ' ' + building],
+				[PostcodeNlAddressFieldMapping.houseNumberAndAddition, building],
 			]));
 
 			// Force WooCommerce to recalculate shipping costs after address change
@@ -345,6 +365,79 @@
 			houseNumberSelect.closest('.postcode-eu-autofill').hide();
 			houseNumberSelect.children().eq(0).siblings().remove();
 		}
+
+		// Return a tuple of postcode and house number values, or null if one or both are not found.
+		const findPrefilledPostcodeHouseNumberValues = () => {
+			const findValue = (mappingName) => {
+				let key = findFieldMapping(mappingName);
+				if (key === null || addressFields[key].length === 0 || addressFields[key].val().trim() === '')
+				{
+					return null;
+				}
+
+				return addressFields[key].val().trim();
+			}
+
+			let postcode = findValue(PostcodeNlAddressFieldMapping.postcode);
+			if (postcode === null)
+			{
+				return null;
+			}
+
+			let houseNumber;
+			if (houseNumber = findValue(PostcodeNlAddressFieldMapping.houseNumber))
+			{
+				let houseNumberAddition = findValue(PostcodeNlAddressFieldMapping.houseNumberAddition);
+				if (houseNumberAddition !== null)
+				{
+					houseNumber = `${houseNumber} ${houseNumberAddition}`;
+				}
+
+				return [postcode, houseNumber];
+			}
+
+			if (houseNumber = findValue(PostcodeNlAddressFieldMapping.houseNumberAndAddition))
+			{
+				return [postcode, houseNumber];
+			}
+
+			let streetAndHouseNumber;
+			if (streetAndHouseNumber = findValue(PostcodeNlAddressFieldMapping.streetAndHouseNumber))
+			{
+				// Try to extract house number from street + house number combination as a last resort.
+				if(houseNumber = streetAndHouseNumber.match(/\b\d+.*$/))
+				{
+					return [postcode, houseNumber[0]];
+				}
+			}
+
+			return null;
+		}
+
+		// Initialize
+		(() => {
+			toggleNlFields(isNl());
+
+			if (!isNl())
+			{
+				return;
+			}
+
+			if (postcodeField.val() === '' && houseNumberField.val() === '')
+			{
+				const prefilledValues = findPrefilledPostcodeHouseNumberValues();
+				if (prefilledValues !== null)
+				{
+					postcodeField.val(prefilledValues[0]);
+					houseNumberField.val(prefilledValues[1]);
+				}
+			}
+
+			if (isPostcodeValid() && isHouseNumberValid())
+			{
+				getAddress();
+			}
+		})();
 	}
 
 	const addAddressAutocompleteIntl = function (container)
@@ -403,6 +496,43 @@
 			$(document.body).trigger('update_checkout');
 		}
 
+		// Get a prefilled address value from the intl field.
+		// If missing, try to construct a value from the address fields.
+		const getPrefilledAddressValue = () => {
+			const intlFieldValue = intlField.val().trim();
+			if (intlFieldValue !== '')
+			{
+				return intlFieldValue;
+			}
+
+			const addressParts = [];
+			const addValue = (mappingName) => {
+				let key = findFieldMapping(mappingName);
+				if (key === null || addressFields[key].length === 0 || addressFields[key].val().trim() === '')
+				{
+					return false;
+				}
+
+				addressParts.push(addressFields[key].val());
+				return true;
+			}
+			addValue(PostcodeNlAddressFieldMapping.postcode);
+			addValue(PostcodeNlAddressFieldMapping.city);
+
+			// Try separate street fields first for better precision.
+			if (addValue(PostcodeNlAddressFieldMapping.street))
+			{
+				addValue(PostcodeNlAddressFieldMapping.houseNumber);
+				addValue(PostcodeNlAddressFieldMapping.houseNumberAddition)
+			}
+			else
+			{
+				addValue(PostcodeNlAddressFieldMapping.streetAndHouseNumber);
+			}
+
+			return addressParts.join(' ');
+		}
+
 		const intlFieldObserver = new MutationObserver(function () {
 			if (autocompleteInstance !== null)
 			{
@@ -415,20 +545,38 @@
 			{
 				intlField.addClass('postcodenl-address-autocomplete-loading');
 
-				autocompleteInstance.getDetails(item.context, function (result) {
+				const callback = (result) => {
 					fillAddressFieldsIntl(result);
 					toggleAddressFields(addressFields, true);
 					intlField
 						.removeClass('postcodenl-address-autocomplete-loading')
 						.trigger('address-result', result);
 
-					intlFormRow
-						.removeClass('woocommerce-invalid')
-						.addClass('woocommerce-validated');
+					setFieldValidity(intlField);
 
-					clearFieldErrors(intlField);
 					deferred.resolve();
+				}
+
+				if (addressDetailsCache.has(item.context))
+				{
+					callback(addressDetailsCache.get(item.context));
+					return;
+				}
+
+				autocompleteInstance.getDetails(item.context, (result) => {
+					callback(result)
+					addressDetailsCache.set(item.context, result);
 				});
+			}
+
+			const autoselectSingleAddressMatch = () => {
+				if (matches.length === 1 && matches[0].precision === 'Address')
+				{
+					selectAutocompleteAddress(matches[0]);
+					return true;
+				}
+
+				return false;
 			}
 
 			autocompleteInstance = new PostcodeNl.AutocompleteAddress(intlField[0], {
@@ -461,10 +609,10 @@
 				console.error('Autocomplete XHR error', e);
 				toggleAddressFields(addressFields, true);
 				intlField.removeClass('postcodenl-address-autocomplete-loading')
-				intlFormRow
-					.removeClass('woocommerce-validated')
-					.addClass('woocommerce-invalid');
-				setFieldError(intlField, __('An error has occurred while retrieving address data. Please contact us if the problem persists.', 'postcodenl-address-autocomplete'));
+				setFieldValidity(
+					intlField,
+					__('An error has occurred while retrieving address data. Please contact us if the problem persists.', 'postcodenl-address-autocomplete')
+				);
 			});
 
 			// Clear the previous values when searching for a new address.
@@ -473,26 +621,18 @@
 			});
 
 			intlField[0].addEventListener('autocomplete-response', function (e) {
-				matches =  e.detail.matches;
+				matches = e.detail.matches;
 
 				deferred = $.Deferred();
 
-				deferred.fail(function () {
-					intlFormRow
-						.removeClass('woocommerce-validated')
-						.addClass('woocommerce-invalid');
-					setFieldError(intlField, __('Please enter an address and select it.',  'postcodenl-address-autocomplete'));
-				});
+				deferred.fail(() => setFieldValidity(intlField, __('Please enter an address and select it.', 'postcodenl-address-autocomplete')));
 			});
 
-			intlField.on('blur', function (e) {
-				if (matches.length === 1 && matches[0].precision === 'Address')
-				{
-					// Auto-select single address match.
-					intlField.val(matches[0].value);
-					selectAutocompleteAddress(matches[0]);
-				}
-				else if (!autocompleteInstance.elements.menu.classList.contains('postcodenl-autocomplete-menu-open'))
+			intlField.on('blur', () => {
+				if (
+					false === autoselectSingleAddressMatch()
+					&& false === autocompleteInstance.elements.menu.classList.contains('postcodenl-autocomplete-menu-open')
+				)
 				{
 					deferred.reject();
 				}
@@ -503,6 +643,27 @@
 			intlField.on('change', function (e) {
 				e.stopPropagation(); // Prevent default validation via delegated event handler.
 			});
+
+			// Initialize
+			(() => {
+				if (false === isSupportedCountryIntl(countryToState.val()))
+				{
+					return; // Only use values from supported countries.
+				}
+
+				// Run autocomplete if there's a prefilled address value.
+				const prefilledAddressValue = getPrefilledAddressValue();
+				if (prefilledAddressValue !== '')
+				{
+					const oneTimeHandler = () => {
+						autoselectSingleAddressMatch();
+						matches = [];
+						intlField[0].removeEventListener('autocomplete-response', oneTimeHandler);
+					};
+					intlField[0].addEventListener('autocomplete-response', oneTimeHandler);
+					autocompleteInstance.search(intlField[0], { term: prefilledAddressValue, showMenu: false });
+				}
+			})();
 		});
 
 		intlFieldObserver.observe(intlFormRow[0], {attributes: true, attributeFilter: ['style']});
@@ -537,7 +698,7 @@
 			formRow.hide();
 		});
 
-		container.find('.postcode-eu-autofill-intl').on('address-result', function (e, result) {
+		container.find('.postcode-eu-autofill-intl').on('address-result', function (_, result) {
 			addressElement.html(result.mailLines.join('<br>'));
 			formRow.show();
 		});
@@ -546,7 +707,7 @@
 			formRow.hide();
 		});
 
-		container.find('.postcode-eu-autofill-nl').on('address-result', function (e, result) {
+		container.find('.postcode-eu-autofill-nl').on('address-result', function (_, result) {
 			if (result.status !== 'valid')
 			{
 				formRow.hide();
@@ -575,4 +736,17 @@
 		formRow.append(link);
 	}
 
+	// Search PostcodeNlAddressFieldMapping.mapping for given value and
+	// return the first corresponding key if successful. Otherwise returns null.
+	const findFieldMapping = (value) => {
+		for (let key in PostcodeNlAddressFieldMapping.mapping)
+		{
+			if (PostcodeNlAddressFieldMapping.mapping[key] === value)
+			{
+				return key;
+			}
+		}
+
+		return null;
+	}
 })();

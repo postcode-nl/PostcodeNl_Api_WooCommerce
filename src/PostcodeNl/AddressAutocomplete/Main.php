@@ -10,7 +10,7 @@ defined('ABSPATH') || exit;
 class Main
 {
 	/** @var string The version number of the plugin should be equal to the commented version number in ../../../postcodenl-address-autocomplete.php */
-	public const VERSION = '2.1.1';
+	public const VERSION = '2.1.2';
 
 	/** @var self Reference to own */
 	protected static $_instance;
@@ -30,7 +30,6 @@ class Main
 		$this->loadOptions();
 
 		add_action('init', [$this, 'wordPressInit']);
-
 		static::$_instance = $this;
 	}
 

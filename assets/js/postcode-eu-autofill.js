@@ -52,7 +52,7 @@
 
 				// Wrap in timeout to execute after Woocommerce field logic:
 				window.setTimeout(function () {
-					toggleAddressFields(getAddressFields(container), !isSupportedCountry(selectedCountry), true);
+					toggleAddressFields(getAddressFields(container), !isSupportedCountry(selectedCountry), true, isSupportedCountry(selectedCountry));
 				});
 			}).trigger('change.postcode-eu.address-fields');
 		})
@@ -96,7 +96,7 @@
 		}
 	}
 
-	const toggleAddressFields = function (addressFields, state, force)
+	const toggleAddressFields = function (addressFields, state, force, isSupportedCountry)
 	{
 		if (!force)
 		{
@@ -120,7 +120,33 @@
 
 			if (field.length > 0 && field.prop('type') !== 'hidden')
 			{
-				field.closest('.form-row').toggle(state);
+				let formRow = field.closest('.form-row');
+				formRow.toggle(state);
+				let input = formRow.find('input[type="text"]');
+				if (input.length === 0)
+				{
+					continue;
+				}
+				if (state && !isSupportedCountry)
+				{
+					let previousValue = input.attr('previous-autocomplete');
+					if (previousValue)
+					{
+						input.attr('autocomplete', previousValue);
+					}
+					else
+					{
+						input.attr('autocomplete', null);
+					}
+				}
+				else
+				{
+					if (!input.attr('previous-autocomplete'))
+					{
+						input.attr('previous-autocomplete', input.attr('autocomplete'));
+					}
+					input.attr('autocomplete', 'off');
+				}
 			}
 		}
 	}
@@ -547,7 +573,7 @@
 
 				const callback = (result) => {
 					fillAddressFieldsIntl(result);
-					toggleAddressFields(addressFields, true);
+					toggleAddressFields(addressFields, true, false, true);
 					intlField
 						.removeClass('postcodenl-address-autocomplete-loading')
 						.trigger('address-result', result);
@@ -607,7 +633,7 @@
 
 			document.addEventListener('autocomplete-xhrerror', function (e) {
 				console.error('Autocomplete XHR error', e);
-				toggleAddressFields(addressFields, true);
+				toggleAddressFields(addressFields, true, false, true);
 				intlField.removeClass('postcodenl-address-autocomplete-loading')
 				setFieldValidity(
 					intlField,
@@ -728,7 +754,7 @@
 			link = $('<a>', {'class': 'postcode-eu-autofill-intl-bypass-link', text: settings.autofillIntlBypassLinkText});
 
 		link.on('click', function () {
-			toggleAddressFields(getAddressFields(container), true, true);
+			toggleAddressFields(getAddressFields(container), true, true, true);
 			formRow.hide();
 			return false;
 		});

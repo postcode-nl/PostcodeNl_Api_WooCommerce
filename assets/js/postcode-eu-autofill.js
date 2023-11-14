@@ -569,21 +569,12 @@
 				});
 			}
 
-			const autoselectSingleAddressMatch = () => {
-				if (matches.length === 1 && matches[0].precision === 'Address')
-				{
-					selectAutocompleteAddress(matches[0]);
-					return true;
-				}
-
-				return false;
-			}
+			const isSingleAddressMatch = () => matches.length === 1 && matches[0].precision === 'Address';
 
 			autocompleteInstance = new PostcodeNl.AutocompleteAddress(intlField[0], {
 				autocompleteUrl: settings.autocomplete,
 				addressDetailsUrl: settings.getDetails,
 				context: (countryIsoMap.get(countryToState.val()) || 'nld').toLowerCase(),
-				autoFocus: true,
 			});
 
 			autocompleteInstance.getSuggestions = function (context, term, response)
@@ -630,7 +621,7 @@
 
 			intlField.on('blur', () => {
 				if (
-					false === autoselectSingleAddressMatch()
+					false === isSingleAddressMatch()
 					&& false === autocompleteInstance.elements.menu.classList.contains('postcodenl-autocomplete-menu-open')
 				)
 				{
@@ -656,7 +647,11 @@
 				if (prefilledAddressValue !== '')
 				{
 					const oneTimeHandler = () => {
-						autoselectSingleAddressMatch();
+						if (isSingleAddressMatch)
+						{
+							selectAutocompleteAddress(matches[0]);
+						}
+
 						matches = [];
 						intlField[0].removeEventListener('autocomplete-response', oneTimeHandler);
 					};

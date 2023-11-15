@@ -102,15 +102,13 @@
 		{
 			if (settings.displayMode === 'default')
 			{
+				// Fields remain hidden in default mode. A formatted address is shown instead.
 				state = false;
 			}
 			else if (settings.displayMode === 'showAll')
 			{
+				// Fields always visible in showAll mode.
 				state = true;
-			}
-			else if (settings.displayMode === 'allowManual')
-			{
-				state = $(Object.values(addressFields)[0]).parents('div').find('.manual-input-trigger.hidden').length === 1;
 			}
 		}
 
@@ -293,7 +291,8 @@
 				cache: true,
 				dataType: 'json',
 				success: function (response) {
-					if (response.status === 'notFound') {
+					if (response.status === 'notFound')
+					{
 						setFieldValidity(houseNumberField, __('Address not found.', 'postcodenl-address-autocomplete'));
 						return;
 					}
@@ -301,11 +300,13 @@
 					currentAddress = response.address;
 					postcodeField.trigger('address-result', response);
 
-					if (response.status === 'houseNumberAdditionIncorrect') {
+					if (response.status === 'houseNumberAdditionIncorrect')
+					{
 						setHouseNumberOptions(response.address);
 						houseNumberSelect.closest('.postcode-eu-autofill').show();
 					}
-					else {
+					else
+					{
 						toggleAddressFields(addressFields, true);
 					}
 				}

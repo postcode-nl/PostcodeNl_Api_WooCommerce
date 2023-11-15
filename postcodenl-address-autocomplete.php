@@ -1,17 +1,17 @@
 <?php
 /**
- * Plugin Name: Postcode.nl Address Autocomplete
+ * Plugin Name: Postcode.eu Address Validation
  * Plugin URI: https://www.postcode.nl/en/services/adresdata/implementatie
- * Description: Reference implementation for Postcode.nl international address autocomplete for WooCommerce
- * Version: 2.1.2
+ * Description: Address autocomplete and validation using the Postcode.eu API.
+ * Version: 2.1.3
  * Author: Postcode.nl
  * Author URI: https://www.postcode.nl
  * Text Domain: postcodenl-address-autocomplete
- * Requires at least: 5.2.0
- * Requires PHP: 7.3.0
- *
- * WC requires at least: 3.7.0
- * WC tested up to: 8.2.0
+ * Requires at least: 5.2
+ * Tested up to: 6.4
+ * Requires PHP: 7.4
+ * WC requires at least: 4.0
+ * WC tested up to: 8.2
  */
 
 use Automattic\WooCommerce\Utilities\FeaturesUtil;

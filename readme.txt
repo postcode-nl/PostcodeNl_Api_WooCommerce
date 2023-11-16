@@ -30,18 +30,44 @@ The Postcode.eu Address Validation plugin uses the Dutch Postcode API and Intern
 
 To use the Postcode.eu Address Validation plugin, a separate account is required. Register your account at [account.postcode.eu](https://account.postcode.eu). You can test our service for free. After testing and implementing, you indicate that the subscription can start and you make the choice for a subscription. For information on pricing, [visit our website](https://www.postcode.nl/en/services/adresdata/api-prijzen).
 
-== Frequently Asked Questions ==
-
-* View Frequently Asked Questions at https://www.postcode.eu/#faq.
-* For more questions and answers, see https://kb.postcode.nl/help.
-* If the above didn't answer your question, [contact us](https://www.postcode.eu/contact).
-
 == Screenshots ==
 
 1. A single field for address entry
 2. To allow users to skip the autocomplete field and manually enter an address, there's an option to add a link to manual address entry
 3. Get a Dutch address by postcode and house number. In this example asking the user to select from valid house number additions
 4. A formatted address is shown when the postcode and house number combination is valid
+
+== Installation ==
+
+= Limiting orders from regions of a country =
+
+Shipping can be limited by setting up [Shipping Zones in WooCommerce](https://woocommerce.com/document/setting-up-shipping-zones/).
+
+For example, limiting shipping to French overseas territories, set up a shipping zone for France and add a postcode range of 97000...99000. Add specific shipping options, or only local pick up. Make sure the shipping zone is near the top of the list, shipping zones are matched from top to bottom.
+
+= Address form field mapping =
+
+Depending on your checkout form fields the selected address data might not be placed in the form fields you would like.
+The mapping from form field names to address data is defined in [addressFieldMapping.js](https://github.com/postcode-nl/PostcodeNl_Api_WooCommerce/blob/master/assets/js/addressFieldMapping.js).
+By changing `PostcodeNlAddressFieldMapping.mapping` you can assign your own preferred address data parts to their respective form fields.
+
+An example of a mapping where `_address_1` is used for the street, `_house_number` for the house number `_address_2` for the house number addition:
+```javascript
+PostcodeNlAddressFieldMapping.mapping = {
+	'_address_1': PostcodeNlAddressFieldMapping.street,
+	'_house_number': PostcodeNlAddressFieldMapping.houseNumber,
+	'_address_2': PostcodeNlAddressFieldMapping.houseNumberAddition,
+	'_postcode': PostcodeNlAddressFieldMapping.postcode,
+	'_city': PostcodeNlAddressFieldMapping.city,
+};
+```
+To use this mapping replace `PostcodeNlAddressFieldMapping.mapping = {...};` with the code above.
+
+== Frequently Asked Questions ==
+
+* View Frequently Asked Questions at https://www.postcode.eu/#faq.
+* For more questions and answers, see https://kb.postcode.nl/help.
+* If the above didn't answer your question, [contact us](https://www.postcode.eu/contact).
 
 == Changelog ==
 

@@ -1,22 +1,24 @@
-Postcode.nl International Address API plugin for WooCommerce
+![Postcode.eu](assets/img/postcode-eu-logo-gradient.svg)
+
+Postcode.eu International Address API plugin for WooCommerce
 =============
 
-Adds autocompletion for addresses to the checkout page. Multiple countries are supported using official postal data via the [Postcode.nl](https://postcode.nl) API.
+Adds autocompletion for addresses to the checkout page. [Multiple countries](https://www.postcode.nl/services/adresdata/internationaal) are supported using official postal data via the [Postcode.eu](https://postcode.eu) API.
 
-This module has been created by [Postcode.nl](https://postcode.nl).
+This plugin has been created by [Postcode.eu](https://postcode.eu).
 
 
-Postcode.nl Account
+Postcode.eu Account
 =============
 
-A [Postcode.nl account](https://www.postcode.nl/en/services/adresdata/producten-overzicht) is required.
+A [Postcode.eu account](https://www.postcode.nl/en/services/adresdata/producten-overzicht) is required.
 Testing is free. After testing you can choose to purchase a subscription.
 
 
 How to install
 =============
 
-### From this repository
+## From this repository
 
 Download the most recent release from [releases](https://github.com/postcode-nl/PostcodeNl_Api_WooCommerce/releases).
 
@@ -55,6 +57,17 @@ PostcodeNlAddressFieldMapping.mapping = {
 ```
 To use this mapping replace `PostcodeNlAddressFieldMapping.mapping = {...};` with the code above.
 
+Address API documentation
+=============
+
+You can find our API documentation at https://developer.postcode.eu/documentation.
+
+FAQ and Knowledge Base
+=============
+
+* View Frequently Asked Questions at https://www.postcode.eu/#faq.
+* For more questions and answers, see https://kb.postcode.nl/help.
+* If the above didn't answer your question, [contact us](https://www.postcode.eu/contact).
 
 License
 =============

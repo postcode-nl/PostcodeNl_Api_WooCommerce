@@ -4,17 +4,15 @@ namespace PostcodeNl\AddressAutocomplete;
 
 defined('ABSPATH') || exit;
 
+use PostcodeNl\AddressAutocomplete\Exception\AuthenticationException;
+use PostcodeNl\AddressAutocomplete\Exception\ClientException;
 use PostcodeNl\AddressAutocomplete\Exception\Exception;
-use PostcodeNl\Api\Client;
-use PostcodeNl\Api\Exception\AuthenticationException;
-use PostcodeNl\Api\Exception\ClientException;
-use PostcodeNl\Api\Exception\CurlNotLoadedException;
-use PostcodeNl\Api\Exception\ForbiddenException;
-use PostcodeNl\Api\Exception\InvalidSessionValueException;
-use PostcodeNl\Api\Exception\NotFoundException;
-use PostcodeNl\Api\Exception\ServerUnavailableException;
-use PostcodeNl\Api\Exception\TooManyRequestsException;
-use PostcodeNl\Api\Exception\UnexpectedException;
+use PostcodeNl\AddressAutocomplete\Exception\ForbiddenException;
+use PostcodeNl\AddressAutocomplete\Exception\InvalidSessionValueException;
+use PostcodeNl\AddressAutocomplete\Exception\NotFoundException;
+use PostcodeNl\AddressAutocomplete\Exception\ServerUnavailableException;
+use PostcodeNl\AddressAutocomplete\Exception\TooManyRequestsException;
+use PostcodeNl\AddressAutocomplete\Exception\UnexpectedException;
 
 class Proxy
 {
@@ -22,7 +20,7 @@ class Proxy
 	public const AJAX_GET_DETAILS = 'postcodenl_address_get_details';
 	public const AJAX_DUTCH_ADDRESS_LOOKUP = 'postcodenl_address_dutch_address_lookup';
 
-	/** @var Client */
+	/** @var ApiClient */
 	protected $_client;
 	/** @var string|null */
 	protected $_session;
@@ -34,7 +32,7 @@ class Proxy
 			'WordPress/' . get_bloginfo('version'),
 			'PostcodeNl-WooCommerce/' . Main::VERSION,
 		];
-		$this->_client = new Client($apiKey, $apiSecret, implode(' ', $identifiers));
+		$this->_client = new ApiClient($apiKey, $apiSecret, implode(' ', $identifiers));
 	}
 
 	public function autocomplete(): void
@@ -114,7 +112,7 @@ class Proxy
 		]);
 	}
 
-	public function getClient(): Client
+	public function getClient(): ApiClient
 	{
 		return $this->_client;
 	}
@@ -157,15 +155,15 @@ class Proxy
 			return;
 		}
 
-		header('Cache-Control: ' . implode(',', $apiResponseHeaders['cache-control']));
+		header('Cache-Control: ' . $apiResponseHeaders['cache-control']);
 	}
 
 	protected function _populateSession(): void
 	{
-		$sessionHeaderKey = 'HTTP_' . str_replace('-', '_', strtoupper(Client::SESSION_HEADER_KEY));
+		$sessionHeaderKey = 'HTTP_' . str_replace('-', '_', strtoupper(ApiClient::SESSION_HEADER_KEY));
 		if (!isset($_SERVER[$sessionHeaderKey]))
 		{
-			throw new Exception(sprintf('Missing HTTP session header `%s`.', Client::SESSION_HEADER_KEY));
+			throw new Exception(sprintf('Missing HTTP session header `%s`.', ApiClient::SESSION_HEADER_KEY));
 		}
 		$this->_session = $_SERVER[$sessionHeaderKey];
 	}
@@ -183,9 +181,6 @@ class Proxy
 
 		switch (get_class($e))
 		{
-			case CurlNotLoadedException::class:
-				$logger->emergency($e->getMessage(), $wooCommerceErrorContext);
-				break;
 			case AuthenticationException::class:
 			case ForbiddenException::class:
 				$logger->alert($e->getMessage(), $wooCommerceErrorContext);

@@ -1,23 +1,20 @@
 <?php
-declare(strict_types=1);
 
-namespace PostcodeNl\Api;
+namespace PostcodeNl\AddressAutocomplete;
 
+use PostcodeNl\AddressAutocomplete\Exception\AuthenticationException;
+use PostcodeNl\AddressAutocomplete\Exception\BadRequestException;
+use PostcodeNl\AddressAutocomplete\Exception\ForbiddenException;
+use PostcodeNl\AddressAutocomplete\Exception\InvalidJsonResponseException;
+use PostcodeNl\AddressAutocomplete\Exception\InvalidPostcodeException;
+use PostcodeNl\AddressAutocomplete\Exception\InvalidSessionValueException;
+use PostcodeNl\AddressAutocomplete\Exception\NotFoundException;
+use PostcodeNl\AddressAutocomplete\Exception\RemoteRequestException;
+use PostcodeNl\AddressAutocomplete\Exception\ServerUnavailableException;
+use PostcodeNl\AddressAutocomplete\Exception\TooManyRequestsException;
+use PostcodeNl\AddressAutocomplete\Exception\UnexpectedException;
 
-use PostcodeNl\Api\Exception\AuthenticationException;
-use PostcodeNl\Api\Exception\BadRequestException;
-use PostcodeNl\Api\Exception\CurlException;
-use PostcodeNl\Api\Exception\CurlNotLoadedException;
-use PostcodeNl\Api\Exception\ForbiddenException;
-use PostcodeNl\Api\Exception\InvalidJsonResponseException;
-use PostcodeNl\Api\Exception\InvalidPostcodeException;
-use PostcodeNl\Api\Exception\InvalidSessionValueException;
-use PostcodeNl\Api\Exception\NotFoundException;
-use PostcodeNl\Api\Exception\ServerUnavailableException;
-use PostcodeNl\Api\Exception\TooManyRequestsException;
-use PostcodeNl\Api\Exception\UnexpectedException;
-
-class Client
+class ApiClient
 {
 	public const SESSION_HEADER_KEY = 'X-Autocomplete-Session';
 	public const SESSION_HEADER_VALUE_VALIDATION = '/^[a-z\d\-_.]{8,64}$/i';
@@ -31,8 +28,6 @@ class Client
 	protected $_secret;
 	/** @var string A platform identifier, a short description of the platform using the API client. */
 	protected $_platform;
-	/** @var resource */
-	protected $_curlHandler;
 	/** @var array Response headers received in the most recent API call. */
 	protected $_mostRecentResponseHeaders = [];
 
@@ -48,41 +43,6 @@ class Client
 		$this->_key = $key;
 		$this->_secret = $secret;
 		$this->_platform = $platform;
-
-		if (!extension_loaded('curl'))
-		{
-			throw new CurlNotLoadedException('Cannot use Postcode.nl International Autocomplete client, the server needs to have the PHP `cURL` extension installed.');
-		}
-
-		$this->_curlHandler = curl_init();
-		curl_setopt($this->_curlHandler, CURLOPT_CUSTOMREQUEST, 'GET');
-		curl_setopt($this->_curlHandler, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($this->_curlHandler, CURLOPT_CONNECTTIMEOUT, 2);
-		curl_setopt($this->_curlHandler, CURLOPT_TIMEOUT, 5);
-		curl_setopt($this->_curlHandler, CURLOPT_USERAGENT, $this->_getUserAgent());
-
-		curl_setopt($this->_curlHandler, CURLOPT_SSL_VERIFYHOST, false);
-		curl_setopt($this->_curlHandler, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($this->_curlHandler, CURLOPT_SSL_VERIFYSTATUS, false);
-
-		if (isset($_SERVER['HTTP_REFERER']))
-		{
-			curl_setopt($this->_curlHandler, CURLOPT_REFERER, $_SERVER['HTTP_REFERER']);
-		}
-		curl_setopt($this->_curlHandler, CURLOPT_HEADERFUNCTION, function($curl, string $header) {
-			$length = strlen($header);
-
-			$headerParts = explode(':', $header, 2);
-			// Ignore invalid headers
-			if (count($headerParts) < 2)
-			{
-				return $length;
-			}
-			[$headerName, $headerValue] = $headerParts;
-			$this->_mostRecentResponseHeaders[strtolower(trim($headerName))][] = trim($headerValue);
-
-			return $length;
-		});
 	}
 
 	/**
@@ -263,11 +223,6 @@ class Client
 		return (bool) preg_match('~^[1-9]\d{3}\s?[a-zA-Z]{2}$~', $postcode);
 	}
 
-	public function __destruct()
-	{
-		curl_close($this->_curlHandler);
-	}
-
 	protected function _validateSessionHeader(string $session): void
 	{
 		if (preg_match(static::SESSION_HEADER_VALUE_VALIDATION, $session) === 0)
@@ -283,29 +238,46 @@ class Client
 	protected function _performApiCall(string $path, ?string $session): array
 	{
 		$url = static::SERVER_URL . $path;
-		curl_setopt($this->_curlHandler, CURLOPT_URL, $url);
-		curl_setopt($this->_curlHandler, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-		curl_setopt($this->_curlHandler, CURLOPT_USERPWD, $this->_key .':'. $this->_secret);
-		if ($session !== null)
+
+		// @see https://developer.wordpress.org/reference/classes/WP_Http/request/
+		$arguments = [
+			'timeout' => 5,
+			'connect_timeout' => 2,
+			'useragent' => $this->_getUserAgent(),
+			'verify' => false,
+			'verifyname' => false,
+			'headers' => [
+				'Authorization' => 'Basic ' . base64_encode($this->_key . ':' . $this->_secret),
+			],
+		];
+
+		if (isset($_SERVER['HTTP_REFERER']))
 		{
-			curl_setopt($this->_curlHandler, CURLOPT_HTTPHEADER, [
-				static::SESSION_HEADER_KEY . ': ' . $session,
-			]);
+			$arguments['headers']['Referer'] = $_SERVER['HTTP_REFERER'];
 		}
 
-		$this->_mostRecentResponseHeaders = [];
-		$response = curl_exec($this->_curlHandler);
-
-		$responseStatusCode = curl_getinfo($this->_curlHandler, CURLINFO_RESPONSE_CODE);
-		$curlError = curl_error($this->_curlHandler);
-		$curlErrorNr = curl_errno($this->_curlHandler);
-		if ($curlError !== '')
+		if ($session !== null)
 		{
-			throw new CurlException(vsprintf('Connection error number `%s`: `%s`.', [$curlErrorNr, $curlError]));
+			$arguments['headers'][static::SESSION_HEADER_KEY] = $session;
+		}
+
+		/**
+		 * @var array|\WP_Error $response Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
+		 *                                A WP_Error instance upon error.
+		 */
+		$response = wp_remote_request($url, $arguments);
+
+		$this->_mostRecentResponseHeaders = $response['headers']->getAll();
+
+		$responseStatusCode = $response['response']['code'];
+
+		if ($response instanceof \WP_Error)
+		{
+			throw new RemoteRequestException(sprintf('Connection error number `%s`: `%s`.', $response->get_error_code(), $response->get_error_message()));
 		}
 
 		// Parse the response as JSON, will be null if not parsable JSON.
-		$jsonResponse = json_decode($response, true);
+		$jsonResponse = json_decode($response['body'], true);
 		switch ($responseStatusCode)
 		{
 			case 200:

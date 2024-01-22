@@ -20,16 +20,6 @@ use PostcodeNl\AddressAutocomplete\Main;
 defined('ABSPATH') || exit;
 
 spl_autoload_register(static function(string $className) {
-	if (strpos($className, 'PostcodeNl\\Api\\') === 0)
-	{
-		$fileName = str_replace('\\', '/', $className) . '.php';
-		$filePath = plugin_dir_path(__FILE__) . 'libraries/PostcodeNl_Api_Client/src/' . $fileName ;
-		/** @noinspection PhpIncludeInspection */
-		require_once $filePath;
-
-		return;
-	}
-
 	if (strpos($className, 'PostcodeNl\\AddressAutocomplete\\') !== 0)
 	{
 		return;

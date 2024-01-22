@@ -3,9 +3,9 @@
 namespace PostcodeNl\AddressAutocomplete;
 
 use DateTime;
+use PostcodeNl\AddressAutocomplete\Exception\AuthenticationException;
+use PostcodeNl\AddressAutocomplete\Exception\ClientException;
 use PostcodeNl\AddressAutocomplete\Exception\Exception;
-use PostcodeNl\Api\Exception\AuthenticationException;
-use PostcodeNl\Api\Exception\ClientException;
 use function get_option;
 use function update_option;
 

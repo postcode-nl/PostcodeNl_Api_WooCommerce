@@ -28,11 +28,7 @@ class Proxy
 
 	public function __construct(string $apiKey, string $apiSecret)
 	{
-		$identifiers = [
-			'WordPress/' . get_bloginfo('version'),
-			'PostcodeNl-WooCommerce/' . Main::VERSION,
-		];
-		$this->_client = new ApiClient($apiKey, $apiSecret, implode(' ', $identifiers));
+		$this->_client = new ApiClient($apiKey, $apiSecret);
 	}
 
 	public function autocomplete(): void

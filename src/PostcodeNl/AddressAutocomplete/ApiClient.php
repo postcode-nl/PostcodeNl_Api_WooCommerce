@@ -20,14 +20,11 @@ class ApiClient
 	public const SESSION_HEADER_VALUE_VALIDATION = '/^[a-z\d\-_.]{8,64}$/i';
 
 	protected const SERVER_URL = 'https://api.postcode.eu/';
-	protected const VERSION = '1.0';
 
 	/** @var string The Postcode.nl API key, required for all requests. Provided when registering an account. */
 	protected $_key;
 	/** @var string The Postcode.nl API secret, required for all requests */
 	protected $_secret;
-	/** @var string A platform identifier, a short description of the platform using the API client. */
-	protected $_platform;
 	/** @var array Response headers received in the most recent API call. */
 	protected $_mostRecentResponseHeaders = [];
 
@@ -36,13 +33,11 @@ class ApiClient
 	 * Client constructor.
 	 * @param string $key The Postcode.nl API key, provided when registering an account.
 	 * @param string $secret The Postcode.nl API secret, provided when registering an account.
-	 * @param string $platform A platform identifier, a short description of the platform using the API client.
 	 */
-	public function __construct(string $key, string $secret, string $platform)
+	public function __construct(string $key, string $secret)
 	{
 		$this->_key = $key;
 		$this->_secret = $secret;
-		$this->_platform = $platform;
 	}
 
 	/**
@@ -243,7 +238,7 @@ class ApiClient
 		$arguments = [
 			'timeout' => 5,
 			'connect_timeout' => 2,
-			'useragent' => $this->_getUserAgent(),
+			'user-agent' => $this->_getUserAgent(),
 			'verify' => false,
 			'verifyname' => false,
 			'headers' => [
@@ -307,10 +302,9 @@ class ApiClient
 	protected function _getUserAgent(): string
 	{
 		return sprintf(
-			'%s %s/%s PHP/%s',
-			$this->_platform,
-			str_replace('\\', '_', static::class),
-			static::VERSION,
+			'WordPress/%s PostcodeNl-WooCommerce/%s PHP/%s',
+			get_bloginfo('version'),
+			Main::VERSION,
 			PHP_VERSION
 		);
 	}

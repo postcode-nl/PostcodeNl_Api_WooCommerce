@@ -237,7 +237,6 @@ class ApiClient
 		// @see https://developer.wordpress.org/reference/classes/WP_Http/request/
 		$arguments = [
 			'timeout' => 5,
-			'connect_timeout' => 2,
 			'user-agent' => $this->_getUserAgent(),
 			'verify' => false,
 			'verifyname' => false,

@@ -262,14 +262,14 @@ class ApiClient
 		 */
 		$response = wp_remote_request($url, $arguments);
 
-		$this->_mostRecentResponseHeaders = $response['headers']->getAll();
-
-		$responseStatusCode = $response['response']['code'];
-
 		if ($response instanceof \WP_Error)
 		{
 			throw new RemoteRequestException(sprintf('Connection error number `%s`: `%s`.', $response->get_error_code(), $response->get_error_message()));
 		}
+
+		$this->_mostRecentResponseHeaders = $response['headers']->getAll();
+
+		$responseStatusCode = $response['response']['code'];
 
 		// Parse the response as JSON, will be null if not parsable JSON.
 		$jsonResponse = json_decode($response['body'], true);

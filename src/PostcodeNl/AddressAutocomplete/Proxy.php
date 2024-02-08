@@ -34,8 +34,8 @@ class Proxy
 	public function autocomplete(): void
 	{
 		$this->_populateSession();
-		$context = stripslashes($_GET['context']);
-		$term = wp_check_invalid_utf8(stripslashes($_GET['term']));
+		$context = sanitize_text_field(wp_unslash($_GET['context']));
+		$term = sanitize_text_field(wp_unslash($_GET['term']));
 
 		try
 		{
@@ -51,7 +51,7 @@ class Proxy
 	public function getDetails(): void
 	{
 		$this->_populateSession();
-		$context = stripslashes($_GET['context']);
+		$context = sanitize_text_field(wp_unslash($_GET['context']));
 
 		try
 		{
@@ -66,8 +66,8 @@ class Proxy
 
 	public function dutchAddressLookup(): void
 	{
-		$postcode = wp_check_invalid_utf8(stripslashes($_GET['postcode']));
-		$houseNumberAndAddition = wp_check_invalid_utf8(stripslashes($_GET['houseNumberAndAddition']));
+		$postcode = sanitize_text_field(wp_unslash($_GET['postcode']));
+		$houseNumberAndAddition = sanitize_text_field(wp_unslash($_GET['houseNumberAndAddition']));
 
 		preg_match('/^(?<houseNumber>\d{1,5})(?<addition>\D.*)?$/', $houseNumberAndAddition, $matches);
 		$houseNumber = isset($matches['houseNumber']) ? (int)$matches['houseNumber'] : null;
@@ -113,24 +113,6 @@ class Proxy
 		return $this->_client;
 	}
 
-	/**
-	 * Get parsed parameters.
-	 *
-	 * @param int $expectedParameters The expected number of GET parameters, an error is thrown if this is not equal to the actual number.
-	 * @return array An array of parsed parameters, stripped of added slashes.
-	 */
-	protected function _getParameters(int $expectedParameters): array
-	{
-		$parts = explode('/', \trim($_GET['parameters'] ?? '', '/'));
-		if (count($parts) !== $expectedParameters)
-		{
-			throw new Exception('Invalid number of parameters provided.');
-		}
-
-		$parts = array_map('stripslashes', $parts);
-		return $parts;
-	}
-
 	protected function _outputJsonResponse(array $response): void
 	{
 		// Repeat the cache control header from the API response if it is available
@@ -161,7 +143,7 @@ class Proxy
 		{
 			throw new Exception(sprintf('Missing HTTP session header `%s`.', ApiClient::SESSION_HEADER_KEY));
 		}
-		$this->_session = $_SERVER[$sessionHeaderKey];
+		$this->_session = sanitize_text_field($_SERVER[$sessionHeaderKey]);
 	}
 
 	protected function _logException(\Exception $e): array

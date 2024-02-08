@@ -355,7 +355,7 @@ class Options
 
 	protected function _handleSubmit(): void
 	{
-		if (!isset($_POST[static::FORM_ACTION_NONCE_NAME]) || !wp_verify_nonce($_POST[static::FORM_ACTION_NONCE_NAME], static::FORM_ACTION_NAME))
+		if (!isset($_POST[static::FORM_ACTION_NONCE_NAME]) || !wp_verify_nonce(sanitize_text_field(wp_unslash ($_POST[static::FORM_ACTION_NONCE_NAME])), static::FORM_ACTION_NAME))
 		{
 			return;
 		}
@@ -391,7 +391,7 @@ class Options
 			{
 				if (isset($_POST[$postName]) && array_key_exists($_POST[$postName], static::NETHERLANDS_MODE_DESCRIPTIONS))
 				{
-					$newValue = $_POST[$postName];
+					$newValue = sanitize_text_field($_POST[$postName]);
 				}
 				else
 				{
@@ -402,7 +402,7 @@ class Options
 			{
 				if (isset($_POST[$postName]) && array_key_exists($_POST[$postName], static::DISPLAY_MODE_DESCRIPTIONS))
 				{
-					$newValue = $_POST[$postName];
+					$newValue = sanitize_text_field($_POST[$postName]);
 				}
 				else
 				{
@@ -411,7 +411,7 @@ class Options
 			}
 			else
 			{
-				$newValue = $_POST[$postName] ?? $value;
+				$newValue = sanitize_text_field($_POST[$postName] ?? $value);
 			}
 
 			$options->{$option} = $newValue;
@@ -508,5 +508,4 @@ class Options
 	{
 		return WC()->countries->get_countries()[$supportedCountry['iso2']] ?? $supportedCountry['name'];
 	}
-
 }

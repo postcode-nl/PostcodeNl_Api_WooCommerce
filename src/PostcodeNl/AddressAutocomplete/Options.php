@@ -27,20 +27,9 @@ class Options
 	protected const NETHERLANDS_MODE_DEFAULT = 'default';
 	protected const NETHERLANDS_MODE_POSTCODE_ONLY = 'postcodeOnly';
 
-	protected const NETHERLANDS_MODE_DESCRIPTIONS = [
-		self::NETHERLANDS_MODE_DEFAULT => 'Full lookup (default)',
-		self::NETHERLANDS_MODE_POSTCODE_ONLY => 'Postcode and house number only',
-	];
-
 	protected const DISPLAY_MODE_DEFAULT = 'default';
 	protected const DISPLAY_MODE_SHOW_ON_ADDRESS = 'showOnAddress';
 	protected const DISPLAY_MODE_SHOW_ALL = 'showAll';
-
-	protected const DISPLAY_MODE_DESCRIPTIONS = [
-		self::DISPLAY_MODE_DEFAULT => 'Hide fields and show a formatted address instead (default)',
-		self::DISPLAY_MODE_SHOW_ON_ADDRESS => 'Hide fields until an address is selected',
-		self::DISPLAY_MODE_SHOW_ALL => 'Show fields',
-	];
 
 	protected const FORM_ACTION_NAME = self::FORM_NAME_PREFIX . 'submit';
 	protected const FORM_ACTION_NONCE_NAME = self::FORM_NAME_PREFIX . 'nonce';
@@ -130,9 +119,9 @@ class Options
 			'apiKey',
 			$this->apiKey,
 			'text',
-			esc_html__('The API key is provided by Postcode.eu after completing account registration. You can also request new credentials if you lost them.', 'postcode-address-autocomplete') . '<br/>' .
-				sprintf('<a href="%s" target="_blank" rel="noopener">%s</a>', esc_url(__('https://account.postcode.eu/', 'postcode-address-autocomplete')), esc_html__('Log into your Postcode.eu account', 'postcode-address-autocomplete')) . '<br/>' .
-				sprintf('<a href="%s" target="_blank" rel="noopener">%s</a>', esc_url(__('https://www.postcode.nl/en/services/adresdata/producten-overzicht', 'postcode-address-autocomplete')), esc_html__('Register a new Postcode.eu account', 'postcode-address-autocomplete'))
+			esc_html__('The API key is provided by Postcode.eu after completing account registration. You can also request new credentials if you lost them.', 'postcodenl-address-autocomplete') . '<br/>' .
+				sprintf('<a href="%s" target="_blank" rel="noopener">%s</a>', esc_url(__('https://account.postcode.eu/', 'postcodenl-address-autocomplete')), esc_html__('Log into your Postcode.eu account', 'postcodenl-address-autocomplete')) . '<br/>' .
+				sprintf('<a href="%s" target="_blank" rel="noopener">%s</a>', esc_url(__('https://www.postcode.nl/en/services/adresdata/producten-overzicht', 'postcodenl-address-autocomplete')), esc_html__('Register a new Postcode.eu account', 'postcodenl-address-autocomplete'))
 		);
 		$markup .= $this->_getInputRow(
 			esc_html__('API secret', 'postcodenl-address-autocomplete'),
@@ -147,7 +136,7 @@ class Options
 			$this->displayMode,
 			'select',
 			esc_html__('How to display the address fields in the checkout form.', 'postcodenl-address-autocomplete'),
-			static::DISPLAY_MODE_DESCRIPTIONS
+			$this->getDisplayModeDescriptions()
 		);
 		$markup .= $this->_getInputRow(
 			esc_html__('Add manual entry link', 'postcodenl-address-autocomplete'),
@@ -163,8 +152,8 @@ class Options
 			$this->netherlandsMode,
 			'select',
 			esc_html__('Which method to use for Dutch address lookups. "Full lookup" allows searching through city and street names, the "Postcode and house number only" method only supports exact postcode and house number lookups but costs less per address.', 'postcodenl-address-autocomplete') . '<br/>' .
-			sprintf('<a href="%s" target="_blank" rel="noopener">%s</a>', esc_url(__('https://www.postcode.nl/en/services/adresdata/producten-overzicht', 'postcode-address-autocomplete')), esc_html__('Product pricing', 'postcode-address-autocomplete')),
-			static::NETHERLANDS_MODE_DESCRIPTIONS
+			sprintf('<a href="%s" target="_blank" rel="noopener">%s</a>', esc_url(__('https://www.postcode.nl/en/services/adresdata/producten-overzicht', 'postcodenl-address-autocomplete')), esc_html__('Product pricing', 'postcodenl-address-autocomplete')),
+			$this->getNetherlandsModeDescriptions()
 		);
 
 		if ($this->hasKeyAndSecret())
@@ -386,7 +375,7 @@ class Options
 
 			if ($option === 'netherlandsPostcodeMode')
 			{
-				if (isset($_POST[$postName]) && array_key_exists($_POST[$postName], static::NETHERLANDS_MODE_DESCRIPTIONS))
+				if (isset($_POST[$postName]) && array_key_exists($_POST[$postName], $this->getNetherlandsModeDescriptions()))
 				{
 					$newValue = sanitize_text_field($_POST[$postName]);
 				}
@@ -397,7 +386,7 @@ class Options
 			}
 			elseif ($option === 'displayMode')
 			{
-				if (isset($_POST[$postName]) && array_key_exists($_POST[$postName], static::DISPLAY_MODE_DESCRIPTIONS))
+				if (isset($_POST[$postName]) && array_key_exists($_POST[$postName], $this->getDisplayModeDescriptions()))
 				{
 					$newValue = sanitize_text_field($_POST[$postName]);
 				}
@@ -504,5 +493,22 @@ class Options
 	protected function _getCountryName(array $supportedCountry): string
 	{
 		return WC()->countries->get_countries()[$supportedCountry['iso2']] ?? $supportedCountry['name'];
+	}
+
+	protected function getDisplayModeDescriptions(): array
+	{
+		return [
+			static::DISPLAY_MODE_DEFAULT => esc_html__('Hide fields and show a formatted address instead (default)', 'postcodenl-address-autocomplete'),
+			static::DISPLAY_MODE_SHOW_ON_ADDRESS => esc_html__('Hide fields until an address is selected', 'postcodenl-address-autocomplete'),
+			static::DISPLAY_MODE_SHOW_ALL => esc_html__('Show fields', 'postcodenl-address-autocomplete'),
+		];
+	}
+
+	protected function getNetherlandsModeDescriptions(): array
+	{
+		return [
+			static::NETHERLANDS_MODE_DEFAULT => esc_html__('Full lookup (default)', 'postcodenl-address-autocomplete'),
+			static::NETHERLANDS_MODE_POSTCODE_ONLY => esc_html__('Postcode and house number only', 'postcodenl-address-autocomplete'),
+		];
 	}
 }

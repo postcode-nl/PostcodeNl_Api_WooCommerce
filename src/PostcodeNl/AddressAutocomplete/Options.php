@@ -113,7 +113,7 @@ class Options
 			return;
 		}
 
-		if (isset($_POST[static::FORM_ACTION_NAME]))
+		if (isset($_POST[static::FORM_ACTION_NAME], $_POST[static::FORM_ACTION_NONCE_NAME]) && wp_verify_nonce(sanitize_text_field(wp_unslash ($_POST[static::FORM_ACTION_NONCE_NAME])), static::FORM_ACTION_NAME))
 		{
 			$this->_handleSubmit();
 		}
@@ -357,11 +357,6 @@ class Options
 
 	protected function _handleSubmit(): void
 	{
-		if (!isset($_POST[static::FORM_ACTION_NONCE_NAME]) || !wp_verify_nonce(sanitize_text_field(wp_unslash ($_POST[static::FORM_ACTION_NONCE_NAME])), static::FORM_ACTION_NAME))
-		{
-			return;
-		}
-
 		$options = Main::getInstance()->getOptions();
 		$existingKey = $options->apiKey;
 		$existingSecret = $options->apiSecret;

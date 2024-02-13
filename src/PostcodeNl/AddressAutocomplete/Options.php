@@ -109,7 +109,7 @@ class Options
 	{
 		if (!current_user_can(static::REQUIRED_USER_CAPABILITY))
 		{
-			_e('Not accessible.', 'postcodenl-address-autocomplete');
+			esc_html_e('Not accessible.', 'postcodenl-address-autocomplete');
 			return;
 		}
 
@@ -119,48 +119,51 @@ class Options
 		}
 
 		$markup = '<div class="wrap postcode-eu">';
-		$markup .= vsprintf('<h2>%s</h2>', [__('Postcode.eu Address Autocomplete options', 'postcodenl-address-autocomplete')]);
+		$markup .= vsprintf('<h2>%s</h2>', [esc_html__('Postcode.eu Address Autocomplete options', 'postcodenl-address-autocomplete')]);
 		$markup .= '<form method="post" action="">';
 		$markup .= wp_nonce_field(static::FORM_ACTION_NAME, static::FORM_ACTION_NONCE_NAME, true, false);
 
 		$markup .= '<table class="form-table">';
 
 		$markup .= $this->_getInputRow(
-			__('API key', 'postcodenl-address-autocomplete'),
+			esc_html__('API key', 'postcodenl-address-autocomplete'),
 			'apiKey',
 			$this->apiKey,
 			'text',
-			__('The API key is provided by Postcode.eu after completing account registration. You can also request new credentials if you lost them. <a href="https://account.postcode.nl/" target="_blank" rel="noopener">Log into your Postcode.eu API account</a> or if you do not have an account yet you can <a href="https://www.postcode.nl/en/services/adresdata/producten-overzicht" target="_blank" rel="noopener">register one now</a>.', 'postcodenl-address-autocomplete')
+			esc_html__('The API key is provided by Postcode.eu after completing account registration. You can also request new credentials if you lost them.', 'postcode-address-autocomplete') . '<br/>' .
+				sprintf('<a href="%s" target="_blank" rel="noopener">%s</a>', esc_url(__('https://account.postcode.eu/', 'postcode-address-autocomplete')), esc_html__('Log into your Postcode.eu account', 'postcode-address-autocomplete')) . '<br/>' .
+				sprintf('<a href="%s" target="_blank" rel="noopener">%s</a>', esc_url(__('https://www.postcode.eu/en/services/adresdata/producten-overzicht', 'postcode-address-autocomplete')), esc_html__('Register a new Postcode.eu account', 'postcode-address-autocomplete'))
 		);
 		$markup .= $this->_getInputRow(
-			__('API secret', 'postcodenl-address-autocomplete'),
+			esc_html__('API secret', 'postcodenl-address-autocomplete'),
 			'apiSecret',
 			'',
 			'password',
-			__('Your API secret as provided by Postcode.eu.', 'postcodenl-address-autocomplete')
+			esc_html__('Your API secret as provided by Postcode.eu.', 'postcodenl-address-autocomplete')
 		);
 		$markup .= $this->_getInputRow(
-			__('Address field display mode', 'postcodenl-address-autocomplete'),
+			esc_html__('Address field display mode', 'postcodenl-address-autocomplete'),
 			'displayMode',
 			$this->displayMode,
 			'select',
-			__('How to display the address fields in the checkout form.', 'postcodenl-address-autocomplete'),
+			esc_html__('How to display the address fields in the checkout form.', 'postcodenl-address-autocomplete'),
 			static::DISPLAY_MODE_DESCRIPTIONS
 		);
 		$markup .= $this->_getInputRow(
-			__('Add manual entry link', 'postcodenl-address-autocomplete'),
+			esc_html__('Add manual entry link', 'postcodenl-address-autocomplete'),
 			'allowAutofillIntlBypass',
 			$this->allowAutofillIntlBypass,
 			'select',
-			__('Allows users to skip the autocomplete field and manually enter an address.', 'postcodenl-address-autocomplete'),
-			['n' => __('No'), 'y' => __('Yes')]
+			esc_html__('Allows users to skip the autocomplete field and manually enter an address.', 'postcodenl-address-autocomplete'),
+			['n' => esc_html__('No'), 'y' => esc_html__('Yes')]
 		);
 		$markup .= $this->_getInputRow(
-			__('Dutch address lookup method', 'postcodenl-address-autocomplete'),
+			esc_html__('Dutch address lookup method', 'postcodenl-address-autocomplete'),
 			'netherlandsMode',
 			$this->netherlandsMode,
 			'select',
-			__('Which method to use for Dutch address lookups. "Full lookup" allows searching through city and street names, the "Postcode and house number only" method only supports exact postcode and house number lookups but costs less per address. See <a href="https://www.postcode.nl/en/services/adresdata/producten-overzicht" target="_blank" rel="noopener">product pricing</a>.', 'postcodenl-address-autocomplete'),
+			esc_html__('Which method to use for Dutch address lookups. "Full lookup" allows searching through city and street names, the "Postcode and house number only" method only supports exact postcode and house number lookups but costs less per address.', 'postcodenl-address-autocomplete') . '<br/>' .
+			sprintf('<a href="%s" target="_blank" rel="noopener">%s</a>', esc_url(__('https://www.postcode.eu/en/services/adresdata/producten-overzicht', 'postcode-address-autocomplete')), esc_html__('Product pricing', 'postcode-address-autocomplete')),
 			static::NETHERLANDS_MODE_DESCRIPTIONS
 		);
 
@@ -177,10 +180,10 @@ class Options
 					static::FORM_PER_COUNTRY_NAME . $supportedCountry['iso3'],
 					isset($this->_apiDisabledCountries[$supportedCountry['iso3']]) ? 'disabled' : 'enabled',
 					'select',
-					sprintf(__('Use autocomplete input for the country %s.', 'postcodenl-address-autocomplete'), $this->_getCountryName($supportedCountry)),
+					sprintf(esc_html__('Use autocomplete input for the country %s.', 'postcodenl-address-autocomplete'), $this->_getCountryName($supportedCountry)),
 					[
-						'enabled' => __('Enabled', 'postcodenl-address-autocomplete'),
-						'disabled' => __('Disabled', 'postcodenl-address-autocomplete'),
+						'enabled' => esc_html__('Enabled', 'postcodenl-address-autocomplete'),
+						'disabled' => esc_html__('Disabled', 'postcodenl-address-autocomplete'),
 					]
 				);
 			}
@@ -189,35 +192,35 @@ class Options
 		$markup .= '</table>';
 		$markup .= vsprintf(
 			'<p class="submit"><input type="submit" name="%s" id="submit" class="button button-primary" value="%s"></p>',
-			[static::FORM_ACTION_NAME, __('Save changes', 'postcodenl-address-autocomplete')]
+			[static::FORM_ACTION_NAME, esc_html__('Save changes', 'postcodenl-address-autocomplete')]
 		);
 		$markup .= '</form>';
 
 		$markup .= '<div class="postcode-eu-api-status">';
-		$markup .= sprintf('<h3>%s</h3>', __('API connection', 'postcodenl-address-autocomplete'));
-		$markup .= sprintf('<dl><dt>%s</dt><dd><span class="subscription-status subscription-status-%s">%s</span></dd>', __('Subscription status', 'postcodenl-address-autocomplete'), $this->_apiAccountStatus, $this->getApiStatusDescription());
+		$markup .= sprintf('<h3>%s</h3>', esc_html__('API connection', 'postcodenl-address-autocomplete'));
+		$markup .= sprintf('<dl><dt>%s</dt><dd><span class="subscription-status subscription-status-%s">%s</span></dd>', esc_html__('Subscription status', 'postcodenl-address-autocomplete'), $this->_apiAccountStatus, $this->getApiStatusDescription());
 		$markup .= sprintf(
 			'<dl><dt>%s</dt><dd><span class="subscription-status-date">%s</span></dd>',
-			__('Subscription status retrieved', 'postcodenl-address-autocomplete'),
-			$this->_apiAccountInfoDateTime === null ? __('Never', 'postcodenl-address-autocomplete') : wp_date(get_option('date_format') . ' ' . get_option('time_format'), $this->_apiAccountInfoDateTime->getTimestamp())
+			esc_html__('Subscription status retrieved', 'postcodenl-address-autocomplete'),
+			$this->_apiAccountInfoDateTime === null ? esc_html__('Never', 'postcodenl-address-autocomplete') : wp_date(get_option('date_format') . ' ' . get_option('time_format'), $this->_apiAccountInfoDateTime->getTimestamp())
 		);
 
 		if ($this->_apiAccountName !== null)
 		{
-			$markup .= sprintf('<dt>%s</dt><dd>%s</dd>', __('API account name', 'postcodenl-address-autocomplete'), $this->_apiAccountName);
+			$markup .= sprintf('<dt>%s</dt><dd>%s</dd>', esc_html__('API account name', 'postcodenl-address-autocomplete'), $this->_apiAccountName);
 		}
 		if ($this->_apiAccountStartDate !== null)
 		{
-			$markup .= sprintf('<dt>%s</dt><dd>%s</dd>', __('API subscription start date', 'postcodenl-address-autocomplete'), wp_date(get_option('date_format'), (new DateTime($this->_apiAccountStartDate))->getTimestamp()));
+			$markup .= sprintf('<dt>%s</dt><dd>%s</dd>', esc_html__('API subscription start date', 'postcodenl-address-autocomplete'), wp_date(get_option('date_format'), (new DateTime($this->_apiAccountStartDate))->getTimestamp()));
 		}
 		if ($this->_apiAccountLimit !== null && $this->_apiAccountUsage !== null)
 		{
 			$markup .= sprintf(
 				'<dt>%s</dt><dd>%s / %s %s</dd>',
-				__('API subscription usage', 'postcodenl-address-autocomplete'),
+				esc_html__('API subscription usage', 'postcodenl-address-autocomplete'),
 				$this->_apiAccountUsage,
 				$this->_apiAccountLimit,
-				__('euro', 'postcodenl-address-autocomplete')
+				esc_html__('euro', 'postcodenl-address-autocomplete')
 			);
 		}
 
@@ -259,13 +262,13 @@ class Options
 		switch ($this->_apiAccountStatus)
 		{
 			case static::API_ACCOUNT_STATUS_NEW:
-				return __('not connected', 'postcodenl-address-autocomplete');
+				return esc_html__('not connected', 'postcodenl-address-autocomplete');
 			case static::API_ACCOUNT_STATUS_ACTIVE:
-				return __('active', 'postcodenl-address-autocomplete');
+				return esc_html__('active', 'postcodenl-address-autocomplete');
 			case static::API_ACCOUNT_STATUS_INVALID_CREDENTIALS:
-				return __('invalid key and/or secret', 'postcodenl-address-autocomplete');
+				return esc_html__('invalid key and/or secret', 'postcodenl-address-autocomplete');
 			case static::API_ACCOUNT_STATUS_INACTIVE:
-				return __('inactive', 'postcodenl-address-autocomplete');
+				return esc_html__('inactive', 'postcodenl-address-autocomplete');
 			default:
 				throw new Exception('Invalid account status value.');
 		}
@@ -278,14 +281,13 @@ class Options
 			case static::API_ACCOUNT_STATUS_NEW:
 			case static::API_ACCOUNT_STATUS_INVALID_CREDENTIALS:
 				return sprintf(
-					/* translators: %s: options URL */
-					__('Make sure you used the correct Postcode.eu API subscription key and secret in <a href="%s">the options page</a>.', 'postcodenl-address-autocomplete'),
-					menu_page_url(static::MENU_SLUG, false)
+					esc_html__('Make sure you used the correct Postcode.eu API subscription key and secret in the options page.', 'postcodenl-address-autocomplete') . '<br/>' .
+					sprintf('<a href="%s">%s</a>', menu_page_url(static::MENU_SLUG, false), esc_html__('the options page', 'postcodenl-address-autocomplete')),
 				);
 			case static::API_ACCOUNT_STATUS_ACTIVE:
-				return __('The Postcode.eu API is successfully connected.', 'postcodenl-address-autocomplete');
+				return esc_html__('The Postcode.eu API is successfully connected.', 'postcodenl-address-autocomplete');
 			case static::API_ACCOUNT_STATUS_INACTIVE:
-				return __('Your Postcode.eu API subscription is currently inactive, please login to your account and follow the steps to activate your account.', 'postcodenl-address-autocomplete');
+				return esc_html__('Your Postcode.eu API subscription is currently inactive, please login to your account and follow the steps to activate your account.', 'postcodenl-address-autocomplete');
 			default:
 				throw new Exception('Invalid account status value.');
 		}
@@ -470,7 +472,7 @@ class Options
 			'allowAutofillIntlBypass' => $this->allowAutofillIntlBypass,
 			'netherlandsMode' => $this->netherlandsMode,
 			'apiAccountInfoDateTime' => $this->_apiAccountInfoDateTime === null ? '' : $this->_apiAccountInfoDateTime->format('Y-m-d H:i:s'),
-			'supportedCountries' => json_encode($this->_supportedCountries),
+			'supportedCountries' => wp_json_encode($this->_supportedCountries),
 			'apiAccountStatus' => $this->_apiAccountStatus,
 			'apiAccountName' => $this->_apiAccountName,
 			'apiAccountLimit' => $this->_apiAccountLimit,

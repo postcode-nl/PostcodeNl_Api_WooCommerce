@@ -72,7 +72,7 @@ class Main
 
 		$fields['postcodeEuAutofillIntl'] = [
 			'type' => 'text',
-			'label' => __('Start typing your address or zip/postal code', 'postcodenl-address-autocomplete'),
+			'label' => esc_html__('Start typing your address or zip/postal code', 'postcodenl-address-autocomplete'),
 			'required' => false,
 			'class' => [
 				'form-row-wide',
@@ -85,8 +85,8 @@ class Main
 
 		$fields['postcodeEuAutofillNlPostcode'] = [
 			'type' => 'text',
-			'label' => __('Postcode', 'postcodenl-address-autocomplete'),
-			'placeholder' => __('1234 AB', 'postcodenl-address-autocomplete'),
+			'label' => esc_html__('Postcode', 'postcodenl-address-autocomplete'),
+			'placeholder' => esc_html__('1234 AB', 'postcodenl-address-autocomplete'),
 			'required' => false,
 			'class' => [
 				'form-row-first',
@@ -100,8 +100,8 @@ class Main
 
 		$fields['postcodeEuAutofillNlHouseNumberWithAddition'] = [
 			'type' => 'text',
-			'label' => __('House number and addition', 'postcodenl-address-autocomplete'),
-			'placeholder' => __('123 A', 'postcodenl-address-autocomplete'),
+			'label' => esc_html__('House number and addition', 'postcodenl-address-autocomplete'),
+			'placeholder' => esc_html__('123 A', 'postcodenl-address-autocomplete'),
 			'required' => false,
 			'class' => [
 				'form-row-last',
@@ -115,7 +115,7 @@ class Main
 
 		$fields['postcodeEuAutofillNlHouseNumberSelect'] = [
 			'type' => 'select',
-			'label' => __('Which house number do you mean?', 'postcodenl-address-autocomplete'),
+			'label' => esc_html__('Which house number do you mean?', 'postcodenl-address-autocomplete'),
 			'required' => false,
 			'class' => [
 				'form-row-wide',
@@ -123,7 +123,7 @@ class Main
 				'postcode-eu-autofill-nl',
 				'postcode-eu-autofill-nl-house-number-select',
 			],
-			'options' => [__('- Select house number -', 'postcodenl-address-autocomplete')],
+			'options' => [esc_html__('- Select house number -', 'postcodenl-address-autocomplete')],
 			'priority' => 48,
 		];
 
@@ -134,8 +134,8 @@ class Main
 	{
 		array_unshift(
 			$links,
-			sprintf('<a href="%s">%s</a>', admin_url('options-general.php?page=' . Options::MENU_SLUG), __('Settings', 'postcodenl-address-autocomplete')),
-			sprintf('<a href="https://account.postcode.nl" target="_blank" rel="noopener">%s</a>', __('API account', 'postcodenl-address-autocomplete'))
+			sprintf('<a href="%s">%s</a>', admin_url('options-general.php?page=' . Options::MENU_SLUG), esc_html__('Settings', 'postcodenl-address-autocomplete')),
+			sprintf('<a href="https://account.postcode.eu" target="_blank" rel="noopener">%s</a>', esc_html__('API account', 'postcodenl-address-autocomplete'))
 		);
 
 		return $links;
@@ -214,11 +214,11 @@ class Main
 			'enabledCountries' => $this->_options->getEnabledCountries(),
 			'displayMode' => $this->_options->displayMode,
 			'netherlandsMode' => $this->_options->netherlandsMode,
-			'postcodeOnlyLabel' => __('Postcode and house number', 'postcodenl-address-autocomplete'),
+			'postcodeOnlyLabel' => esc_html__('Postcode and house number', 'postcodenl-address-autocomplete'),
 			'postcodeOnlyPlaceholder' => '1234 AB',
-			'postcodeOnlyInputHint' => __('Enter a postcode and house number.', 'postcodenl-address-autocomplete'),
+			'postcodeOnlyInputHint' => esc_html__('Enter a postcode and house number.', 'postcodenl-address-autocomplete'),
 			'houseNumberPlaceholder' => '123 A',
-			'autofillIntlBypassLinkText' => __('Enter an address', 'postcodenl-address-autocomplete'),
+			'autofillIntlBypassLinkText' => esc_html__('Enter an address', 'postcodenl-address-autocomplete'),
 			'allowAutofillIntlBypass' => $this->_options->allowAutofillIntlBypass,
 		];
 
@@ -226,7 +226,7 @@ class Main
 			'<script type="text/javascript">
 				const PostcodeEuSettings = %s;
 			</script>',
-			json_encode($settings)
+			wp_json_encode($settings)
 		);
 	}
 
@@ -253,11 +253,11 @@ class Main
 
 				if ($this->_options->isNlModePostcodeOnly() && $fields['billing_country'] === 'NL')
 				{
-					$errors->add('validation', __('<strong>Please enter a postcode and house number for the billing address.</strong>', 'postcodenl-address-autocomplete'));
+					$errors->add('validation', '<strong>' . esc_html__('Please enter a postcode and house number for the billing address.', 'postcodenl-address-autocomplete') . '</strong>');
 				}
 				else
 				{
-					$errors->add('validation', __('<strong>Please enter and select a billing address.</strong>', 'postcodenl-address-autocomplete'));
+					$errors->add('validation', '<strong>' . esc_html__('Please enter and select a billing address.', 'postcodenl-address-autocomplete') . '</strong>');
 				}
 			}
 		}
@@ -275,11 +275,11 @@ class Main
 
 				if ($this->_options->isNlModePostcodeOnly() && $fields['shipping_country'] === 'NL')
 				{
-					$errors->add('validation', __('<strong>Please enter a postcode and house number for the shipping address.</strong>', 'postcodenl-address-autocomplete'));
+					$errors->add('validation', '<strong>' . esc_html__('Please enter a postcode and house number for the shipping address.', 'postcodenl-address-autocomplete') . '</strong>');
 				}
 				else
 				{
-					$errors->add('validation', __('<strong>Please enter and select a shipping address.</strong>', 'postcodenl-address-autocomplete'));
+					$errors->add('validation', '<strong>' . esc_html__('Please enter and select a shipping address.', 'postcodenl-address-autocomplete') . '</strong>');
 				}
 			}
 		}
@@ -305,15 +305,13 @@ class Main
 	{
 		if (!class_exists('WooCommerce'))
 		{
-			vprintf(
+			printf(
 				'<div class="notice notice-error is-dismissible">
 				<h3>%s</h3>
 				<p>%s</p>
 			</div>',
-				[
-					__('Postcode.eu Address Autocomplete: WooCommerce is required', 'postcodenl-address-autocomplete'),
-					__('Postcode.eu Address Autocomplete requires the WooCommerce plugin to be activated to be able to add address autocomplete to the checkout form.', 'postcodenl-address-autocomplete'),
-				]
+				esc_html__('Postcode.eu Address Autocomplete: WooCommerce is required', 'postcodenl-address-autocomplete'),
+				esc_html__('Postcode.eu Address Autocomplete requires the WooCommerce plugin to be activated to be able to add address autocomplete to the checkout form.', 'postcodenl-address-autocomplete'),
 			);
 		}
 
@@ -330,13 +328,14 @@ class Main
 				'<div class="notice notice-error">
 				<h3>%s</h3>
 				<p>%s</p>
+				<a href="%s">%s</a>
 			</div>',
 				[
-					__('Postcode.eu Address Autocomplete: Set your credentials', 'postcodenl-address-autocomplete'),
-					vsprintf(
-						/* translators: %s: options URL */
-						__('Please set your Postcode.eu API key and secret in <a href="%s">the options</a> to start using the Autocomplete in your WooCommerce checkout.', 'postcodenl-address-autocomplete'),
-						[menu_page_url(Options::MENU_SLUG, false)]
+					esc_html__('Postcode.eu Address Autocomplete: Set your credentials', 'postcodenl-address-autocomplete'),
+					sprintf(
+						esc_html__('Please set your Postcode.eu API key and secret in the options to start using the Autocomplete in your WooCommerce checkout.', 'postcodenl-address-autocomplete'),
+						menu_page_url(Options::MENU_SLUG, false),
+						esc_html__('Options', 'postcodenl-address-autocomplete')
 					),
 				]
 			);
@@ -349,19 +348,17 @@ class Main
 			return;
 		}
 
-		vprintf(
+		printf(
 			'<div class="notice notice-error">
 				<h3>%s</h3>
 				<p>%s</p>
 			</div>',
-			[
-				sprintf(
-					/* translators: %s: API account status. */
-					__('Postcode.eu Address Autocomplete: Your API account is %s', 'postcodenl-address-autocomplete'),
-					$this->_options->getApiStatusDescription()
-				),
-				$this->_options->getApiStatusHint(),
-			]
+			sprintf(
+				/* translators: %s: API account status. */
+				esc_html__('Postcode.eu Address Autocomplete: Your API account is %s', 'postcodenl-address-autocomplete'),
+				$this->_options->getApiStatusDescription()
+			),
+			$this->_options->getApiStatusHint(),
 		);
 	}
 

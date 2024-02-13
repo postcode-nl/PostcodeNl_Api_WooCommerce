@@ -10,11 +10,11 @@ defined('ABSPATH') || exit;
 class Main
 {
 	/** @var string The version number of the plugin should be equal to the commented version number in ../../../postcodenl-address-autocomplete.php */
-	public const VERSION = '2.2.0';
+	public const VERSION = '2.2.1';
 
 	/** @var self Reference to own */
 	protected static $_instance;
-	/** @var Proxy The proxy object used to redirect requests to the Postcode.nl server */
+	/** @var Proxy The proxy object used to redirect requests to the Postcode.eu server */
 	protected $_proxy;
 	/** @var Options */
 	protected $_options;

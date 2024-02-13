@@ -132,7 +132,7 @@ class Options
 			'text',
 			esc_html__('The API key is provided by Postcode.eu after completing account registration. You can also request new credentials if you lost them.', 'postcode-address-autocomplete') . '<br/>' .
 				sprintf('<a href="%s" target="_blank" rel="noopener">%s</a>', esc_url(__('https://account.postcode.eu/', 'postcode-address-autocomplete')), esc_html__('Log into your Postcode.eu account', 'postcode-address-autocomplete')) . '<br/>' .
-				sprintf('<a href="%s" target="_blank" rel="noopener">%s</a>', esc_url(__('https://www.postcode.eu/en/services/adresdata/producten-overzicht', 'postcode-address-autocomplete')), esc_html__('Register a new Postcode.eu account', 'postcode-address-autocomplete'))
+				sprintf('<a href="%s" target="_blank" rel="noopener">%s</a>', esc_url(__('https://www.postcode.nl/en/services/adresdata/producten-overzicht', 'postcode-address-autocomplete')), esc_html__('Register a new Postcode.eu account', 'postcode-address-autocomplete'))
 		);
 		$markup .= $this->_getInputRow(
 			esc_html__('API secret', 'postcodenl-address-autocomplete'),
@@ -163,7 +163,7 @@ class Options
 			$this->netherlandsMode,
 			'select',
 			esc_html__('Which method to use for Dutch address lookups. "Full lookup" allows searching through city and street names, the "Postcode and house number only" method only supports exact postcode and house number lookups but costs less per address.', 'postcodenl-address-autocomplete') . '<br/>' .
-			sprintf('<a href="%s" target="_blank" rel="noopener">%s</a>', esc_url(__('https://www.postcode.eu/en/services/adresdata/producten-overzicht', 'postcode-address-autocomplete')), esc_html__('Product pricing', 'postcode-address-autocomplete')),
+			sprintf('<a href="%s" target="_blank" rel="noopener">%s</a>', esc_url(__('https://www.postcode.nl/en/services/adresdata/producten-overzicht', 'postcode-address-autocomplete')), esc_html__('Product pricing', 'postcode-address-autocomplete')),
 			static::NETHERLANDS_MODE_DESCRIPTIONS
 		);
 

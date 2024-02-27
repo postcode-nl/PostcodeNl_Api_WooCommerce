@@ -359,6 +359,14 @@ class Options
 			}
 		}
 
+		$includedOptions = [
+			'apiKey',
+			'apiSecret',
+			'displayMode',
+			'allowAutofillIntlBypass',
+			'netherlandsMode',
+		];
+
 		foreach ($options as $option => $value)
 		{
 			$postName = static::FORM_NAME_PREFIX . $option;
@@ -368,7 +376,7 @@ class Options
 				continue;
 			}
 
-			if (in_array($option, ['_supportedCountries', '_apiAccountInfoDateTime'], true))
+			if (!in_array($option, $includedOptions, true))
 			{
 				continue;
 			}

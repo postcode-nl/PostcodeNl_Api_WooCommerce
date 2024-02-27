@@ -234,7 +234,7 @@ class Main
 	{
 		if (!$this->_options->isApiActive() || $this->_options->hasEditableAddressFields())
 		{
-			return $fields;
+			return;
 		}
 
 		$fieldNames = ['address_1', 'postcode', 'city'];

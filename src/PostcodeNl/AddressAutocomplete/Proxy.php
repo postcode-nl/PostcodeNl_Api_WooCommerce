@@ -123,7 +123,7 @@ class Proxy
 		// The response is JSON
 		header('Content-type: application/json');
 		// wp_die resets the cache control headers, so die regularly
-		die(json_encode($response));
+		die(wp_json_encode($response));
 	}
 
 	protected function _repeatCacheControlHeader(array $apiResponseHeaders): void
@@ -185,7 +185,7 @@ class Proxy
 
 	protected function _errorResponse(array $response): void
 	{
-		wp_die(json_encode($response), 500);
+		wp_die(wp_json_encode($response), 500);
 	}
 
 	protected function _getLanguage(): ?string

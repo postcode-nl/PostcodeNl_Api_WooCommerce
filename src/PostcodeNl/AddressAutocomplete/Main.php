@@ -134,8 +134,15 @@ class Main
 	{
 		array_unshift(
 			$links,
-			sprintf('<a href="%s">%s</a>', admin_url('options-general.php?page=' . Options::MENU_SLUG), esc_html__('Settings', 'postcodenl-address-autocomplete')),
-			sprintf('<a href="https://account.postcode.eu" target="_blank" rel="noopener">%s</a>', esc_html__('API account', 'postcodenl-address-autocomplete'))
+			sprintf(
+				'<a href="%s">%s</a>',
+				admin_url('options-general.php?page=' . Options::MENU_SLUG),
+				esc_html__('Settings', 'postcodenl-address-autocomplete')
+			),
+			sprintf(
+				'<a href="https://account.postcode.eu" target="_blank" rel="noopener">%s</a>',
+				esc_html__('API account', 'postcodenl-address-autocomplete')
+			)
 		);
 
 		return $links;
@@ -184,7 +191,12 @@ class Main
 		wp_enqueue_script(
 			'postcode-eu-autofill',
 			$pluginsUrl . '/assets/js/postcode-eu-autofill.js',
-			['postcode-eu-autocomplete-address-library', 'postcode-eu-autocomplete-address-field-mapping', 'postcode-eu-autocomplete-state-mapping', 'wp-i18n'],
+			[
+				'postcode-eu-autocomplete-address-library',
+				'postcode-eu-autocomplete-address-field-mapping',
+				'postcode-eu-autocomplete-state-mapping',
+				'wp-i18n',
+			],
 			static::VERSION,
 			true
 		);

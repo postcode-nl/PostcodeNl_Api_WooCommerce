@@ -102,9 +102,16 @@ class Options
 			return;
 		}
 
-		if (isset($_POST[static::FORM_ACTION_NAME], $_POST[static::FORM_ACTION_NONCE_NAME]) && wp_verify_nonce(sanitize_text_field(wp_unslash ($_POST[static::FORM_ACTION_NONCE_NAME])), static::FORM_ACTION_NAME))
+		if (isset($_POST[static::FORM_ACTION_NAME], $_POST[static::FORM_ACTION_NONCE_NAME]))
 		{
-			$this->_handleSubmit();
+			if (wp_verify_nonce(sanitize_text_field(wp_unslash($_POST[static::FORM_ACTION_NONCE_NAME])), static::FORM_ACTION_NAME))
+			{
+				$this->_handleSubmit();
+			}
+			else
+			{
+				wp_nonce_ays(); // Sends a "403 Forbidden" response.
+			}
 		}
 
 		$markup = '<div class="wrap postcode-eu">';

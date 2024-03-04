@@ -69,6 +69,7 @@ class Proxy
 		$postcode = sanitize_text_field(wp_unslash($_GET['postcode']));
 		$houseNumberAndAddition = sanitize_text_field(wp_unslash($_GET['houseNumberAndAddition']));
 
+		/** @var array $matches */
 		preg_match('/^(?<houseNumber>\d{1,5})(?<addition>\D.*)?$/', $houseNumberAndAddition, $matches);
 		$houseNumber = isset($matches['houseNumber']) ? (int)$matches['houseNumber'] : null;
 		$houseNumberAddition = isset($matches['addition']) ? trim($matches['addition']) : null;

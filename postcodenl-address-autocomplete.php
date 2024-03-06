@@ -6,6 +6,8 @@
  * Version: 2.2.1
  * Author: Postcode.nl
  * Author URI: https://www.postcode.nl
+ * License: FreeBSD license
+ * License URI: https://directory.fsf.org/wiki/License:BSD-2-Clause-FreeBSD
  * Text Domain: postcodenl-address-autocomplete
  * Requires at least: 5.2
  * Tested up to: 6.4

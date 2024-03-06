@@ -3,8 +3,8 @@ Contributors: postcodenl
 Tags: address validation, address autocomplete, postcode api, address api, postcode check
 Stable tag: 2.1.3
 Tested up to: 6.4
-License: Simplified BSD
-License URI: https://www.tldrlegal.com/license/bsd-2-clause-license-freebsd
+License: FreeBSD license
+License URI: https://directory.fsf.org/wiki/License:BSD-2-Clause-FreeBSD
 
 Address autocomplete and validation using the Postcode.eu API. Supports both Dutch and international addresses.
 

@@ -63,6 +63,21 @@ PostcodeNlAddressFieldMapping.mapping = {
 ```
 To use this mapping replace `PostcodeNlAddressFieldMapping.mapping = {...};` with the code above.
 
+== Third-Party Service Usage ==
+
+This plugin relies on the Postcode.eu API, a third-party service, for address autocompletion and validation. The use of this service is essential for the plugin's functionality, enabling it to provide accurate address suggestions and validations across multiple countries using official postal data.
+
+- [Terms and Conditions](https://documentatie.postcode.nl/termsandconditions.pdf)
+- [Privacy policy](https://www.postcode.nl/en/privacy)
+
+=== API Usage Context ===
+
+- The service is used during the checkout process to offer address autocompletion suggestions to the user.
+- The plugin communicates with the Postcode.eu API servers to retrieve address data based on the input provided by the user.
+- A valid Postcode.eu account is required to access the API services.
+
+For more details on the Postcode.eu API and how to obtain an account, please visit [Postcode.eu](https://postcode.eu).
+
 == Frequently Asked Questions ==
 
 * View Frequently Asked Questions at https://www.postcode.eu/#faq.

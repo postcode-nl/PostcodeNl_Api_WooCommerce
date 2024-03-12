@@ -2,7 +2,7 @@
 # This file is distributed under the same license as the Postcode.nl Address Autocomplete plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Postcode.nl Address Autocomplete 2.2.1\n"
+"Project-Id-Version: Postcode.nl Address Autocomplete 2.3.0\n"
 "Report-Msgid-Bugs-To: https://github.com/postcode-nl/PostcodeNl_Api_WooCommerce\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"

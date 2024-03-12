@@ -1,7 +1,7 @@
 === Postcode.eu Address Validation ===
 Contributors: postcodenl
 Tags: address validation, address autocomplete, postcode api, address api, postcode check
-Stable tag: 2.1.3
+Stable tag: 2.3.0
 Tested up to: 6.4
 License: FreeBSD license
 License URI: https://directory.fsf.org/wiki/License:BSD-2-Clause-FreeBSD
@@ -86,6 +86,17 @@ For more details on the Postcode.eu API and how to obtain an account, please vis
 
 == Changelog ==
 
-= 2.1.3 =
-* Plugin listed on WordPress.org.
+= 2.2.0 =
 * Update autocomplete library to version 1.4.0.
+* Replace curl with WP native methods.
+* Other minor fixes.
+
+= 2.3.0 =
+* Clarify licensing and third-party service usage.
+* Security enhancements such as input sanitization and output escaping.
+* Updated translations (see upgrade notice).
+
+== Upgrade Notice ==
+
+= 2.3.0 =
+* This update includes changes to translatable strings due to enhancements in output escaping for improved security and code standards compliance. If you have customized or translated these strings, please review and update them accordingly.

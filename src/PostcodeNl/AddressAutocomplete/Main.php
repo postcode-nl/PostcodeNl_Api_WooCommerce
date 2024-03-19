@@ -234,11 +234,15 @@ class Main
 			'allowAutofillIntlBypass' => $this->_options->allowAutofillIntlBypass,
 		];
 
-		printf(
-			'<script type="text/javascript">
-				const PostcodeEuSettings = %s;
-			</script>',
-			wp_json_encode($settings)
+		wp_add_inline_script(
+			'postcode-eu-autofill',
+			sprintf(
+				'<script type="text/javascript">
+					const PostcodeEuSettings = %s;
+				</script>',
+				wp_json_encode($settings)
+			),
+			'before'
 		);
 	}
 

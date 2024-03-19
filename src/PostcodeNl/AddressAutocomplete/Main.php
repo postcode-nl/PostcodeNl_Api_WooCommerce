@@ -344,11 +344,9 @@ class Main
 			</div>',
 				[
 					esc_html__('Postcode.eu Address Autocomplete: Set your credentials', 'postcodenl-address-autocomplete'),
-					sprintf(
-						esc_html__('Please set your Postcode.eu API key and secret in the options to start using the Autocomplete in your WooCommerce checkout.', 'postcodenl-address-autocomplete'),
-						menu_page_url(Options::MENU_SLUG, false),
-						esc_html__('Options', 'postcodenl-address-autocomplete')
-					),
+					esc_html__('Please set your Postcode.eu API key and secret in the options to start using the Autocomplete in your WooCommerce checkout.', 'postcodenl-address-autocomplete'),
+					menu_page_url(Options::MENU_SLUG, false),
+					esc_html__('Options', 'postcodenl-address-autocomplete'),
 				]
 			);
 

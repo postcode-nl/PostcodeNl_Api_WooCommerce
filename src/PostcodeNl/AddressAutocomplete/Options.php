@@ -102,16 +102,12 @@ class Options
 			return;
 		}
 
-		if (isset($_POST[static::FORM_ACTION_NAME], $_POST[static::FORM_ACTION_NONCE_NAME]))
+		if (
+			isset($_POST[static::FORM_ACTION_NAME], $_POST[static::FORM_ACTION_NONCE_NAME])
+			&& false !== check_admin_referer(static::FORM_ACTION_NAME, static::FORM_ACTION_NONCE_NAME)
+		)
 		{
-			if (wp_verify_nonce(sanitize_text_field(wp_unslash($_POST[static::FORM_ACTION_NONCE_NAME])), static::FORM_ACTION_NAME))
-			{
-				$this->_handleSubmit();
-			}
-			else
-			{
-				wp_nonce_ays(); // Sends a "403 Forbidden" response.
-			}
+			$this->_handleSubmit();
 		}
 
 		$markup = '<div class="wrap postcode-eu">';
@@ -394,6 +390,8 @@ class Options
 
 	protected function _handleSubmit(): void
 	{
+		check_admin_referer(static::FORM_ACTION_NAME, static::FORM_ACTION_NONCE_NAME);
+
 		$options = Main::getInstance()->getOptions();
 		$existingKey = $options->apiKey;
 		$existingSecret = $options->apiSecret;

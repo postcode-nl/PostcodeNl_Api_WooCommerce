@@ -237,9 +237,7 @@ class Main
 		wp_add_inline_script(
 			'postcode-eu-autofill',
 			sprintf(
-				'<script type="text/javascript">
-					const PostcodeEuSettings = %s;
-				</script>',
+				'const PostcodeEuSettings = %s;',
 				wp_json_encode($settings)
 			),
 			'before'

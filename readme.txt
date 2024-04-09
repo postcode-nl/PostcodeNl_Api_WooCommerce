@@ -99,8 +99,12 @@ For more details on the Postcode.eu API and how to obtain an account, please vis
 = 2.3.1 =
 * Fix wrong number of parameters to vprintf.
 * Fix nonce verification.
+* Rename text domain to match plugin slug.
 
 == Upgrade Notice ==
 
 = 2.3.0 =
 * This update includes changes to translatable strings due to enhancements in output escaping for improved security and code standards compliance. If you have customized or translated these strings, please review and update them accordingly.
+
+= 2.3.1 =
+* The text domain is renamed to match the plugin slug. This may require activating the plugin again. If you have added or customized translations for this plugin, then these will have to use the new text domain as well.

@@ -150,14 +150,14 @@
 		else
 		{
 			field.closest('.form-row').addClass('woocommerce-invalid');
-			field.after($('<span>', {class: 'postcodenl-address-autocomplete-warning', text: errorMessage}));
+			field.after($('<span>', {class: 'postcode-eu-address-validation-warning', text: errorMessage}));
 		}
 	}
 
 	const clearFieldValidity = function (field)
 	{
 		field.closest('.form-row').removeClass('woocommerce-validated woocommerce-invalid');
-		field.siblings('.postcodenl-address-autocomplete-warning').remove();
+		field.siblings('.postcode-eu-address-validation-warning').remove();
 	}
 
 	const addAddressAutocompleteNl = function (container)
@@ -223,7 +223,7 @@
 
 			setFieldValidity(
 				postcodeField,
-				isPostcodeValid() ? '' : __('Please enter a valid postcode.', 'postcodenl-address-autocomplete')
+				isPostcodeValid() ? '' : __('Please enter a valid postcode.', 'postcode-eu-address-validation')
 			);
 		});
 
@@ -232,7 +232,7 @@
 
 			setFieldValidity(
 				houseNumberField,
-				isHouseNumberValid() ? '' : __('Please enter a valid house number.', 'postcodenl-address-autocomplete')
+				isHouseNumberValid() ? '' : __('Please enter a valid house number.', 'postcode-eu-address-validation')
 			);
 		});
 
@@ -284,7 +284,7 @@
 			resetHouseNumberSelect();
 			resetAddressFields(addressFields);
 			currentAddress = null;
-			postcodeField.addClass('postcodenl-address-autocomplete-loading');
+			postcodeField.addClass('postcode-eu-address-validation-loading');
 
 			$.get({
 				url: url,
@@ -293,7 +293,7 @@
 				success: function (response) {
 					if (response.status === 'notFound')
 					{
-						setFieldValidity(houseNumberField, __('Address not found.', 'postcodenl-address-autocomplete'));
+						setFieldValidity(houseNumberField, __('Address not found.', 'postcode-eu-address-validation'));
 						return;
 					}
 
@@ -311,9 +311,9 @@
 					}
 				}
 			}).fail(function () {
-				setFieldValidity(houseNumberField, __('An error has occurred. Please try again later or contact us.', 'postcodenl-address-autocomplete'));
+				setFieldValidity(houseNumberField, __('An error has occurred. Please try again later or contact us.', 'postcode-eu-address-validation'));
 			}).always(function () {
-				postcodeField.removeClass('postcodenl-address-autocomplete-loading');
+				postcodeField.removeClass('postcode-eu-address-validation-loading');
 			});
 
 		}
@@ -544,13 +544,13 @@
 
 			const selectAutocompleteAddress = function (item)
 			{
-				intlField.addClass('postcodenl-address-autocomplete-loading');
+				intlField.addClass('postcode-eu-address-validation-loading');
 
 				const callback = (result) => {
 					fillAddressFieldsIntl(result);
 					toggleAddressFields(addressFields, true);
 					intlField
-						.removeClass('postcodenl-address-autocomplete-loading')
+						.removeClass('postcode-eu-address-validation-loading')
 						.trigger('address-result', result);
 
 					setFieldValidity(intlField);
@@ -600,10 +600,10 @@
 			document.addEventListener('autocomplete-xhrerror', function (e) {
 				console.error('Autocomplete XHR error', e);
 				toggleAddressFields(addressFields, true);
-				intlField.removeClass('postcodenl-address-autocomplete-loading')
+				intlField.removeClass('postcode-eu-address-validation-loading')
 				setFieldValidity(
 					intlField,
-					__('An error has occurred while retrieving address data. Please contact us if the problem persists.', 'postcodenl-address-autocomplete')
+					__('An error has occurred while retrieving address data. Please contact us if the problem persists.', 'postcode-eu-address-validation')
 				);
 			});
 
@@ -617,7 +617,7 @@
 
 				deferred = $.Deferred();
 
-				deferred.fail(() => setFieldValidity(intlField, __('Please enter an address and select it.', 'postcodenl-address-autocomplete')));
+				deferred.fail(() => setFieldValidity(intlField, __('Please enter an address and select it.', 'postcode-eu-address-validation')));
 			});
 
 			intlField.on('blur', () => {

@@ -14,7 +14,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Loco https://localise.biz/\n"
 "X-Loco-Version: 2.6.1; wp-5.9.3\n"
-"X-Domain: postcodenl-address-autocomplete\n"
+"X-Domain: postcode-eu-address-validation\n"
 
 #: src/PostcodeNl/AddressAutocomplete/Main.php:75
 msgid "Start typing your address or zip/postal code"

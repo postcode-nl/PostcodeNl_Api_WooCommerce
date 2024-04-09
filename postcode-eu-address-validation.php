@@ -8,7 +8,7 @@
  * Author URI: https://www.postcode.nl
  * License: FreeBSD license
  * License URI: https://directory.fsf.org/wiki/License:BSD-2-Clause-FreeBSD
- * Text Domain: postcodenl-address-autocomplete
+ * Text Domain: postcode-eu-address-validation
  * Requires at least: 5.2
  * Tested up to: 6.4
  * Requires PHP: 7.4

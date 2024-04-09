@@ -12,7 +12,7 @@ msgstr ""
 "POT-Creation-Date: 2023-04-04T12:43:41+00:00\n"
 "PO-Revision-Date: 2024-02-13 13:37+0000\n"
 "X-Generator: WP-CLI 2.6.0\n"
-"X-Domain: postcodenl-address-autocomplete\n"
+"X-Domain: postcode-eu-address-validation\n"
 
 #. Plugin Name of the plugin
 msgid "Postcode.nl Address Autocomplete"

@@ -390,8 +390,7 @@ class Options
 
 	protected function _handleSubmit(): void
 	{
-		check_admin_referer(static::FORM_ACTION_NAME, static::FORM_ACTION_NONCE_NAME);
-
+		// Nonce already verified at this point.
 		$options = Main::getInstance()->getOptions();
 		$existingKey = $options->apiKey;
 		$existingSecret = $options->apiSecret;

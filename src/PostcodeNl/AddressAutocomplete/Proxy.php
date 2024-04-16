@@ -34,8 +34,9 @@ class Proxy
 	public function autocomplete(): void
 	{
 		$this->_populateSession();
-		$context = sanitize_text_field(wp_unslash($_GET['context']));
-		$term = sanitize_text_field(wp_unslash($_GET['term']));
+		// Do not sanitize client data, send it as is to the API
+		$context = wp_unslash($_GET['context']);
+		$term = wp_unslash($_GET['term']);
 
 		try
 		{
@@ -51,7 +52,8 @@ class Proxy
 	public function getDetails(): void
 	{
 		$this->_populateSession();
-		$context = sanitize_text_field(wp_unslash($_GET['context']));
+		// Do not sanitize client data, send it as is to the API
+		$context = wp_unslash($_GET['context']);
 
 		try
 		{
@@ -66,8 +68,9 @@ class Proxy
 
 	public function dutchAddressLookup(): void
 	{
-		$postcode = sanitize_text_field(wp_unslash($_GET['postcode']));
-		$houseNumberAndAddition = sanitize_text_field(wp_unslash($_GET['houseNumberAndAddition']));
+		// Do not sanitize client data, send it as is to the API
+		$postcode = wp_unslash($_GET['postcode']);
+		$houseNumberAndAddition = wp_unslash($_GET['houseNumberAndAddition']);
 
 		/** @var array $matches */
 		preg_match('/^(?<houseNumber>\d{1,5})(?<addition>\D.*)?$/', $houseNumberAndAddition, $matches);
@@ -144,7 +147,8 @@ class Proxy
 		{
 			throw new Exception(sprintf('Missing HTTP session header `%s`.', ApiClient::SESSION_HEADER_KEY));
 		}
-		$this->_session = sanitize_text_field($_SERVER[$sessionHeaderKey]);
+		// Do not sanitize client data, send it as is to the API
+		$this->_session = $_SERVER[$sessionHeaderKey];
 	}
 
 	protected function _logException(\Exception $e): array

@@ -34,43 +34,45 @@ class Proxy
 	public function autocomplete(): void
 	{
 		$this->_populateSession();
-		// Do not sanitize client data, send it as is to the API
-		$context = wp_unslash($_GET['context']);
-		$term = wp_unslash($_GET['term']);
+		$context = sanitize_text_field(wp_unslash($_GET['context']));
+		$term = base64_decode(sanitize_text_field(wp_unslash($_GET['term'])));
 
 		try
 		{
-			$result = $this->_client->internationalAutocomplete($context, $term, $this->_session, $this->_getLanguage());
+			$this->_outputJsonResponse(
+				$this->_client->internationalAutocomplete(
+					$context,
+					$term,
+					$this->_session,
+					$this->_getLanguage())
+			);
 		}
 		catch (ClientException $e)
 		{
 			$this->_errorResponse($this->_logException($e));
 		}
-		$this->_outputJsonResponse($result);
 	}
 
 	public function getDetails(): void
 	{
 		$this->_populateSession();
-		// Do not sanitize client data, send it as is to the API
-		$context = wp_unslash($_GET['context']);
+		$context = sanitize_text_field(wp_unslash($_GET['context']));
 
 		try
 		{
 			$result = $this->_client->internationalGetDetails($context, $this->_session);
+			$this->_outputJsonResponse($result);
 		}
 		catch (ClientException $e)
 		{
 			$this->_errorResponse($this->_logException($e));
 		}
-		$this->_outputJsonResponse($result);
 	}
 
 	public function dutchAddressLookup(): void
 	{
-		// Do not sanitize client data, send it as is to the API
-		$postcode = wp_unslash($_GET['postcode']);
-		$houseNumberAndAddition = wp_unslash($_GET['houseNumberAndAddition']);
+		$postcode = sanitize_text_field(wp_unslash($_GET['postcode']));
+		$houseNumberAndAddition = sanitize_text_field(wp_unslash($_GET['houseNumberAndAddition']));
 
 		/** @var array $matches */
 		preg_match('/^(?<houseNumber>\d{1,5})(?<addition>\D.*)?$/', $houseNumberAndAddition, $matches);
@@ -103,6 +105,7 @@ class Proxy
 		}
 		catch (ClientException $e)
 		{
+			$status = null;
 			$this->_errorResponse($this->_logException($e));
 		}
 
@@ -147,8 +150,7 @@ class Proxy
 		{
 			throw new Exception(sprintf('Missing HTTP session header `%s`.', ApiClient::SESSION_HEADER_KEY));
 		}
-		// Do not sanitize client data, send it as is to the API
-		$this->_session = $_SERVER[$sessionHeaderKey];
+		$this->_session = sanitize_text_field($_SERVER[$sessionHeaderKey]);
 	}
 
 	protected function _logException(\Exception $e): array

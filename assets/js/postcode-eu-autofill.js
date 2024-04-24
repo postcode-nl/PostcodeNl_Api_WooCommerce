@@ -580,7 +580,11 @@
 
 			autocompleteInstance.getSuggestions = function (context, term, response)
 			{
-				const url = this.options.autocompleteUrl.replace('${context}', encodeURIComponent(context)).replace('${term}', encodeURIComponent(term));
+				let encodedTerm = new TextEncoder().encode(term);
+				let binaryTerm = Array.from(encodedTerm, (byte) =>
+					String.fromCodePoint(byte),
+				).join("");
+				const url = this.options.autocompleteUrl.replace('${context}', encodeURIComponent(context)).replace('${term}', encodeURIComponent(btoa(binaryTerm)));
 				return this.xhrGet(url, response);
 			}
 

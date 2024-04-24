@@ -247,8 +247,7 @@ class ApiClient
 
 		if (isset($_SERVER['HTTP_REFERER']))
 		{
-			// Do not sanitize client data, send it as is to the API
-			$arguments['headers']['Referer'] = $_SERVER['HTTP_REFERER'];
+			$arguments['headers']['Referer'] = sanitize_url($_SERVER['HTTP_REFERER']);
 		}
 
 		if ($session !== null)

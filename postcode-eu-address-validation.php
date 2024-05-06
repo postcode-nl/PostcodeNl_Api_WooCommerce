@@ -33,13 +33,17 @@ spl_autoload_register(static function(string $className) {
 
 new Main();
 
-/**
- * @see https://github.com/woocommerce/woocommerce/wiki/High-Performance-Order-Storage-Upgrade-Recipe-Book#declaring-extension-incompatibility
- */
 add_action('before_woocommerce_init', function() {
 	if (!class_exists('Automattic\\WooCommerce\\Utilities\\FeaturesUtil'))
 	{
 		return;
 	}
+
+	/**
+	* @see https://github.com/woocommerce/woocommerce/wiki/High-Performance-Order-Storage-Upgrade-Recipe-Book#declaring-extension-incompatibility
+	*/
 	FeaturesUtil::declare_compatibility('custom_order_tables', __FILE__, true);
+
+	// Not compatible with WooCommerce Blocks (yet).
+	FeaturesUtil::declare_compatibility('cart_checkout_blocks', __FILE__, false);
 });

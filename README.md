@@ -54,6 +54,9 @@ PostcodeNlAddressFieldMapping.mapping = {
 ```
 To use this mapping replace `PostcodeNlAddressFieldMapping.mapping = {...};` with the code above.
 
+### WooCommerce block-based checkout
+The plugin is currently not compatible with the new block-based checkout. We are working on ensuring compatibility for a future version. In the meantime, we recommend using the classic checkout with our plugin.
+
 ## Third-Party Service Usage
 
 This plugin relies on the Postcode.eu API, a third-party service, for address autocompletion and validation. The use of this service is essential for the plugin's functionality, enabling it to provide accurate address suggestions and validations across multiple countries using official postal data.

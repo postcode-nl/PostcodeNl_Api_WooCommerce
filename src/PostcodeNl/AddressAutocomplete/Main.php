@@ -10,7 +10,7 @@ defined('ABSPATH') || exit;
 class Main
 {
 	/** @var string The version number of the plugin should be equal to the commented version number in ../../../postcode-eu-address-validation.php */
-	public const VERSION = '2.3.1';
+	public const VERSION = '2.3.2';
 
 	/** @var self Reference to own */
 	protected static $_instance;

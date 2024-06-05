@@ -86,28 +86,28 @@ For more details on the Postcode.eu API and how to obtain an account, please vis
 
 == Changelog ==
 
-= 2.2.0 =
-* Update autocomplete library to version 1.4.0.
-* Replace curl with WP native methods.
-* Other minor fixes.
-
-= 2.3.0 =
-* Clarify licensing and third-party service usage.
-* Security enhancements such as input sanitization and output escaping.
-* Updated translations (see upgrade notice).
+= 2.3.2 =
+* Fixed issue with autocompleting from a prefilled address having multiple matches.
 
 = 2.3.1 =
 * Fix wrong number of parameters to vprintf.
 * Fix nonce verification.
 * Rename text domain to match plugin slug.
 
-= 2.3.2 =
-* Fixed issue with autocompleting from a prefilled address having multiple matches.
+= 2.3.0 =
+* Clarify licensing and third-party service usage.
+* Security enhancements such as input sanitization and output escaping.
+* Updated translations (see upgrade notice).
+
+= 2.2.0 =
+* Update autocomplete library to version 1.4.0.
+* Replace curl with WP native methods.
+* Other minor fixes.
 
 == Upgrade Notice ==
 
-= 2.3.0 =
-* This update includes changes to translatable strings due to enhancements in output escaping for improved security and code standards compliance. If you have customized or translated these strings, please review and update them accordingly.
-
 = 2.3.1 =
 * The text domain is renamed to match the plugin slug. This may require activating the plugin again. If you have added or customized translations for this plugin, then these will have to use the new text domain as well.
+
+= 2.3.0 =
+* This update includes changes to translatable strings due to enhancements in output escaping for improved security and code standards compliance. If you have customized or translated these strings, please review and update them accordingly.

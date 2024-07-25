@@ -10,10 +10,10 @@
  * License URI: https://directory.fsf.org/wiki/License:BSD-2-Clause-FreeBSD
  * Text Domain: postcode-eu-address-validation
  * Requires at least: 5.2
- * Tested up to: 6.5
+ * Tested up to: 6.6
  * Requires PHP: 7.4
  * WC requires at least: 4.0
- * WC tested up to: 8.9
+ * WC tested up to: 9.1
  */
 
 use Automattic\WooCommerce\Utilities\FeaturesUtil;

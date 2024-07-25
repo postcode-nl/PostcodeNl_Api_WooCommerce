@@ -2,7 +2,7 @@
 Contributors: postcodenl
 Tags: address validation, address autocomplete, postcode api, address api, postcode check
 Stable tag: 2.3.2
-Tested up to: 6.5
+Tested up to: 6.6
 License: FreeBSD license
 License URI: https://directory.fsf.org/wiki/License:BSD-2-Clause-FreeBSD
 

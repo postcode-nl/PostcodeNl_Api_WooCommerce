@@ -1,3 +1,4 @@
+/* global wp, PostcodeNl, PostcodeEuSettings, PostcodeNlAddressFieldMapping, PostcodeNlStateToValueMapping */
 (function () {
 	'use strict';
 
@@ -386,7 +387,7 @@
 			}
 
 			let houseNumber;
-			if (houseNumber = findValue(PostcodeNlAddressFieldMapping.houseNumber))
+			if ((houseNumber = findValue(PostcodeNlAddressFieldMapping.houseNumber)))
 			{
 				let houseNumberAddition = findValue(PostcodeNlAddressFieldMapping.houseNumberAddition);
 				if (houseNumberAddition !== null)
@@ -397,16 +398,16 @@
 				return [postcode, houseNumber];
 			}
 
-			if (houseNumber = findValue(PostcodeNlAddressFieldMapping.houseNumberAndAddition))
+			if ((houseNumber = findValue(PostcodeNlAddressFieldMapping.houseNumberAndAddition)))
 			{
 				return [postcode, houseNumber];
 			}
 
 			let streetAndHouseNumber;
-			if (streetAndHouseNumber = findValue(PostcodeNlAddressFieldMapping.streetAndHouseNumber))
+			if ((streetAndHouseNumber = findValue(PostcodeNlAddressFieldMapping.streetAndHouseNumber)))
 			{
 				// Try to extract house number from street + house number combination as a last resort.
-				if(houseNumber = streetAndHouseNumber.match(/\b\d+.*$/))
+				if((houseNumber = streetAndHouseNumber.match(/\b\d+.*$/)))
 				{
 					return [postcode, houseNumber[0]];
 				}
@@ -524,7 +525,7 @@
 			if (addValue(PostcodeNlAddressFieldMapping.street))
 			{
 				addValue(PostcodeNlAddressFieldMapping.houseNumber);
-				addValue(PostcodeNlAddressFieldMapping.houseNumberAddition)
+				addValue(PostcodeNlAddressFieldMapping.houseNumberAddition);
 			}
 			else
 			{
@@ -534,138 +535,141 @@
 			return addressParts.join(' ');
 		}
 
-		const intlFieldObserver = new MutationObserver(function () {
-			if (autocompleteInstance !== null)
+		const intlFieldObserver = new IntersectionObserver(function (entries) {
+			for (const entry of entries)
 			{
-				return;
-			}
-
-			let deferred = $.Deferred();
-
-			const selectAutocompleteAddress = function (item)
-			{
-				intlField.addClass('postcode-eu-address-validation-loading');
-
-				const callback = (result) => {
-					fillAddressFieldsIntl(result);
-					toggleAddressFields(addressFields, true);
-					intlField
-						.removeClass('postcode-eu-address-validation-loading')
-						.trigger('address-result', result);
-
-					setFieldValidity(intlField);
-
-					deferred.resolve();
-				}
-
-				if (addressDetailsCache.has(item.context))
+				if (!entry.isIntersecting || autocompleteInstance !== null)
 				{
-					callback(addressDetailsCache.get(item.context));
 					return;
 				}
 
-				autocompleteInstance.getDetails(item.context, (result) => {
-					callback(result)
-					addressDetailsCache.set(item.context, result);
+				let deferred = $.Deferred();
+
+				const selectAutocompleteAddress = function (item)
+				{
+					intlField.addClass('postcode-eu-address-validation-loading');
+
+					const callback = (result) => {
+						fillAddressFieldsIntl(result);
+						toggleAddressFields(addressFields, true);
+						intlField
+							.removeClass('postcode-eu-address-validation-loading')
+							.trigger('address-result', result);
+
+						setFieldValidity(intlField);
+
+						deferred.resolve();
+					}
+
+					if (addressDetailsCache.has(item.context))
+					{
+						callback(addressDetailsCache.get(item.context));
+						return;
+					}
+
+					autocompleteInstance.getDetails(item.context, (result) => {
+						callback(result);
+						addressDetailsCache.set(item.context, result);
+					});
+				}
+
+				const isSingleAddressMatch = () => matches.length === 1 && matches[0].precision === 'Address';
+
+				autocompleteInstance = new PostcodeNl.AutocompleteAddress(intlField[0], {
+					autocompleteUrl: settings.autocomplete,
+					addressDetailsUrl: settings.getDetails,
+					context: (countryIsoMap.get(countryToState.val()) || 'nld').toLowerCase(),
 				});
+
+				autocompleteInstance.getSuggestions = function (context, term, response)
+				{
+					const encodedTerm = new TextEncoder().encode(term),
+						binaryTerm = Array.from(encodedTerm, (byte) => String.fromCodePoint(byte)).join(''),
+						url = this.options.autocompleteUrl.replace('${context}', encodeURIComponent(context)).replace('${term}', encodeURIComponent(btoa(binaryTerm)));
+
+					return this.xhrGet(url, response);
+				}
+
+				autocompleteInstance.getDetails = function (addressId, response)
+				{
+					const url = this.options.addressDetailsUrl.replace('${context}', encodeURIComponent(addressId));
+					return this.xhrGet(url, response);
+				}
+
+				intlField[0].addEventListener('autocomplete-select', function (e) {
+					if (e.detail.precision === 'Address')
+					{
+						selectAutocompleteAddress(e.detail);
+					}
+				});
+
+				document.addEventListener('autocomplete-xhrerror', function (e) {
+					console.error('Autocomplete XHR error', e);
+					toggleAddressFields(addressFields, true);
+					intlField.removeClass('postcode-eu-address-validation-loading');
+					setFieldValidity(
+						intlField,
+						__('An error has occurred while retrieving address data. Please contact us if the problem persists.', 'postcode-eu-address-validation')
+					);
+				});
+
+				// Clear the previous values when searching for a new address.
+				intlField[0].addEventListener('autocomplete-search', function () {
+					resetAddressFields(addressFields);
+				});
+
+				intlField[0].addEventListener('autocomplete-response', function (e) {
+					matches = e.detail.matches;
+
+					deferred = $.Deferred();
+
+					deferred.fail(() => setFieldValidity(intlField, __('Please enter an address and select it.', 'postcode-eu-address-validation')));
+				});
+
+				intlField.on('blur', () => {
+					if (
+						false === isSingleAddressMatch()
+						&& false === autocompleteInstance.elements.menu.classList.contains('postcodenl-autocomplete-menu-open')
+					)
+					{
+						deferred.reject();
+					}
+
+					matches = [];
+				});
+
+				intlField.on('change', function (e) {
+					e.stopPropagation(); // Prevent default validation via delegated event handler.
+				});
+
+				// Initialize
+				(() => {
+					if (false === isSupportedCountryIntl(countryToState.val()))
+					{
+						return; // Only use values from supported countries.
+					}
+
+					// Run autocomplete if there's a prefilled address value.
+					const prefilledAddressValue = getPrefilledAddressValue();
+					if (prefilledAddressValue !== '')
+					{
+						const oneTimeHandler = () => {
+							if (isSingleAddressMatch() === true)
+							{
+								selectAutocompleteAddress(matches[0]);
+							}
+
+							matches = [];
+							intlField[0].removeEventListener('autocomplete-response', oneTimeHandler);
+						};
+						intlField[0].addEventListener('autocomplete-response', oneTimeHandler);
+						autocompleteInstance.search(intlField[0], { term: prefilledAddressValue, showMenu: false });
+					}
+				})();
 			}
-
-			const isSingleAddressMatch = () => matches.length === 1 && matches[0].precision === 'Address';
-
-			autocompleteInstance = new PostcodeNl.AutocompleteAddress(intlField[0], {
-				autocompleteUrl: settings.autocomplete,
-				addressDetailsUrl: settings.getDetails,
-				context: (countryIsoMap.get(countryToState.val()) || 'nld').toLowerCase(),
-			});
-
-			autocompleteInstance.getSuggestions = function (context, term, response)
-			{
-				const encodedTerm = new TextEncoder().encode(term),
-					binaryTerm = Array.from(encodedTerm, (byte) => String.fromCodePoint(byte)).join(''),
-					url = this.options.autocompleteUrl.replace('${context}', encodeURIComponent(context)).replace('${term}', encodeURIComponent(btoa(binaryTerm)));
-
-				return this.xhrGet(url, response);
-			}
-
-			autocompleteInstance.getDetails = function (addressId, response)
-			{
-				const url = this.options.addressDetailsUrl.replace('${context}', encodeURIComponent(addressId));
-				return this.xhrGet(url, response);
-			}
-
-			intlField[0].addEventListener('autocomplete-select', function (e) {
-				if (e.detail.precision === 'Address')
-				{
-					selectAutocompleteAddress(e.detail);
-				}
-			});
-
-			document.addEventListener('autocomplete-xhrerror', function (e) {
-				console.error('Autocomplete XHR error', e);
-				toggleAddressFields(addressFields, true);
-				intlField.removeClass('postcode-eu-address-validation-loading')
-				setFieldValidity(
-					intlField,
-					__('An error has occurred while retrieving address data. Please contact us if the problem persists.', 'postcode-eu-address-validation')
-				);
-			});
-
-			// Clear the previous values when searching for a new address.
-			intlField[0].addEventListener('autocomplete-search', function () {
-				resetAddressFields(addressFields);
-			});
-
-			intlField[0].addEventListener('autocomplete-response', function (e) {
-				matches = e.detail.matches;
-
-				deferred = $.Deferred();
-
-				deferred.fail(() => setFieldValidity(intlField, __('Please enter an address and select it.', 'postcode-eu-address-validation')));
-			});
-
-			intlField.on('blur', () => {
-				if (
-					false === isSingleAddressMatch()
-					&& false === autocompleteInstance.elements.menu.classList.contains('postcodenl-autocomplete-menu-open')
-				)
-				{
-					deferred.reject();
-				}
-
-				matches = [];
-			});
-
-			intlField.on('change', function (e) {
-				e.stopPropagation(); // Prevent default validation via delegated event handler.
-			});
-
-			// Initialize
-			(() => {
-				if (false === isSupportedCountryIntl(countryToState.val()))
-				{
-					return; // Only use values from supported countries.
-				}
-
-				// Run autocomplete if there's a prefilled address value.
-				const prefilledAddressValue = getPrefilledAddressValue();
-				if (prefilledAddressValue !== '')
-				{
-					const oneTimeHandler = () => {
-						if (isSingleAddressMatch() === true)
-						{
-							selectAutocompleteAddress(matches[0]);
-						}
-
-						matches = [];
-						intlField[0].removeEventListener('autocomplete-response', oneTimeHandler);
-					};
-					intlField[0].addEventListener('autocomplete-response', oneTimeHandler);
-					autocompleteInstance.search(intlField[0], { term: prefilledAddressValue, showMenu: false });
-				}
-			})();
 		});
 
-		intlFieldObserver.observe(intlFormRow[0], {attributes: true, attributeFilter: ['style']});
+		intlFieldObserver.observe(intlFormRow[0]);
 
 		intlFormRow.toggle(isSupportedCountryIntl(countryToState.val()));
 

@@ -536,8 +536,7 @@
 		}
 
 		const intlFieldObserver = new IntersectionObserver(function (entries) {
-			for (const entry of entries)
-			{
+			entries.forEach((entry) => {
 				if (!entry.isIntersecting || autocompleteInstance !== null)
 				{
 					return;
@@ -666,7 +665,7 @@
 						autocompleteInstance.search(intlField[0], { term: prefilledAddressValue, showMenu: false });
 					}
 				})();
-			}
+			})
 		});
 
 		intlFieldObserver.observe(intlFormRow[0]);

@@ -1,2 +1,4 @@
 .idea/
 .stignore
+node_modules
+build

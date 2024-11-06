@@ -135,7 +135,7 @@ class Options
 			. '<br/>' .
 			sprintf(
 				'<a href="%s" target="_blank" rel="noopener">%s</a>',
-				esc_url(__('https://www.postcode.nl/en/services/adresdata/producten-overzicht', 'postcode-eu-address-validation')),
+				esc_url(__('https://www.postcode.eu/products/address-api/prices', 'postcode-eu-address-validation')),
 				esc_html__('Register a new Postcode.eu account', 'postcode-eu-address-validation')
 			)
 		);
@@ -174,7 +174,7 @@ class Options
 			. '<br/>' .
 			sprintf(
 				'<a href="%s" target="_blank" rel="noopener">%s</a>',
-				esc_url(__('https://www.postcode.nl/en/services/adresdata/producten-overzicht', 'postcode-eu-address-validation')),
+				esc_url(__('https://www.postcode.eu/products/address-api/prices', 'postcode-eu-address-validation')),
 				esc_html__('Product pricing', 'postcode-eu-address-validation')
 			),
 			$this->getNetherlandsModeDescriptions()
@@ -538,7 +538,7 @@ class Options
 			{
 				continue;
 			}
-			$enabledCountries[] = $supportedCountry;
+			$enabledCountries[$supportedCountry['iso2']] = $supportedCountry;
 		}
 		return $enabledCountries;
 	}

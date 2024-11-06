@@ -1,4 +1,18 @@
 {
-  "name": "postcode-nl/postcodenl-api-woocommerce",
-  "type": "wordpress-plugin"
+	"name": "postcode-nl/postcodenl-api-woocommerce",
+	"description": "A WooCommerce plugin for address autocompletion and validation using the Postcode.eu API.",
+	"type": "wordpress-plugin",
+	"require": {
+		"php": ">=7.4"
+	},
+	"license": "FreeBSD license",
+	"authors": [
+		{
+			"name": "Postcode.nl",
+			"role": "Developer",
+			"email": "tech@postcode.nl",
+			"homepage": "https://www.postcode.eu"
+		}
+	]
 }
+

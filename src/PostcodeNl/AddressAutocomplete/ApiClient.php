@@ -47,13 +47,7 @@ class ApiClient
 	{
 		$this->_validateSessionHeader($session);
 
-		$params = [$context, $term];
-		if (isset($language))
-		{
-			$params[] = $language;
-		}
-
-		$params = array_map('rawurlencode', $params);
+		$params = array_map('rawurlencode', [$context, $term, $language ?? '', 'paged']);
 
 		return $this->_performApiCall('international/v1/autocomplete/' . implode('/', $params), $session);
 	}

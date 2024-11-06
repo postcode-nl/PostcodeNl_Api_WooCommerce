@@ -9,6 +9,15 @@ const settings = getSetting('postcode-eu-address-validation_data');
 
 const isSupportedCountry = (countryIso2) => typeof settings.enabledCountries[countryIso2] !== 'undefined';
 
+// Correctly format street and building line for countries that use reversed order.
+const formatStreetLine = (countryIso2, street, building) => {
+	let a = street, b = building;
+	if (settings.reverseStreetLineCountries.includes(countryIso2))
+		[a, b] = [b, a];
+
+	return `${a} ${b}`.trim();
+}
+
 PostcodeNl.addressDetailsCache ??= new Map();
 
 function initAutocomplete (inputElement, countryIso3)
@@ -112,7 +121,7 @@ const AutocompleteInput = ({id, addressType, address, setAddress, setAddressDeta
 				const { locality, street, postcode, building } = result.address;
 				setAddress({
 					...addressRef.current,
-					address_1: `${street} ${building}`,
+					address_1: formatStreetLine(result.country.iso2Code, street, building),
 					city: locality,
 					postcode: postcode,
 				});

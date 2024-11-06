@@ -484,18 +484,31 @@
 			{
 				province = PostcodeNlStateToValueMapping.CHE[result.details.cheCanton.name];
 			}
+
 			fillAddressFields(addressFields, new Map([
 				[PostcodeNlAddressFieldMapping.street, address.street],
 				[PostcodeNlAddressFieldMapping.houseNumber, address.buildingNumber || ''],
 				[PostcodeNlAddressFieldMapping.houseNumberAddition, address.buildingNumberAddition || ''],
 				[PostcodeNlAddressFieldMapping.postcode, address.postcode],
 				[PostcodeNlAddressFieldMapping.city, address.locality],
-				[PostcodeNlAddressFieldMapping.streetAndHouseNumber, (address.street + ' ' + address.building).trim()],
+				[
+					PostcodeNlAddressFieldMapping.streetAndHouseNumber,
+					formatStreetLine(result.country.iso2Code, address.street, address.building)
+				],
 				[PostcodeNlAddressFieldMapping.houseNumberAndAddition, address.building],
 				[PostcodeNlAddressFieldMapping.province, province],
 			]));
 
 			$(document.body).trigger('update_checkout');
+		}
+
+		// Correctly format street and building line for countries that use reversed order.
+		const formatStreetLine = (countryIso2, street, building) => {
+			let a = street, b = building;
+			if (settings.reverseStreetLineCountries.includes(countryIso2))
+				[a, b] = [b, a];
+
+			return `${a} ${b}`.trim();
 		}
 
 		// Get a prefilled address value from the intl field.

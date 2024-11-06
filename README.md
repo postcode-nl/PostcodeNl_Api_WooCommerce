@@ -2,14 +2,14 @@
 
 # Postcode.eu International Address API plugin for WooCommerce
 
-Adds autocompletion for addresses to the checkout page. [Multiple countries](https://www.postcode.nl/services/adresdata/internationaal) are supported using official postal data via the [Postcode.eu](https://postcode.eu) API.
+Adds autocompletion for addresses to the checkout page. [Multiple countries](https://www.postcode.eu/products/address-api/international) are supported using official postal data via the [Postcode.eu](https://postcode.eu) API.
 
 This plugin has been created by [Postcode.eu](https://postcode.eu).
 
 
 ## Postcode.eu Account
 
-A [Postcode.eu account](https://www.postcode.nl/en/services/adresdata/producten-overzicht) is required.
+A [Postcode.eu account](https://www.postcode.eu/products/address-api/prices) is required.
 Testing is free. After testing you can choose to purchase a subscription.
 
 
@@ -23,7 +23,7 @@ In your WordPress administration panel, go to `Plugins > Add New` and click the 
 
 ### How to Use
 
-In your WordPress administration panel go to `Plugins > Installed Plugins` and look for `Postcode.nl Address Autocomplete` and activate it. Then click on `Settings` to configure the plugin.
+In your WordPress administration panel go to `Plugins > Installed Plugins` and look for `Postcode.eu Address Validation ` and activate it. Then click on `Settings` to configure the plugin.
 
 ### Translations
 
@@ -55,14 +55,14 @@ PostcodeNlAddressFieldMapping.mapping = {
 To use this mapping replace `PostcodeNlAddressFieldMapping.mapping = {...};` with the code above.
 
 ### WooCommerce block-based checkout
-The plugin is currently not compatible with the new block-based checkout. We are working on ensuring compatibility for a future version. In the meantime, we recommend using the classic checkout with our plugin.
+The plugin now has support for the new block-based checkout. Note that this currently only works with the single address input field. Autocomplete based on Dutch postcode and house number will be supported in a future version.
 
 ## Third-Party Service Usage
 
 This plugin relies on the Postcode.eu API, a third-party service, for address autocompletion and validation. The use of this service is essential for the plugin's functionality, enabling it to provide accurate address suggestions and validations across multiple countries using official postal data.
 
-- [Terms and Conditions](https://documentatie.postcode.nl/termsandconditions.pdf)
-- [Privacy policy](https://www.postcode.nl/en/privacy)
+- [Terms and Conditions](https://www.postcode.eu/documents/termsandconditions.pdf)
+- [Privacy policy](https://www.postcode.eu/privacy)
 
 ### API Usage Context
 

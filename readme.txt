@@ -1,8 +1,8 @@
 === Postcode.eu Address Validation ===
 Contributors: postcodenl
 Tags: address validation, address autocomplete, postcode api, address api, postcode check
-Stable tag: 2.3.2
-Tested up to: 6.6
+Stable tag: 2.4.0
+Tested up to: 6.7
 License: FreeBSD license
 License URI: https://directory.fsf.org/wiki/License:BSD-2-Clause-FreeBSD
 
@@ -17,7 +17,7 @@ The Postcode.eu Address Validation plugin uses the Dutch Postcode API and Intern
 = Features =
 * **Address Autocompletion**: This feature drastically reduces the time and effort required to enter addresses, offering autofill suggestions as your customer types, applicable for both Dutch and international addresses.
 * **Flexible Dutch Address Completion**: Choose to autocomplete Dutch addresses based on postcode and house number, or utilize the single field input feature for an even smoother process.
-* **Europe-Wide Coverage**: Enjoy access to all supported countries within Europe with a single subscription, expanding the reach of your e-commerce business. View a full list of supported countries here.
+* **Europe-Wide Coverage**: Enjoy access to all supported countries within Europe with a single subscription, expanding the reach of your e-commerce business. [View a full list of supported countries here](https://www.postcode.eu/products/address-api/international).
 * **Data Accuracy**: Our plugin draws on official, up-to-date sources such as national cadastre and postal companies, ensuring all address data is precise and accurate.
 * **Risk-Free Testing**: Try out our API for free and without obligations, enabling you to see firsthand the benefits it can bring to your WooCommerce platform.
 * **Typo Recognition**: The plugin uses smart technology to detect and correct spelling errors, preventing wrong entries from being saved in your system.
@@ -28,7 +28,7 @@ The Postcode.eu Address Validation plugin uses the Dutch Postcode API and Intern
 
 = Account and Pricing =
 
-To use the Postcode.eu Address Validation plugin, a separate account is required. Register your account at [account.postcode.eu](https://account.postcode.eu). You can test our service for free. After testing and implementing, you indicate that the subscription can start and you make the choice for a subscription. For information on pricing, [visit our website](https://www.postcode.nl/en/services/adresdata/api-prijzen).
+To use the Postcode.eu Address Validation plugin, a separate account is required. Register your account at [account.postcode.eu](https://account.postcode.eu). You can test our service for free. After testing and implementing, you indicate that the subscription can start and you make the choice for a subscription. For information on pricing, [visit our website](https://www.postcode.eu/products/address-api/prices).
 
 == Screenshots ==
 
@@ -67,8 +67,8 @@ To use this mapping replace `PostcodeNlAddressFieldMapping.mapping = {...};` wit
 
 This plugin relies on the Postcode.eu API, a third-party service, for address autocompletion and validation. The use of this service is essential for the plugin's functionality, enabling it to provide accurate address suggestions and validations across multiple countries using official postal data.
 
-- [Terms and Conditions](https://documentatie.postcode.nl/termsandconditions.pdf)
-- [Privacy policy](https://www.postcode.nl/en/privacy)
+- [Terms and Conditions](https://www.postcode.eu/documents/termsandconditions.pdf)
+- [Privacy policy](https://www.postcode.eu/privacy)
 
 === API Usage Context ===
 
@@ -85,6 +85,9 @@ For more details on the Postcode.eu API and how to obtain an account, please vis
 * If the above didn't answer your question, [contact us](https://www.postcode.eu/contact).
 
 == Changelog ==
+
+= 2.4.0 =
+* Add support for blocks checkout. Note that this currently only works with the single address input field. Autocomplete based on Dutch postcode and house number will be supported in a future version.
 
 = 2.3.2 =
 * Fixed issue with autocompleting from a prefilled address having multiple matches.

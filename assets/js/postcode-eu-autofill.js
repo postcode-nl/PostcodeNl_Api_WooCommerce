@@ -56,7 +56,7 @@
 					toggleAddressFields(getAddressFields(container), !isSupportedCountry(selectedCountry), true);
 				});
 			}).trigger('change.postcode-eu.address-fields');
-		})
+		});
 	}
 
 	$(initialize); // On DOMReady
@@ -546,14 +546,10 @@
 
 				const selectAutocompleteAddress = function (item)
 				{
-					intlField.addClass('postcode-eu-address-validation-loading');
-
 					const callback = (result) => {
 						fillAddressFieldsIntl(result);
 						toggleAddressFields(addressFields, true);
-						intlField
-							.removeClass('postcode-eu-address-validation-loading')
-							.trigger('address-result', result);
+						intlField.trigger('address-result', result);
 
 						setFieldValidity(intlField);
 
@@ -566,9 +562,12 @@
 						return;
 					}
 
+					intlField.addClass('postcode-eu-address-validation-loading');
+
 					autocompleteInstance.getDetails(item.context, (result) => {
 						callback(result);
 						addressDetailsCache.set(item.context, result);
+						intlField.removeClass('postcode-eu-address-validation-loading');
 					});
 				}
 
@@ -602,7 +601,7 @@
 					}
 				});
 
-				document.addEventListener('autocomplete-xhrerror', function (e) {
+				intlField[0].addEventListener('autocomplete-error', function (e) {
 					console.error('Autocomplete XHR error', e);
 					toggleAddressFields(addressFields, true);
 					intlField.removeClass('postcode-eu-address-validation-loading');
@@ -652,16 +651,15 @@
 					const prefilledAddressValue = getPrefilledAddressValue();
 					if (prefilledAddressValue !== '')
 					{
-						const oneTimeHandler = () => {
+						intlField[0].addEventListener('autocomplete-response', () => {
 							if (isSingleAddressMatch() === true)
 							{
 								selectAutocompleteAddress(matches[0]);
 							}
 
 							matches = [];
-							intlField[0].removeEventListener('autocomplete-response', oneTimeHandler);
-						};
-						intlField[0].addEventListener('autocomplete-response', oneTimeHandler);
+						}, { once: true });
+
 						autocompleteInstance.search(intlField[0], { term: prefilledAddressValue, showMenu: false });
 					}
 				})();

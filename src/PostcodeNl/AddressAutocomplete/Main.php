@@ -4,13 +4,25 @@ namespace PostcodeNl\AddressAutocomplete;
 
 
 use PostcodeNl\AddressAutocomplete\Exception\Exception;
+use Automattic\WooCommerce\Blocks\Utils\CartCheckoutUtils;
 
 defined('ABSPATH') || exit;
 
 class Main
 {
 	/** @var string The version number of the plugin should be equal to the commented version number in ../../../postcode-eu-address-validation.php */
-	public const VERSION = '2.3.2';
+	public const VERSION = '2.4.0';
+
+	/** @var string Path to the plugin directory */
+	public static $pluginDirPath;
+
+	/** @var string Path to the plugin filename */
+	public static $pluginFilePath;
+
+	/** @var string URL to the plugin */
+	public static $pluginUrl;
+
+	private static bool $_isCheckoutBlockDefault;
 
 	/** @var self Reference to own */
 	protected static $_instance;
@@ -29,14 +41,20 @@ class Main
 
 		$this->loadOptions();
 
-		add_action('init', [$this, 'wordPressInit']);
 		static::$_instance = $this;
+		static::$pluginDirPath = plugin_dir_path(dirname(__DIR__, 2));
+		static::$pluginFilePath = plugin_basename(static::$pluginDirPath . 'postcode-eu-address-validation.php');
+		static::$pluginUrl = plugins_url(basename(static::$pluginDirPath));
+
+		add_action('init', [$this, 'wordPressInit']);
 	}
 
 	public function wordPressInit(): void
 	{
+		static::$_isCheckoutBlockDefault = CartCheckoutUtils::is_checkout_block_default();
+
 		add_filter('woocommerce_default_address_fields', [$this, 'addressFields']);
-		add_filter('plugin_action_links_' . $this->_getPluginFileAndPath(), [$this, 'pluginActionLinks']);
+		add_filter('plugin_action_links_' . static::$pluginFilePath, [$this, 'pluginActionLinks']);
 
 		add_action('admin_enqueue_scripts', [$this, 'enqueueAdminScripts']);
 
@@ -59,8 +77,13 @@ class Main
 
 		add_action('admin_notices', [$this, 'adminNotice']);
 
+		add_action(
+			'woocommerce_blocks_checkout_block_registration',
+			function($integrationRegistry) { $integrationRegistry->register(new BlocksIntegration()); }
+		);
+
 		// Fix path for language files.
-		load_plugin_textdomain('postcode-eu-address-validation', false, basename(dirname(__FILE__, 4)) . '/languages');
+		load_plugin_textdomain('postcode-eu-address-validation', false, basename(static::$pluginDirPath) . '/languages');
 	}
 
 	public function addressFields(array $fields): array
@@ -150,18 +173,16 @@ class Main
 
 	public function enqueueScripts(): void
 	{
-		$pluginsUrl = plugins_url(basename(dirname(__FILE__, 4)));
-
 		// CSS
 		wp_enqueue_style(
 			'postcode-eu-autocomplete-address-library',
-			$pluginsUrl . '/assets/libraries/postcode-eu-autocomplete-address.css',
+			static::$pluginUrl . '/assets/libraries/postcode-eu-autocomplete-address.css',
 			[],
 			static::VERSION
 		);
 		wp_enqueue_style(
 			'postcode-eu-autofill',
-			$pluginsUrl . '/assets/css/style.css',
+			static::$pluginUrl . '/assets/css/style.css',
 			['postcode-eu-autocomplete-address-library'],
 			static::VERSION
 		);
@@ -169,47 +190,52 @@ class Main
 		// Javascript
 		wp_enqueue_script(
 			'postcode-eu-autocomplete-address-library',
-			$pluginsUrl . '/assets/libraries/postcode-eu-autocomplete-address.js',
-			[],
-			static::VERSION,
-			true
-		);
-		wp_enqueue_script(
-			'postcode-eu-autocomplete-address-field-mapping',
-			$pluginsUrl . '/assets/js/addressFieldMapping.js',
+			static::$pluginUrl . '/assets/libraries/postcode-eu-autocomplete-address.js',
 			[],
 			static::VERSION,
 			true
 		);
 		wp_enqueue_script(
 			'postcode-eu-autocomplete-state-mapping',
-			$pluginsUrl . '/assets/js/stateMapping.js',
+			static::$pluginUrl . '/assets/js/stateMapping.js',
 			[],
 			static::VERSION,
 			true
 		);
-		wp_enqueue_script(
-			'postcode-eu-autofill',
-			$pluginsUrl . '/assets/js/postcode-eu-autofill.js',
-			[
-				'postcode-eu-autocomplete-address-library',
+
+		if (!has_block('woocommerce/checkout')) // For Classic Checkout and My Account Page.
+		{
+			wp_enqueue_script(
 				'postcode-eu-autocomplete-address-field-mapping',
-				'postcode-eu-autocomplete-state-mapping',
-				'wp-i18n',
-			],
-			static::VERSION,
-			true
-		);
+				static::$pluginUrl . '/assets/js/addressFieldMapping.js',
+				[],
+				static::VERSION,
+				true
+			);
+			wp_enqueue_script(
+				'postcode-eu-autofill',
+				static::$pluginUrl . '/assets/js/postcode-eu-autofill.js',
+				[
+					'postcode-eu-autocomplete-address-library',
+					'postcode-eu-autocomplete-address-field-mapping',
+					'postcode-eu-autocomplete-state-mapping',
+					'wp-i18n',
+				],
+				static::VERSION,
+				true
+			);
+		}
+
 		wp_set_script_translations(
 			'postcode-eu-autofill',
 			'postcode-eu-address-validation',
-			realpath(dirname(__FILE__, 4) . '/languages')
+			realpath(static::$pluginDirPath . 'languages')
 		);
 	}
 
 	public function enqueueAdminScripts(): void
 	{
-		wp_enqueue_style('postcode-eu-autofill-admin', plugins_url(basename(dirname(__FILE__, 4))) . '/assets/css/admin.css', array(), static::VERSION);
+		wp_enqueue_style('postcode-eu-autofill-admin', static::$pluginUrl . '/assets/css/admin.css', array(), static::VERSION);
 	}
 
 	public function afterCheckoutForm(): void
@@ -219,10 +245,31 @@ class Main
 			return;
 		}
 
-		$settings = [
-			'autocomplete' => vsprintf('%s?action=%s&context=${context}&term=${term}', [admin_url('admin-ajax.php'), Proxy::AJAX_AUTOCOMPLETE]),
-			'getDetails' => vsprintf('%s?action=%s&context=${context}', [admin_url('admin-ajax.php'), Proxy::AJAX_GET_DETAILS]),
-			'dutchAddressLookup' => vsprintf('%s?action=%s&postcode=${postcode}&houseNumberAndAddition=${houseNumberAndAddition}', [admin_url('admin-ajax.php'), Proxy::AJAX_DUTCH_ADDRESS_LOOKUP]),
+		wp_add_inline_script(
+			'postcode-eu-autofill',
+			sprintf(
+				'const PostcodeEuSettings = %s;',
+				wp_json_encode($this->getSettings())
+			),
+			'before'
+		);
+	}
+
+	public function getSettings(): array
+	{
+		return [
+			'autocomplete' => vsprintf(
+				'%s?action=%s&context=${context}&term=${term}',
+				[admin_url('admin-ajax.php'), Proxy::AJAX_AUTOCOMPLETE]
+			),
+			'getDetails' => vsprintf(
+				'%s?action=%s&context=${context}',
+				[admin_url('admin-ajax.php'), Proxy::AJAX_GET_DETAILS]
+			),
+			'dutchAddressLookup' => vsprintf(
+				'%s?action=%s&postcode=${postcode}&houseNumberAndAddition=${houseNumberAndAddition}',
+				[admin_url('admin-ajax.php'), Proxy::AJAX_DUTCH_ADDRESS_LOOKUP]
+			),
 			'enabledCountries' => $this->_options->getEnabledCountries(),
 			'displayMode' => $this->_options->displayMode,
 			'netherlandsMode' => $this->_options->netherlandsMode,
@@ -233,15 +280,6 @@ class Main
 			'autofillIntlBypassLinkText' => esc_html__('Enter an address', 'postcode-eu-address-validation'),
 			'allowAutofillIntlBypass' => $this->_options->allowAutofillIntlBypass,
 		];
-
-		wp_add_inline_script(
-			'postcode-eu-autofill',
-			sprintf(
-				'const PostcodeEuSettings = %s;',
-				wp_json_encode($settings)
-			),
-			'before'
-		);
 	}
 
 	/**
@@ -301,6 +339,19 @@ class Main
 				}
 			}
 		}
+	}
+
+	protected function _isSupportedCountryIso2($countryCode): bool
+	{
+		foreach ($this->_options->getSupportedCountries() as $country)
+		{
+			if ($countryCode === $country['iso2'])
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public function getOptions(): Options
@@ -383,22 +434,8 @@ class Main
 		return static::$_instance;
 	}
 
-	protected function _getPluginFileAndPath(): string
+	public static function isCheckoutBlockDefault(): bool
 	{
-		return plugin_basename(dirname(__FILE__, 4) . '/postcode-eu-address-validation.php');
+		return static::$_isCheckoutBlockDefault;
 	}
-
-	protected function _isSupportedCountryIso2($countryCode): bool
-	{
-		foreach ($this->_options->getSupportedCountries() as $country)
-		{
-			if ($countryCode === $country['iso2'])
-			{
-				return true;
-			}
-		}
-
-		return false;
-	}
-
 }

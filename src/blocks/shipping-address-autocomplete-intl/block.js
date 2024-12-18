@@ -5,7 +5,7 @@ import { CHECKOUT_STORE_KEY } from '@woocommerce/block-data';
 import AutocompleteContainer from '../../components/address-autocomplete-intl/container';
 
 const Block = () => {
-	const useShippingAsBilling = useSelect(select => select(CHECKOUT_STORE_KEY).getUseShippingAsBilling(), []),
+	const isUseShippingAsBilling = useSelect(select => select(CHECKOUT_STORE_KEY).getUseShippingAsBilling, []),
 		{shippingAddress} = useSelect(select => select(CART_STORE_KEY).getCustomerData(), []),
 		{setShippingAddress, setBillingAddress} = useDispatch(CART_STORE_KEY);
 
@@ -13,13 +13,13 @@ const Block = () => {
 		(values) => {
 			setShippingAddress(values);
 
-			if (useShippingAsBilling)
+			if (isUseShippingAsBilling())
 			{
 				// Billing address needs to be synced with shipping address after calling `setShippingAddress`.
 				setBillingAddress({...values});
 			}
 		},
-		[useShippingAsBilling, setShippingAddress, setBillingAddress]
+		[isUseShippingAsBilling, setShippingAddress, setBillingAddress]
 	);
 
 	return (

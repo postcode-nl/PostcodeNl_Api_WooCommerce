@@ -75,8 +75,6 @@ const AutocompleteInput = ({id, addressType, address, setAddress, setAddressDeta
 		setAddressDetails(null);
 	}, [setAddress, setAddressDetails]);
 
-	const resetAddressRef = useRef(resetAddress);
-
 	const validateInput = useCallback(
 		(errorsHidden = true) => {
 			const isValid = ['address_1', 'city', 'postcode'].every((field) => {
@@ -231,14 +229,14 @@ const AutocompleteInput = ({id, addressType, address, setAddress, setAddressDeta
 			// Clear address values when switching to supported country.
 			autocompleteInstance.current.reset();
 			autocompleteInstance.current.setCountry(country.iso3);
-			resetAddressRef.current(); // Use ref to avoid dependency.
+			resetAddress();
 			setValue('');
 		}
 
 		const error = selectStore(VALIDATION_STORE_KEY).getValidationError(id);
 		validateInput(error?.hidden ?? true);
 
-	}, [address.country, id, clearValidationError, setValue]);
+	}, [address.country, id, clearValidationError, setValue, resetAddress]);
 
 	// Remove validation errors when unmounted.
 	useEffect(() => () => clearValidationError(id), [clearValidationError, id]);

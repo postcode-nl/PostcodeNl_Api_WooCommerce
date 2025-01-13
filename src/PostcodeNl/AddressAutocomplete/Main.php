@@ -22,7 +22,7 @@ class Main
 	/** @var string URL to the plugin */
 	public static $pluginUrl;
 
-	private static bool $_isCheckoutBlockDefault;
+	private static bool $_isCheckoutBlockDefault = false;
 
 	/** @var self Reference to own */
 	protected static $_instance;
@@ -51,7 +51,12 @@ class Main
 
 	public function wordPressInit(): void
 	{
-		static::$_isCheckoutBlockDefault = CartCheckoutUtils::is_checkout_block_default();
+		add_action('woocommerce_init', function () {
+			if (class_exists('Automattic\\WooCommerce\\Blocks\\Utils\\CartCheckoutUtils'))
+			{
+				static::$_isCheckoutBlockDefault = CartCheckoutUtils::is_checkout_block_default();
+			}
+		});
 
 		add_filter('woocommerce_default_address_fields', [$this, 'addressFields']);
 		add_filter('plugin_action_links_' . static::$pluginFilePath, [$this, 'pluginActionLinks']);

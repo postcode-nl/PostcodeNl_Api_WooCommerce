@@ -13,6 +13,9 @@ class Main
 	/** @var string The version number of the plugin should be equal to the commented version number in ../../../postcode-eu-address-validation.php */
 	public const VERSION = '2.4.1';
 
+	/** @var string Script handle of the autocomplete library. */
+	public const AUTOCOMPLETE_LIBRARY_HANDLE = 'postcode-eu-autocomplete-address-library';
+
 	/** @var string Path to the plugin directory */
 	public static $pluginDirPath;
 
@@ -180,7 +183,7 @@ class Main
 	{
 		// CSS
 		wp_enqueue_style(
-			'postcode-eu-autocomplete-address-library',
+			static::AUTOCOMPLETE_LIBRARY_HANDLE,
 			static::$pluginUrl . '/assets/libraries/postcode-eu-autocomplete-address.css',
 			[],
 			static::VERSION
@@ -188,13 +191,13 @@ class Main
 		wp_enqueue_style(
 			'postcode-eu-autofill',
 			static::$pluginUrl . '/assets/css/style.css',
-			['postcode-eu-autocomplete-address-library'],
+			[static::AUTOCOMPLETE_LIBRARY_HANDLE],
 			static::VERSION
 		);
 
 		// Javascript
 		wp_enqueue_script(
-			'postcode-eu-autocomplete-address-library',
+			static::AUTOCOMPLETE_LIBRARY_HANDLE,
 			static::$pluginUrl . '/assets/libraries/postcode-eu-autocomplete-address.js',
 			[],
 			static::VERSION,
@@ -221,7 +224,7 @@ class Main
 				'postcode-eu-autofill',
 				static::$pluginUrl . '/assets/js/postcode-eu-autofill.js',
 				[
-					'postcode-eu-autocomplete-address-library',
+					static::AUTOCOMPLETE_LIBRARY_HANDLE,
 					'postcode-eu-autocomplete-address-field-mapping',
 					'postcode-eu-autocomplete-state-mapping',
 					'wp-i18n',

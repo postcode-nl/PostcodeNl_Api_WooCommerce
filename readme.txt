@@ -1,7 +1,7 @@
 === Postcode.eu Address Validation ===
 Contributors: postcodenl
 Tags: address validation, address autocomplete, postcode api, address api, postcode check
-Stable tag: 2.4.1
+Stable tag: 2.4.2
 Tested up to: 6.7
 License: FreeBSD license
 License URI: https://directory.fsf.org/wiki/License:BSD-2-Clause-FreeBSD
@@ -85,6 +85,10 @@ For more details on the Postcode.eu API and how to obtain an account, please vis
 * If the above didn't answer your question, [contact us](https://www.postcode.eu/contact).
 
 == Changelog ==
+
+= 2.4.2 =
+* Fixed CartCheckoutUtils class potentially not found.
+* Add dependency on autocomplete Javascript library in blocks integration.
 
 = 2.4.1 =
 * Fixed billing address values not synced from shipping address with use-shipping-as-billing option enabled.

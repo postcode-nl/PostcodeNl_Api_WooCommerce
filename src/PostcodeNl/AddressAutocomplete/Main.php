@@ -77,8 +77,6 @@ class Main
 		add_action('wp_ajax_' . Proxy::AJAX_DUTCH_ADDRESS_LOOKUP, [$this->_proxy, 'dutchAddressLookup']);
 		add_action('wp_ajax_nopriv_' . Proxy::AJAX_DUTCH_ADDRESS_LOOKUP, [$this->_proxy, 'dutchAddressLookup']);
 
-		add_action('woocommerce_after_checkout_form', [$this, 'afterCheckoutForm']);
-		add_action('woocommerce_after_edit_account_address_form', [$this, 'afterCheckoutForm']);
 		add_action('woocommerce_after_checkout_validation', [$this, 'afterCheckoutValidation'], 10, 2);
 
 		add_action('admin_menu', [$this->_options, 'addPluginPage']);
@@ -181,6 +179,11 @@ class Main
 
 	public function enqueueScripts(): void
 	{
+		if (!$this->_options->isApiActive())
+		{
+			return;
+		}
+
 		// CSS
 		wp_enqueue_style(
 			static::AUTOCOMPLETE_LIBRARY_HANDLE,
@@ -232,6 +235,15 @@ class Main
 				static::VERSION,
 				true
 			);
+
+			wp_add_inline_script(
+				'postcode-eu-autofill',
+				sprintf(
+					'const PostcodeEuSettings = %s;',
+					wp_json_encode($this->getSettings())
+				),
+				'before'
+			);
 		}
 
 		wp_set_script_translations(
@@ -244,23 +256,6 @@ class Main
 	public function enqueueAdminScripts(): void
 	{
 		wp_enqueue_style('postcode-eu-autofill-admin', static::$pluginUrl . '/assets/css/admin.css', array(), static::VERSION);
-	}
-
-	public function afterCheckoutForm(): void
-	{
-		if (!$this->_options->isApiActive())
-		{
-			return;
-		}
-
-		wp_add_inline_script(
-			'postcode-eu-autofill',
-			sprintf(
-				'const PostcodeEuSettings = %s;',
-				wp_json_encode($this->getSettings())
-			),
-			'before'
-		);
 	}
 
 	public function getSettings(): array

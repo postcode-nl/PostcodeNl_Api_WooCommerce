@@ -63,7 +63,7 @@ class BlocksIntegration implements IntegrationInterface
 			wp_register_script(
 				$handle,
 				Main::$pluginUrl . '/build/' . $name . '-index.js',
-				array_merge($scriptAsset['dependencies'], [Main::AUTOCOMPLETE_LIBRARY_HANDLE]),
+				$scriptAsset['dependencies'],
 				$scriptAsset['version'],
 				true
 			);

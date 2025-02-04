@@ -3,7 +3,7 @@
  * Plugin Name: Postcode.eu Address Validation
  * Plugin URI: https://www.postcode.eu/products/address-api/implementation
  * Description: Address autocomplete and validation using the Postcode.eu API.
- * Version: 2.4.2
+ * Version: 2.4.3
  * Author: Postcode.nl
  * Author URI: https://www.postcode.nl
  * License: FreeBSD license

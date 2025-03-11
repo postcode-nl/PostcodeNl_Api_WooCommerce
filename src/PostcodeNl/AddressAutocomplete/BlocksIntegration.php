@@ -9,8 +9,8 @@ use Automattic\WooCommerce\Blocks\Integrations\IntegrationInterface;
 class BlocksIntegration implements IntegrationInterface
 {
 	const BLOCK_NAMES = [
-		'shipping-address-autocomplete-intl',
-		'billing-address-autocomplete-intl',
+		'shipping-address-autocomplete',
+		'billing-address-autocomplete',
 	];
 
 	/**

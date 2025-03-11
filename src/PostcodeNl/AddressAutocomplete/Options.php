@@ -552,7 +552,7 @@ class Options
 	{
 		return [
 			static::DISPLAY_MODE_DEFAULT => esc_html__('Hide fields and show a formatted address instead (default)', 'postcode-eu-address-validation'),
-			static::DISPLAY_MODE_SHOW_ON_ADDRESS => esc_html__('Hide fields until an address is selected', 'postcode-eu-address-validation'),
+			static::DISPLAY_MODE_SHOW_ON_ADDRESS => esc_html__('Hide fields until an address is selected (classic checkout only)', 'postcode-eu-address-validation'),
 			static::DISPLAY_MODE_SHOW_ALL => esc_html__('Show fields', 'postcode-eu-address-validation'),
 		];
 	}

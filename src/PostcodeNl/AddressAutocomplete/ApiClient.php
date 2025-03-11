@@ -42,7 +42,7 @@ class ApiClient
 	/**
 	 * @see https://developer.postcode.eu/documentation/international/v1/Autocomplete/autocomplete
 	 */
-	public function internationalAutocomplete(string $context, string $term, string $session, string $language = null): array
+	public function internationalAutocomplete(string $context, string $term, string $session, ?string $language = null): array
 	{
 		$this->_validateSessionHeader($session);
 
@@ -91,22 +91,6 @@ class ApiClient
 		{
 			$urlParts[] = rawurlencode($houseNumberAddition);
 		}
-		return $this->_performApiCall(implode('/', $urlParts), null);
-	}
-
-	/**
-	 * @see https://developer.postcode.eu/documentation/nl/v1/Address/matchExact
-	 */
-	public function dutchAddressExactMatch(string $city, string $street, int $houseNumber, string $houseNumberAddition = ''): array
-	{
-		$urlParts = [
-			'nl/v1/addresses/exact',
-			rawurlencode($city),
-			rawurlencode($street),
-			$houseNumber,
-			rawurlencode($houseNumberAddition),
-		];
-
 		return $this->_performApiCall(implode('/', $urlParts), null);
 	}
 

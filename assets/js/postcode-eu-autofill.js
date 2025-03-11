@@ -475,7 +475,6 @@
 
 		const fillAddressFieldsIntl = function (result)
 		{
-			let address = result.address;
 			let province = null;
 			if (result.country.iso3Code === 'ESP')
 			{
@@ -486,16 +485,14 @@
 				province = PostcodeNlStateToValueMapping.CHE[result.details.cheCanton.name];
 			}
 
+			let address = result.address;
 			fillAddressFields(addressFields, new Map([
 				[PostcodeNlAddressFieldMapping.street, address.street],
 				[PostcodeNlAddressFieldMapping.houseNumber, address.buildingNumber || ''],
 				[PostcodeNlAddressFieldMapping.houseNumberAddition, address.buildingNumberAddition || ''],
 				[PostcodeNlAddressFieldMapping.postcode, address.postcode],
 				[PostcodeNlAddressFieldMapping.city, address.locality],
-				[
-					PostcodeNlAddressFieldMapping.streetAndHouseNumber,
-					formatStreetLine(result.country.iso2Code, address.street, address.building)
-				],
+				[PostcodeNlAddressFieldMapping.streetAndHouseNumber, result.streetLine],
 				[PostcodeNlAddressFieldMapping.houseNumberAndAddition, address.building],
 				[PostcodeNlAddressFieldMapping.province, province],
 			]));

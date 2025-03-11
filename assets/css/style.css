@@ -33,26 +33,79 @@ input[class].postcodenl-autocomplete-address-input.postcode-eu-address-validatio
 	background-color: #f8f8f8;
 }
 
-.postcode-eu-autofill-intl-bypass-link {
-	cursor: pointer;
+.postcode-eu-autofill-intl-bypass {
+	flex: 0 0 100%;
 	font-size: 85%;
 }
 
-.form-row .postcode-eu-autofill-intl-bypass-link {
+.postcode-eu-autofill-intl-bypass a {
+	cursor: pointer;
+}
+
+.postcode-eu-autofill-intl-bypass svg {
+	width: 20px;
+	height: 20px;
+	vertical-align: middle;
+}
+
+.form-row .postcode-eu-autofill-intl-bypass {
 	display: none;
 }
 
-.woocommerce-invalid .postcode-eu-autofill-intl-bypass-link {
+.woocommerce-invalid .postcode-eu-autofill-intl-bypass {
 	display: initial;
 }
 
 .postcode-eu-autofill-container {
 	--gap: 16px;
+	display: flex;
+	gap: var(--gap);
 	margin-top: var(--gap);
 	flex-grow: 1;
+	justify-content: space-between;
+	flex-wrap: wrap;
 }
 
 .postcode-eu-autofill-container address {
-	margin: var(--gap) 0 0 0;
+	flex: 0 0 100%;
+	margin: 0;
 	white-space: pre-line;
+}
+
+.postcodenl-autocomplete-address-input,
+.postcode-eu-house-number-select {
+	flex: 0 0 100%;
+}
+
+.postcode-eu-house-number-select .wc-blocks-components-select__container {
+	margin-top: 0;
+}
+
+.postcode-eu-address-lookup-error {
+	--color-error: #cc1818;
+	color: var(--color-error);
+	fill: var(--color-error);
+}
+
+.postcode-eu-address-lookup-error p {
+	display: flex;
+	margin: 0;
+	padding: 0;
+	gap: 3px;
+	align-items: center;
+}
+
+.postcode-eu-address-lookup-status {
+	position: relative;
+	flex: 0 0 100%;
+	min-height: 24px;
+}
+
+.postcode-eu-address-lookup-status .wc-block-components-spinner {
+	top: 0;
+}
+
+.postcode-eu-address-lookup-status:empty,
+.postcode-eu-address-lookup-status .wc-block-components-spinner ~ .postcode-eu-address-lookup-error {
+	display: none;
 }

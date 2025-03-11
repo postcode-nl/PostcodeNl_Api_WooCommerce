@@ -6,10 +6,10 @@ const LiveReloadPlugin = require('webpack-livereload-plugin');
 module.exports = {
 	...defaultConfig,
 	entry: {
-		'shipping-address-autocomplete-intl-index': path.resolve(process.cwd(), 'src', 'blocks', 'shipping-address-autocomplete-intl', 'index.js'),
-		'shipping-address-autocomplete-intl-frontend': path.resolve(process.cwd(), 'src', 'blocks', 'shipping-address-autocomplete-intl', 'frontend.js'),
-		'billing-address-autocomplete-intl-index': path.resolve(process.cwd(), 'src', 'blocks', 'billing-address-autocomplete-intl', 'index.js'),
-		'billing-address-autocomplete-intl-frontend': path.resolve(process.cwd(), 'src', 'blocks', 'billing-address-autocomplete-intl', 'frontend.js'),
+		'shipping-address-autocomplete-index': path.resolve(process.cwd(), 'src', 'blocks', 'shipping-address-autocomplete', 'index.js'),
+		'shipping-address-autocomplete-frontend': path.resolve(process.cwd(), 'src', 'blocks', 'shipping-address-autocomplete', 'frontend.js'),
+		'billing-address-autocomplete-index': path.resolve(process.cwd(), 'src', 'blocks', 'billing-address-autocomplete', 'index.js'),
+		'billing-address-autocomplete-frontend': path.resolve(process.cwd(), 'src', 'blocks', 'billing-address-autocomplete', 'frontend.js'),
 	},
 	plugins: [
 		...defaultConfig.plugins.filter(

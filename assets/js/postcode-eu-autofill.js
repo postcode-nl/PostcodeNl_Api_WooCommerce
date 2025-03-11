@@ -45,7 +45,7 @@
 
 			if (settings.allowAutofillIntlBypass === 'y')
 			{
-				addAutofillIntlBypassLink(container);
+				addAutofillIntlBypass(container);
 			}
 
 			container.find('.country_to_state').on('change.postcode-eu.address-fields', function () {
@@ -224,7 +224,7 @@
 
 			setFieldValidity(
 				postcodeField,
-				isPostcodeValid() ? '' : __('Please enter a valid postcode.', 'postcode-eu-address-validation')
+				isPostcodeValid() ? '' : __('Please enter a valid postcode', 'postcode-eu-address-validation')
 			);
 		});
 
@@ -233,7 +233,7 @@
 
 			setFieldValidity(
 				houseNumberField,
-				isHouseNumberValid() ? '' : __('Please enter a valid house number.', 'postcode-eu-address-validation')
+				isHouseNumberValid() ? '' : __('Please enter a valid house number', 'postcode-eu-address-validation')
 			);
 		});
 
@@ -407,6 +407,7 @@
 			if ((streetAndHouseNumber = findValue(PostcodeNlAddressFieldMapping.streetAndHouseNumber)))
 			{
 				// Try to extract house number from street + house number combination as a last resort.
+				// NB. this will fail if the streetname contains a number.
 				if((houseNumber = streetAndHouseNumber.match(/\b\d+.*$/)))
 				{
 					return [postcode, houseNumber[0]];
@@ -634,7 +635,7 @@
 
 					deferred = $.Deferred();
 
-					deferred.fail(() => setFieldValidity(intlField, __('Please enter an address and select it.', 'postcode-eu-address-validation')));
+					deferred.fail(() => setFieldValidity(intlField, __('Please enter an address and select it', 'postcode-eu-address-validation')));
 				});
 
 				intlField.on('blur', () => {
@@ -735,10 +736,11 @@
 		});
 	}
 
-	const addAutofillIntlBypassLink = function (container)
+	const addAutofillIntlBypass = function (container)
 	{
 		const formRow = container.find('.form-row.postcode-eu-autofill-intl'),
-			link = $('<a>', {'class': 'postcode-eu-autofill-intl-bypass-link', text: settings.autofillIntlBypassLinkText});
+			wrapper = $('<span>', {'class': 'postcode-eu-autofill-intl-bypass'}),
+			link = $('<a>', {text: settings.autofillIntlBypassLinkText});
 
 		link.on('click', function () {
 			toggleAddressFields(getAddressFields(container), true, true);
@@ -746,7 +748,8 @@
 			return false;
 		});
 
-		formRow.append(link);
+		wrapper.append(link);
+		formRow.append(wrapper);
 	}
 
 	// Search PostcodeNlAddressFieldMapping.mapping for given value and

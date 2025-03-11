@@ -61,12 +61,53 @@ class Proxy
 		try
 		{
 			$result = $this->_client->internationalGetDetails($context, $this->_session);
+			$result['streetLine'] = $this->_getStreetLine($result);
 			$this->_outputJsonResponse($result);
 		}
 		catch (ClientException $e)
 		{
 			$this->_errorResponse($this->_logException($e));
 		}
+	}
+
+	/**
+	 * Get street line from an address details response.
+	 *
+	 * The result is to be used in the first street address field.
+	 *
+	 * @param array $addressDetails
+	 * @return string - Street line formatted according to country.
+	 */
+	private function _getStreetLine(array $addressDetails): string
+	{
+		$address = $addressDetails['address'];
+		$countryIso2 = $addressDetails['country']['iso2Code'];
+		if ($countryIso2 === 'LU')
+		{
+			return $address['building'] . ', ' . $address['street'];
+		}
+		elseif ($countryIso2 === 'FR')
+		{
+			return trim($address['building'] . ' ' . $address['street']);
+		}
+		elseif ($countryIso2 === 'GB')
+		{
+			$building = $addressDetails['details']['gbrBuilding'];
+			if ($address['street'] === '')
+			{
+				return $address['building'];
+			}
+			elseif ($building['number'] === null && $building['addition'] === null)
+			{
+				return $address['building'] . ', ' . $address['street'];
+			}
+			else
+			{
+				return $address['building'] . ' ' . $address['street'];
+			}
+		}
+
+		return trim($address['street'] . ' ' . $address['building']);
 	}
 
 	public function dutchAddressLookup(): void
@@ -90,11 +131,10 @@ class Proxy
 			$address = $this->_client->dutchAddressByPostcode($postcode, (int)$houseNumber, $houseNumberAddition);
 			$status = 'valid';
 
-            if (
-                (strcasecmp($address['houseNumberAddition'] ?? '', $houseNumberAddition ?? '') != 0)
-                ||
-                (!empty($address['houseNumberAdditions']) && is_null($address['houseNumberAddition']))
-            )
+			if (
+				(strcasecmp($address['houseNumberAddition'] ?? '', $houseNumberAddition ?? '') != 0)
+				|| (!empty($address['houseNumberAdditions']) && is_null($address['houseNumberAddition']))
+			)
 			{
 				$status = 'houseNumberAdditionIncorrect';
 			}

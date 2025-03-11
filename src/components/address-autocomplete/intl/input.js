@@ -3,7 +3,7 @@ import { useSelect, useDispatch, select as selectStore } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import { VALIDATION_STORE_KEY } from '@woocommerce/block-data';
 import { TextInput, ValidationInputError } from '@woocommerce/blocks-components';
-import { formatStreetLine, validateStoreAddress } from '../utils';
+import { validateStoreAddress } from '../utils';
 import { settings } from '..';
 import { useAutocomplete } from './hooks';
 
@@ -67,10 +67,10 @@ const AutocompleteInput = (
 			setIsLoading(true);
 			autocomplete.getAddressDetails(selectedItem.context)
 				.then((result) => {
-					const { locality, street, postcode, building } = result.address;
+					const { locality, postcode, building } = result.address;
 					setAddress({
 						...addressRef.current,
-						address_1: formatStreetLine(result.country.iso2Code, street, building),
+						address_1: result.streetLine,
 						city: locality,
 						postcode: postcode,
 					});

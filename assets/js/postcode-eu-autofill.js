@@ -407,14 +407,22 @@
 			if ((streetAndHouseNumber = findValue(PostcodeNlAddressFieldMapping.streetAndHouseNumber)))
 			{
 				// Try to extract house number from street + house number combination as a last resort.
-				// NB. this will fail if the streetname contains a number.
-				if((houseNumber = streetAndHouseNumber.match(/\b\d+.*$/)))
+				const matches = [...streetAndHouseNumber.matchAll(/[1-9]\d{0,4}\D*/g)];
+
+				if (matches[0]?.index === 0)
 				{
-					return [postcode, houseNumber[0]];
+					matches.shift(); // Discard leading number as a valid house number.
 				}
+
+				if (matches.length === 1) // Single match is most likely the house number.
+				{
+					return [postcode, matches[0][0].trim()];
+				}
+
+				// Else no match or ambiguous (i.e. multiple numbers found).
 			}
 
-			return null;
+			return [postcode, ''];
 		}
 
 		// Initialize

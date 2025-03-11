@@ -90,7 +90,7 @@ const AutocompleteContainer = ({addressType, address, setAddress}) => {
 						<IntlAutocomplete id={intlFieldId} {...childProps} />
 					)}
 
-					{settings.displayMode !== 'showAll' && (
+					{settings.allowAutofillIntlBypass === 'y' && settings.displayMode !== 'showAll' && (
 						<IntlAutocompleteBypass forId={intlFieldId} onClick={() => setVisible(false)} />
 					)}
 

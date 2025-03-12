@@ -67,7 +67,7 @@ const AutocompleteInput = (
 			setIsLoading(true);
 			autocomplete.getAddressDetails(selectedItem.context)
 				.then((result) => {
-					const { locality, postcode, building } = result.address;
+					const { locality, postcode } = result.address;
 					setAddress({
 						...addressRef.current,
 						address_1: result.streetLine,

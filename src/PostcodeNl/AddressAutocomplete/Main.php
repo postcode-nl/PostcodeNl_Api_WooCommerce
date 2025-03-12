@@ -214,7 +214,8 @@ class Main
 			true
 		);
 
-		if (!has_block('woocommerce/checkout')) // For Classic Checkout and My Account Page.
+		// For Classic Checkout and My Account Page:
+		if (!has_block('woocommerce/checkout') || has_block('woocommerce/classic-shortcode'))
 		{
 			wp_enqueue_script(
 				'postcode-eu-autocomplete-address-field-mapping',

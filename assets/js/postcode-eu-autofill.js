@@ -514,15 +514,6 @@
 			$(document.body).trigger('update_checkout');
 		}
 
-		// Correctly format street and building line for countries that use reversed order.
-		const formatStreetLine = (countryIso2, street, building) => {
-			let a = street, b = building;
-			if (settings.reverseStreetLineCountries.includes(countryIso2))
-				[a, b] = [b, a];
-
-			return `${a} ${b}`.trim();
-		}
-
 		// Get a prefilled address value from the intl field.
 		// If missing, try to construct a value from the address fields.
 		const getPrefilledAddressValue = () => {

@@ -299,7 +299,6 @@
 					}
 
 					currentAddress = response.address;
-					postcodeField.trigger('address-result', response);
 
 					if (response.status === 'houseNumberAdditionIncorrect')
 					{
@@ -312,11 +311,18 @@
 					}
 				}
 			}).fail(function () {
-				setFieldValidity(houseNumberField, __('An error has occurred. Please try again later or contact us.', 'postcode-eu-address-validation'));
-			}).always(function () {
+				setFieldValidity(
+					houseNumberField,
+					__('An error has occurred. Please try again later or contact us.', 'postcode-eu-address-validation')
+				);
+			}).always(function (response, textStatus) {
 				postcodeField.removeClass('postcode-eu-address-validation-loading');
-			});
 
+				postcodeField.trigger(
+					'address-result',
+					textStatus === 'success' ? response : {status: 'error', address: null}
+				);
+			});
 		}
 
 		const setHouseNumberOptions = function (address)
@@ -733,10 +739,13 @@
 				return;
 			}
 
-			const line1 = result.address.street + ' ' + result.address.houseNumber + (result.address.houseNumberAddition ? ' ' + result.address.houseNumberAddition : ''),
-				line2 = result.address.postcode + ' ' + result.address.city;
+			const {street, houseNumber, houseNumberAddition, city, postcode} = result.address,
+				lines = [
+					`${street} ${houseNumber} ${houseNumberAddition ?? ''}`.trim(),
+					`${postcode} ${city}`
+				];
 
-			addressElement.html(line1 + '<br>' + line2);
+			addressElement.html(lines.join('<br>'));
 			formRow.show();
 		});
 	}

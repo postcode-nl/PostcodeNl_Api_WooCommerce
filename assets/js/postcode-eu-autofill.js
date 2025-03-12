@@ -1,4 +1,4 @@
-/* global wp, PostcodeNl, PostcodeEuSettings, PostcodeNlAddressFieldMapping, PostcodeNlStateToValueMapping */
+/* global PostcodeEuSettings, PostcodeNlAddressFieldMapping, PostcodeNlStateToValueMapping */
 (function () {
 	'use strict';
 

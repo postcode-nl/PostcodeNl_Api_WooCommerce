@@ -19,6 +19,7 @@ class Proxy
 	public const AJAX_AUTOCOMPLETE = 'postcodenl_address_autocomplete';
 	public const AJAX_GET_DETAILS = 'postcodenl_address_get_details';
 	public const AJAX_DUTCH_ADDRESS_LOOKUP = 'postcodenl_address_dutch_address_lookup';
+	public const AJAX_VALIDATE = 'postcodenl_address_validate';
 
 	/** @var ApiClient */
 	protected $_client;
@@ -35,7 +36,7 @@ class Proxy
 	{
 		$this->_populateSession();
 		$context = sanitize_text_field(wp_unslash($_GET['context']));
-		$term = base64_decode(sanitize_text_field(wp_unslash($_GET['term'])));
+		$term = base64_decode(sanitize_text_field(wp_unslash($_GET['term']))); // Base64 is used to preserve whitespace.
 
 		try
 		{
@@ -62,6 +63,7 @@ class Proxy
 		{
 			$result = $this->_client->internationalGetDetails($context, $this->_session);
 			$result['streetLine'] = $this->_getStreetLine($result);
+			$result['address']['postcode'] = wc_format_postcode($result['address']['postcode'], $result['country']['iso2Code']);
 			$this->_outputJsonResponse($result);
 		}
 		catch (ClientException $e)
@@ -149,10 +151,53 @@ class Proxy
 			$this->_errorResponse($this->_logException($e));
 		}
 
+		$address['postcode'] = wc_format_postcode($address['postcode'], 'NL');
+
 		$this->_outputJsonResponse([
 			'status' => $status,
 			'address' => $address,
 		]);
+	}
+
+	public function validate(): void
+	{
+		$params = [];
+		foreach (['country', 'postcode', 'locality', 'street', 'building', 'region', 'streetAndBuilding'] as $name)
+		{
+			if (isset($_GET[$name]))
+			{
+				$params[$name] = sanitize_text_field(wp_unslash($_GET[$name]));
+			}
+		}
+
+		if (empty($params['country']))
+		{
+			$this->_errorResponse($this->_logException(new Exception('Country not specified.')));
+		}
+
+		try
+		{
+			$result = $this->_client->validate(...$params);
+		}
+		catch (ClientException $e)
+		{
+			$this->_errorResponse($this->_logException($e));
+		}
+
+		foreach ($result['matches'] as &$m)
+		{
+			if (in_array($m['status']['validationLevel'], ['Building', 'BuildingPartial'], true))
+			{
+				$m['streetLine'] = $this->_getStreetLine($m);
+			}
+
+			if (is_string($m['address']['postcode']))
+			{
+				$m['address']['postcode'] = wc_format_postcode($m['address']['postcode'], $result['country']['iso2Code']);
+			}
+		}
+
+		$this->_outputJsonResponse($result);
 	}
 
 	public function getClient(): ApiClient

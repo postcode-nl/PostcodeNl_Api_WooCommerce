@@ -177,6 +177,40 @@ class ApiClient
 	}
 
 	/**
+	 * @see https://developer.postcode.eu/documentation/international/v1/Validate/validate
+	 */
+	public function validate(
+		string $country,
+		?string $postcode = null,
+		?string $locality = null,
+		?string $street = null,
+		?string $building = null,
+		?string $region = null,
+		?string $streetAndBuilding = null
+	): array
+	{
+		$urlParts = ['international/v1/validate', rawurlencode(strtolower($country))];
+		$variables = [
+			'postcode' => $postcode,
+			'locality' => $locality,
+			'street' => $street,
+			'building' => $building,
+			'region' => $region,
+			'streetAndBuilding' => $streetAndBuilding,
+		];
+		$parameters = [];
+		foreach ($variables as $key => $value)
+		{
+			if ($value !== null)
+			{
+				$parameters[] = $key . '=' . rawurlencode($value);
+			}
+		}
+
+		return $this->_performApiCall(implode('/', $urlParts) . '?' . implode('&', $parameters), null);
+	}
+
+	/**
 	 * @return array The response headers from the most recent API call.
 	 */
 	public function getApiCallResponseHeaders(): array

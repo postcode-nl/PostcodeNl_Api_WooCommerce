@@ -3,9 +3,9 @@ import { useSelect, useDispatch, select as selectStore } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import { VALIDATION_STORE_KEY } from '@woocommerce/block-data';
 import { TextInput, ValidationInputError } from '@woocommerce/blocks-components';
-import { validateStoreAddress } from '../utils';
+import { validateStoreAddress, getValidatedAddress } from '../utils';
 import { settings } from '..';
-import { useAutocomplete } from './hooks';
+import { useAutocomplete, useStoredAddress } from '../hooks';
 
 let didInit = false;
 
@@ -22,16 +22,15 @@ const AutocompleteInput = (
 		setFormattedAddress,
 		addressRef,
 		resetAddress,
-		didInit: didParentInit,
 	}
 ) => {
 	const inputRef = useRef(null),
 		[isLoading, setIsLoading] = useState(false),
 		[isMenuOpen, setIsMenuOpen] = useState(false),
-		[value, setValue] = useState(() => didParentInit ? '' : initValue(address)),
-		initialValueRef = useRef(value),
+		[value, setValue] = useState(() => initValue(address)),
 		{setValidationErrors, clearValidationError} = useDispatch(VALIDATION_STORE_KEY),
-		autocomplete = useAutocomplete(inputRef, address.country);
+		autocomplete = useAutocomplete(inputRef, address.country),
+		storedAddress = useStoredAddress(addressType);
 
 	const {validationError, validationErrorId} = useSelect(
 		(select) => {
@@ -43,76 +42,108 @@ const AutocompleteInput = (
 		}
 	);
 
-	const validateInput = useCallback(
-		(errorsHidden = true) => {
-			if (validateStoreAddress(addressType))
-			{
-				clearValidationError(id);
-			}
-			else
-			{
-				setValidationErrors({
-					[id]: {
-						message: __('Please enter an address and select it', 'postcode-eu-address-validation'),
-						hidden: errorsHidden,
-					},
-				});
-			}
-		},
-		[addressType, id, clearValidationError, setValidationErrors]
-	);
+	const validateInput = useCallback((errorsHidden = true) => {
+		if (validateStoreAddress(addressType))
+		{
+			clearValidationError(id);
+		}
+		else
+		{
+			setValidationErrors({
+				[id]: {
+					message: __('Please enter an address and select it', 'postcode-eu-address-validation'),
+					hidden: errorsHidden,
+				},
+			});
+		}
+	}, [
+		addressType,
+		id,
+		clearValidationError,
+		setValidationErrors,
+	]);
 
-	const selectAddress = useCallback(
-		(selectedItem) => {
-			setIsLoading(true);
-			autocomplete.getAddressDetails(selectedItem.context)
-				.then((result) => {
-					const { locality, postcode } = result.address;
-					setAddress({
+	const selectAddress = useCallback((selectedItem) => {
+		setIsLoading(true);
+		autocomplete.getAddressDetails(selectedItem.context)
+			.then((result) => {
+				const {locality, postcode} = result.address;
+				setAddress(
+					{
 						...addressRef.current,
 						address_1: result.streetLine,
 						city: locality,
 						postcode: postcode,
-					});
+					},
+					result.mailLines
+				);
+
+				if (settings.displayMode === 'default')
+				{
+					setFormattedAddress(result.mailLines.join('\n'));
+				}
+
+				clearValidationError(id);
+			})
+			.finally(() => setIsLoading(false));
+	}, [
+		autocomplete,
+		setAddress,
+		addressRef,
+		setFormattedAddress,
+		clearValidationError,
+		id,
+	]);
+
+	const validateInitialAddress = useCallback(() => {
+		if (!validateStoreAddress(addressType))
+		{
+			return;
+		}
+
+		setIsLoading(true);
+		getValidatedAddress(addressRef.current)
+			.then((result) => {
+				if (result === null)
+				{
+					setAddress({...addressRef.current, address_1: '', city: '', postcode: ''});
+
+					// Make sure an error is set, otherwise the user may try to submit the
+					// form and never see an error message for an incomplete/invalid address.
+					validateInput(true);
+				}
+				else
+				{
+					const {locality, postcode} = result.address;
+					setAddress(
+						{
+							...addressRef.current,
+							address_1: result.streetLine,
+							city: locality,
+							postcode: postcode,
+						},
+						result.mailLines
+					);
 
 					if (settings.displayMode === 'default')
 					{
 						setFormattedAddress(result.mailLines.join('\n'));
 					}
-
-					validateInput(false);
-				})
-				.finally(() => setIsLoading(false));
-		},
-		[setIsLoading, setAddress, setFormattedAddress, validateInput]
-	);
-
-	const autocompleteInitialValue = useCallback(
-		() => {
-			inputRef.current.addEventListener('autocomplete-response', (response) => {
-				const matches = response.detail.matches;
-				if (matches.length === 1 && matches[0].precision === 'Address')
-				{
-					selectAddress(matches[0]);
 				}
-				else
-				{
-					// Make sure an error is set if there are multiple matches. Otherwise the user may try to
-					// submit the form and never see an error message for an incomplete/invalid address.
-					validateInput(true);
-				}
-			}, { once: true });
-
-			autocomplete.search({ term: initialValueRef.current, showMenu: false });
-		},
-		[selectAddress, validateInput]
-	);
+			})
+			.finally(() => setIsLoading(false));
+	}, [
+		addressRef,
+		addressType,
+		setAddress,
+		setFormattedAddress,
+		validateInput,
+	]);
 
 	useEffect(() => {
 		// Set form values on select.
 		inputRef.current.addEventListener('autocomplete-select', (e) => {
 			setValue(e.detail.value);
-			e.preventDefault();
 
 			if (e.detail.precision === 'Address')
 			{
@@ -143,26 +174,30 @@ const AutocompleteInput = (
 		setIsLoading,
 		setValidationErrors,
 		setIsMenuOpen,
+		selectAddress,
+		id
 	]);
 
 	// Reset values when switching country.
 	useEffect(() => {
 		if (didInit)
 		{
-			autocomplete.instance.reset();
+			autocomplete.instanceRef.current.reset();
 			setValue('');
+			resetAddress();
 		}
 
-		autocomplete.instance.setCountry(settings.enabledCountries[address.country].iso3);
-		resetAddress();
+		autocomplete.instanceRef.current.setCountry(settings.enabledCountries[address.country].iso3);
 
 		const error = selectStore(VALIDATION_STORE_KEY).getValidationError(id);
 		validateInput(error?.hidden ?? true);
 	}, [
+		autocomplete.instanceRef,
 		address.country,
 		resetAddress,
 		setValue,
 		id,
+		validateInput,
 	]);
 
 	// Remove validation errors when unmounted.
@@ -170,17 +205,35 @@ const AutocompleteInput = (
 
 	// Toggle loading className on input element.
 	useEffect(() => {
-		inputRef.current.classList.toggle(`${autocomplete.instance.options.cssPrefix}loading`, isLoading);
+		const loadingClassName = `${autocomplete.instanceRef.current.options.cssPrefix}loading`;
+		inputRef.current.classList.toggle(loadingClassName, isLoading);
 	}, [
+		autocomplete.instanceRef,
 		isLoading,
 	]);
 
 	useEffect(() => {
-		autocompleteInitialValue();
-		didInit = true;
+		if (didInit)
+		{
+			return;
+		}
+
+		if (!storedAddress.isExpired() && storedAddress.isEqual(addressRef.current))
+		{
+			setFormattedAddress(storedAddress.get().mailLines.join('\n'));
+		}
+		else
+		{
+			validateInitialAddress();
+		}
 	}, [
-		autocompleteInitialValue,
+		addressRef,
+		validateInitialAddress,
+		setFormattedAddress,
+		storedAddress,
 	]);
+
+	useEffect(() => { didInit = true; }, []);
 
 	const hasError = validationError?.message && !validationError?.hidden;
 

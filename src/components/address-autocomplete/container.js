@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from '@wordpress/element';
 import { NlAddressLookup, IntlAutocomplete, IntlAutocompleteBypass, FormattedOutput, settings } from '.';
 
-let didInit = false;
-
 const AutocompleteContainer = ({addressType, address, setAddress}) => {
 	const ref = useRef(null),
 		addressRef = useRef(address),
@@ -47,7 +45,9 @@ const AutocompleteContainer = ({addressType, address, setAddress}) => {
 
 			return () => observer.disconnect(); // Cleanup observer on unmount.
 		}
-	}, []);
+	}, [
+		addressType,
+	]);
 
 	// Field visibility
 	useEffect(() => {
@@ -76,9 +76,7 @@ const AutocompleteContainer = ({addressType, address, setAddress}) => {
 		isEnabledCountry,
 	]);
 
-	useEffect(() => { didInit = true }, []);
-
-	const childProps = {addressType, address, setAddress, setFormattedAddress, addressRef, resetAddress, didInit};
+	const childProps = {addressType, address, setAddress, setFormattedAddress, addressRef, resetAddress};
 
 	return (
 		<div className="postcode-eu-autofill-container" ref={ref} style={visible ? {} : {display: 'none'}}>

@@ -11,7 +11,7 @@ defined('ABSPATH') || exit;
 class Main
 {
 	/** @var string The version number of the plugin should be equal to the commented version number in ../../../postcode-eu-address-validation.php */
-	public const VERSION = '2.5.0';
+	public const VERSION = '2.6.0';
 
 	/** @var string Script handle of the autocomplete library. */
 	public const AUTOCOMPLETE_LIBRARY_HANDLE = 'postcode-eu-autocomplete-address-library';
@@ -76,6 +76,9 @@ class Main
 
 		add_action('wp_ajax_' . Proxy::AJAX_DUTCH_ADDRESS_LOOKUP, [$this->_proxy, 'dutchAddressLookup']);
 		add_action('wp_ajax_nopriv_' . Proxy::AJAX_DUTCH_ADDRESS_LOOKUP, [$this->_proxy, 'dutchAddressLookup']);
+
+		add_action('wp_ajax_' . Proxy::AJAX_VALIDATE, [$this->_proxy, 'validate']);
+		add_action('wp_ajax_nopriv_' . Proxy::AJAX_VALIDATE, [$this->_proxy, 'validate']);
 
 		add_action('woocommerce_after_checkout_validation', [$this, 'afterCheckoutValidation'], 10, 2);
 
@@ -262,18 +265,24 @@ class Main
 	public function getSettings(): array
 	{
 		return [
-			'autocomplete' => vsprintf(
-				'%s?action=%s&context=${context}&term=${term}',
-				[admin_url('admin-ajax.php'), Proxy::AJAX_AUTOCOMPLETE]
-			),
-			'getDetails' => vsprintf(
-				'%s?action=%s&context=${context}',
-				[admin_url('admin-ajax.php'), Proxy::AJAX_GET_DETAILS]
-			),
-			'dutchAddressLookup' => vsprintf(
-				'%s?action=%s&postcode=${postcode}&houseNumberAndAddition=${houseNumberAndAddition}',
-				[admin_url('admin-ajax.php'), Proxy::AJAX_DUTCH_ADDRESS_LOOKUP]
-			),
+			'actions' => [
+				'autocomplete' => vsprintf(
+					'%s?action=%s&context=${context}&term=${term}',
+					[admin_url('admin-ajax.php'), Proxy::AJAX_AUTOCOMPLETE]
+				),
+				'getDetails' => vsprintf(
+					'%s?action=%s&context=${context}',
+					[admin_url('admin-ajax.php'), Proxy::AJAX_GET_DETAILS]
+				),
+				'dutchAddressLookup' => vsprintf(
+					'%s?action=%s&postcode=${postcode}&houseNumberAndAddition=${houseNumberAndAddition}',
+					[admin_url('admin-ajax.php'), Proxy::AJAX_DUTCH_ADDRESS_LOOKUP]
+				),
+				'validate' => vsprintf(
+					'%s?action=%s&country=${country}&postcode=${postcode}&locality=${locality}&streetAndBuilding=${streetAndBuilding}',
+					[admin_url('admin-ajax.php'), Proxy::AJAX_VALIDATE]
+				),
+			],
 			'enabledCountries' => $this->_options->getEnabledCountries(),
 			'displayMode' => $this->_options->displayMode,
 			'netherlandsMode' => $this->_options->netherlandsMode,
@@ -283,7 +292,6 @@ class Main
 			'houseNumberPlaceholder' => '123 A',
 			'autofillIntlBypassLinkText' => esc_html__('Enter an address', 'postcode-eu-address-validation'),
 			'allowAutofillIntlBypass' => $this->_options->allowAutofillIntlBypass,
-			'reverseStreetLineCountries' => ['LU', 'FR', 'GB'],
 		];
 	}
 

@@ -82,6 +82,6 @@ const HouseNumberSelect = ({id, onChange, options = [], value = ADDITION_PLACEHO
 			<ValidationInputError propertyName={id} elementId={id} />
 		</div>
 	);
-}
+};
 
 export default HouseNumberSelect;

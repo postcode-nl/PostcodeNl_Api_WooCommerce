@@ -35,6 +35,7 @@ export default [
 					additionalHooks: '^(useSelect|useSuspenseSelect)$',
 				},
 			],
+			'semi': 'warn',
 		},
 	},
 ];

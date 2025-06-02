@@ -11,7 +11,7 @@ let didInit = false;
 
 const initValue = (address) => {
 	return ['postcode', 'city', 'address_1', 'address_2'].map((field) => address[field]).join(' ').trim();
-}
+};
 
 const AutocompleteInput = (
 	{
@@ -257,7 +257,7 @@ const AutocompleteInput = (
 			}
 			title="" // Hide error message in title.
 		/>
-	)
-}
+	);
+};
 
 export default AutocompleteInput;

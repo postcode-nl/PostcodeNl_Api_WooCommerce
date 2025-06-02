@@ -36,7 +36,7 @@ const Block = () => {
 			isEditingAddress={isEditingAddress}
 			setIsEditingAddress={setEditingShippingAddress}
 		/>
-	)
-}
+	);
+};
 
 export default Block;

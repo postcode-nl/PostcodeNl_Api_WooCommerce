@@ -15,4 +15,4 @@ export const validate = (country, streetAndBuilding, postcode, locality) => {
 
 		throw new Error(response.statusText);
 	});
-}
+};

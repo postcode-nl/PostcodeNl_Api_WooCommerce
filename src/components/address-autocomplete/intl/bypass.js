@@ -19,6 +19,6 @@ const AutocompleteBypass = ({forId, onClick}) => {
 			</a>
 		</span>
 	) : null;
-}
+};
 
 export default AutocompleteBypass;

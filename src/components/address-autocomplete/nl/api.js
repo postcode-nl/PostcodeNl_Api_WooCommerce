@@ -13,4 +13,4 @@ export const getAddress = (postcode, houseNumber) => {
 
 		throw new Error(response.statusText);
 	});
-}
+};

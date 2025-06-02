@@ -4,7 +4,8 @@ import { useDispatch } from '@wordpress/data';
 import { ValidatedTextInput, Spinner } from '@woocommerce/blocks-components';
 import { VALIDATION_STORE_KEY } from '@woocommerce/block-data';
 import { settings } from '..';
-import { validateStoreAddress } from '../utils';
+import { useStoredAddress } from '../hooks';
+import { validateStoreAddress, extractHouseNumber } from '../utils';
 import { HouseNumberSelect, LookupError } from '.';
 import {
 	ADDRESS_LOOKUP_DELAY,
@@ -15,21 +16,7 @@ import {
 } from './constants';
 import { getAddress } from './api';
 
-const initHouseNumber = (address) => {
-	const matches = [...`${address.address_1} ${address.address_2}`.matchAll(/[1-9]\d{0,4}\D*/g)];
-
-	if (matches[0]?.index === 0)
-	{
-		matches.shift(); // Discard leading number as a valid house number.
-	}
-
-	if (matches.length === 1) // Single match is most likely the house number.
-	{
-		return matches[0][0].trim();
-	}
-
-	return ''; // No match or ambiguous (i.e. multiple numbers found).
-}
+const initHouseNumber = ({address_1, address_2}) => extractHouseNumber(`${address_1} ${address_2}`) ?? '';
 
 const AddressLookup = (
 	{
@@ -39,7 +26,6 @@ const AddressLookup = (
 		setFormattedAddress,
 		addressRef,
 		resetAddress,
-		didInit: didParentInit,
 	}
 ) => {
 	const postcodeInputId = `${addressType}-postcode-eu-postcode`,
@@ -47,7 +33,7 @@ const AddressLookup = (
 		houseNumberSelectId = `${addressType}-postcode-eu-house_number_select`,
 		lookupErrorId = `${addressType}-postcode-eu-address-lookup-error`,
 		[postcodeValue, setPostcodeValue] = useState(address.postcode ?? ''),
-		[houseNumberValue, setHouseNumberValue] = useState(() => didParentInit ? '' : initHouseNumber(address)),
+		[houseNumberValue, setHouseNumberValue] = useState(() => initHouseNumber(address)),
 		[houseNumberAdditionValue, setHouseNumberAdditionValue] = useState(ADDITION_PLACEHOLDER_VALUE),
 		[houseNumberOptions, setHouseNumberOptions] = useState([]),
 		[parsedPostcodeValue, setParsedPostcodeValue] = useState(null),
@@ -58,7 +44,9 @@ const AddressLookup = (
 			address: null
 		}),
 		lookupTimeoutRef = useRef(),
-		{setValidationErrors, clearValidationError} = useDispatch(VALIDATION_STORE_KEY);
+		{setValidationErrors, clearValidationError} = useDispatch(VALIDATION_STORE_KEY),
+		storedAddress = useStoredAddress(addressType),
+		initStoredAddressRef = useRef(!storedAddress.isExpired() && storedAddress.isEqual(addressRef.current));
 
 	const isOptional = useCallback(() => validateStoreAddress(addressType) , [addressType]);
 
@@ -66,17 +54,13 @@ const AddressLookup = (
 		const match = POSTCODE_REGEX.exec(inputElement.value);
 		setParsedPostcodeValue(match === null ? null : match[1] + match[2]);
 		return isOptional() || match !== null;
-	}, [
-		setParsedPostcodeValue,
-	]);
+	}, [isOptional]);
 
 	const validateHouseNumber = useCallback((inputElement) => {
 		const match = HOUSE_NUMBER_REGEX.exec(inputElement.value);
 		setParsedHouseNumberValue(match === null ? null : `${match[1]} ${match[2]?.trim() ?? ''}`.trim());
 		return isOptional() || match !== null;
-	}, [
-		setParsedHouseNumberValue,
-	]);
+	}, [isOptional]);
 
 	const checkAddressStatus = useCallback(({status, address}) => {
 		clearValidationError(lookupErrorId);
@@ -105,12 +89,21 @@ const AddressLookup = (
 	]);
 
 	useEffect(() => {
-		resetAddress();
-		setHouseNumberOptions([]);
-		setHouseNumberAdditionValue(ADDITION_PLACEHOLDER_VALUE);
+		if (!initStoredAddressRef.current)
+		{
+			resetAddress();
+			setHouseNumberOptions([]);
+			setHouseNumberAdditionValue(ADDITION_PLACEHOLDER_VALUE);
+		}
 
 		if (parsedPostcodeValue === null || parsedHouseNumberValue === null)
 		{
+			return;
+		}
+
+		if (initStoredAddressRef.current)
+		{
+			initStoredAddressRef.current = false;
 			return;
 		}
 
@@ -144,24 +137,38 @@ const AddressLookup = (
 		parsedPostcodeValue,
 		parsedHouseNumberValue,
 		setIsLoading,
+		checkAddressStatus,
 		setAddressLookupResult,
+		setValidationErrors,
+		lookupErrorId,
 	]);
 
 	useEffect(() => {
+		if (initStoredAddressRef.current)
+		{
+			setFormattedAddress(storedAddress.get().mailLines.join('\n'));
+			return;
+		}
+
 		const {status, address} = addressLookupResult;
 		if (status === ADDRESS_RESULT_STATUS.VALID)
 		{
-			const house = `${address.houseNumber} ${address.houseNumberAddition ?? ''}`.trim();
-			setAddress({
-				...addressRef.current,
-				address_1: `${address.street} ${house}`,
-				city: address.city,
-				postcode: address.postcode,
-			});
+			const house = `${address.houseNumber} ${address.houseNumberAddition ?? ''}`.trim(),
+				mailLines = [`${address.street} ${house}`, `${address.postcode} ${address.city}`];
+
+			setAddress(
+				{
+					...addressRef.current,
+					address_1: `${address.street} ${house}`,
+					city: address.city,
+					postcode: address.postcode,
+				},
+				mailLines
+			);
 
 			if (settings.displayMode === 'default')
 			{
-				setFormattedAddress(`${address.street} ${house}\n${address.postcode} ${address.city}`);
+				setFormattedAddress(mailLines.join('\n'));
 			}
 		}
 		else
@@ -172,7 +179,9 @@ const AddressLookup = (
 	}, [
 		addressLookupResult,
 		setFormattedAddress,
+		storedAddress,
 		setAddress,
+		addressRef,
 		resetAddress,
 	]);
 
@@ -180,6 +189,11 @@ const AddressLookup = (
 	useEffect(() => () => clearValidationError(lookupErrorId), [clearValidationError, lookupErrorId]);
 
 	useEffect(() => {
+		if (initStoredAddressRef.current)
+		{
+			return;
+		}
+
 		setAddressLookupResult((result) => {
 			if (result.address === null)
 			{

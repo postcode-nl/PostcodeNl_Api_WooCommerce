@@ -11,7 +11,9 @@
 		__ = wp.i18n.__,
 		settings = PostcodeEuSettings,
 		initializedElements = new Set(),
-		addressDetailsCache = new Map();
+		addressDetailsCache = new Map(),
+		storedAddresses = {},
+		loadingClassName = 'postcode-eu-address-validation-loading';
 
 	const initialize = function ()
 	{
@@ -30,13 +32,16 @@
 
 			initializedElements.add(this);
 
-			addAddressAutocompleteNl(container);
-			addAddressAutocompleteIntl(container);
+			const addressType = container.find('#billing_city').length === 0 ? 'shipping' : 'billing';
+			storedAddresses[addressType] ??= new StoredAddress(addressType);
 
 			if (settings.displayMode === 'default')
 			{
 				addFormattedAddressOutput(container);
 			}
+
+			addAddressAutocompleteNl(container, addressType);
+			addAddressAutocompleteIntl(container, addressType);
 
 			if (settings.displayMode === 'showAll')
 			{
@@ -51,10 +56,9 @@
 			container.find('.country_to_state').on('change.postcode-eu.address-fields', function () {
 				const selectedCountry = this.value;
 
-				// Wrap in timeout to execute after Woocommerce field logic:
-				window.setTimeout(function () {
-					toggleAddressFields(getAddressFields(container), !isSupportedCountry(selectedCountry), true);
-				});
+				window.setTimeout( // Execute after Woocommerce field logic:
+					() => toggleAddressFields(getAddressFields(container), !isSupportedCountry(selectedCountry), true)
+				);
 			}).trigger('change.postcode-eu.address-fields');
 		});
 	}
@@ -75,13 +79,17 @@
 		return false;
 	}
 
-	const getAddressFields = function (form)
+	const getAddressFields = function (container)
 	{
 		const fields = {};
 
-		for (let key in PostcodeNlAddressFieldMapping.mapping)
+		for (const [key, addressPart] of Object.entries(PostcodeNlAddressFieldMapping.mapping))
 		{
-			fields[key] = form.find('[name$="' + key + '"]');
+			const field = container.find('[name$="' + key + '"]');
+			if (field.length > 0)
+			{
+				fields[addressPart] = field;
+			}
 		}
 
 		return fields;
@@ -124,15 +132,30 @@
 		}
 	}
 
-	const fillAddressFields = function (addressFields, mappedValues)
+	/**
+	 * @typedef MappedAddressValues
+	 * @type {Object}
+	 * @property {string} [postcode]
+	 * @property {string} [city]
+	 * @property {string} [street]
+	 * @property {string} [streetAndHouseNumber]
+	 * @property {string} [houseNumber]
+	 * @property {string} [houseNumberAddition]
+	 * @property {string} [houseNumberAndAddition]
+	 * @property {string} [province]
+	 *
+	 * @param {MappedAddressValues} values
+	 */
+	const fillAddressFields = function (addressFields, values)
 	{
-		for (let key in PostcodeNlAddressFieldMapping.mapping)
+		for (const addressPart of Object.values(PostcodeNlAddressFieldMapping.mapping))
 		{
-			const addressPart = PostcodeNlAddressFieldMapping.mapping[key];
-
-			if (mappedValues.has(addressPart) && addressFields[key].length > 0)
+			if (
+				typeof values[addressPart] !== 'undefined'
+				&& typeof addressFields[addressPart] !== 'undefined'
+			)
 			{
-				const field = addressFields[key].val(mappedValues.get(addressPart))[0];
+				const field = addressFields[addressPart].val(values[addressPart])[0];
 				field.dispatchEvent(new Event('change'));
 			}
 		}
@@ -161,7 +184,88 @@
 		field.siblings('.postcode-eu-address-validation-warning').remove();
 	}
 
-	const addAddressAutocompleteNl = function (container)
+	const getPrefilledAddressValues = (addressFields) => {
+		const values = {};
+
+		for (const name of [
+			'postcode',
+			'city',
+			'street',
+			'streetAndHouseNumber',
+			'houseNumber',
+			'houseNumberAddition',
+			'houseNumberAndAddition',
+		])
+		{
+			values[name] = addressFields[PostcodeNlAddressFieldMapping[name]]?.val().trim() ?? null;
+		}
+
+		// Check for separate street and house number fields, fill combined fields.
+		if (values.street)
+		{
+			if (values.houseNumber)
+			{
+				values.houseNumberAndAddition = [
+					values.houseNumber,
+					values.houseNumberAddition ?? '',
+				].join(' ').trim();
+			}
+
+			if (values.houseNumberAndAddition)
+			{
+				values.streetAndHouseNumber = [
+					values.street,
+					values.houseNumberAndAddition,
+				].join(' ');
+			}
+		}
+
+		// Return values if required fields are filled. Otherwise return null.
+		if (values.postcode && values.city && values.streetAndHouseNumber)
+		{
+			return values;
+		}
+
+		return null;
+	};
+
+	const validateAddress = (countryIso3, streetAndBuilding, postcode, locality) => {
+		const url = settings.actions.validate
+			.replace('${country}', encodeURIComponent(countryIso3 ?? ''))
+			.replace('${streetAndBuilding}', encodeURIComponent(streetAndBuilding ?? ''))
+			.replace('${postcode}', encodeURIComponent(postcode ?? ''))
+			.replace('${locality}', encodeURIComponent(locality ?? ''));
+
+		return fetch(url).then((response) => {
+			if (response.ok)
+			{
+				return response.json();
+			}
+
+			throw new Error(response.statusText);
+		});
+	};
+
+	const getValidatedAddress = (countryIso3, streetAndBuilding, postcode, locality) => {
+		return validateAddress(countryIso3, streetAndBuilding, postcode, locality)
+			.then((response) => {
+				const top = response.matches[0];
+				if (
+					top?.status
+					&& !top.status.isAmbiguous
+					&& top.status.grade < 'C'
+					&& ['Building', 'BuildingPartial'].includes(top.status.validationLevel)
+				)
+				{
+					return top;
+				}
+
+				return null;
+			})
+			.catch((error) => console.error(error));
+	};
+
+	const addAddressAutocompleteNl = function (container, addressType)
 	{
 		if (settings.netherlandsMode !== 'postcodeOnly')
 		{
@@ -176,7 +280,8 @@
 			postcodeField = container.find('.postcode-eu-autofill-nl-postcode input'),
 			houseNumberField = container.find('.postcode-eu-autofill-nl-house-number input'),
 			houseNumberSelect = container.find('.postcode-eu-autofill-nl-house-number-select select'),
-			addressFields = getAddressFields(container);
+			addressFields = getAddressFields(container),
+			storedAddress = storedAddresses[addressType];
 
 		let lookupTimeout,
 			currentAddress = null;
@@ -246,6 +351,7 @@
 			}
 
 			resetAddressFields(addressFields);
+			storedAddress.clear();
 
 			if (isPostcodeValid() && isHouseNumberValid())
 			{
@@ -256,7 +362,19 @@
 		postcodeField.on('address-result', function (_, data) {
 			if (data.status === 'valid')
 			{
-				fillAddressFieldsNl(data.address);
+				const {address} = data,
+					addition = address.houseNumberAddition ?? '',
+					building = `${address.houseNumber} ${addition}`.trim();
+
+				fillAddressFieldsNl({
+					[PostcodeNlAddressFieldMapping.postcode]: address.postcode,
+					[PostcodeNlAddressFieldMapping.city]: address.city,
+					[PostcodeNlAddressFieldMapping.street]: address.street,
+					[PostcodeNlAddressFieldMapping.streetAndHouseNumber]: address.street + ' ' + building,
+					[PostcodeNlAddressFieldMapping.houseNumber]: address.houseNumber,
+					[PostcodeNlAddressFieldMapping.houseNumberAddition]: addition,
+					[PostcodeNlAddressFieldMapping.houseNumberAndAddition]: building,
+				});
 			}
 		});
 
@@ -273,19 +391,18 @@
 			toggleAddressFields(addressFields, true);
 			currentAddress.houseNumberAddition = this.value;
 			postcodeField.trigger('address-result', {address: currentAddress, status: 'valid'});
-			fillAddressFieldsNl(currentAddress, this.value);
 		});
 
 		const getAddress = function ()
 		{
 			const postcode = postcodeRegex.exec(postcodeField.val())[0].replace(/\s/g, ''),
 				houseNumberAndAddition = houseNumberRegex.exec(houseNumberField.val())[0].trim(),
-				url = settings.dutchAddressLookup.replace('${postcode}', encodeURIComponent(postcode)).replace('${houseNumberAndAddition}', encodeURIComponent(houseNumberAndAddition));
+				url = settings.actions.dutchAddressLookup.replace('${postcode}', encodeURIComponent(postcode)).replace('${houseNumberAndAddition}', encodeURIComponent(houseNumberAndAddition));
 
 			resetHouseNumberSelect();
 			resetAddressFields(addressFields);
 			currentAddress = null;
-			postcodeField.addClass('postcode-eu-address-validation-loading');
+			postcodeField.addClass(loadingClassName);
 
 			$.get({
 				url: url,
@@ -308,6 +425,8 @@
 					else
 					{
 						toggleAddressFields(addressFields, true);
+						setFieldValidity(postcodeField);
+						setFieldValidity(houseNumberField);
 					}
 				}
 			}).fail(function () {
@@ -316,7 +435,7 @@
 					__('An error has occurred. Please try again later or contact us.', 'postcode-eu-address-validation')
 				);
 			}).always(function (response, textStatus) {
-				postcodeField.removeClass('postcode-eu-address-validation-loading');
+				postcodeField.removeClass(loadingClassName);
 
 				postcodeField.trigger(
 					'address-result',
@@ -341,28 +460,23 @@
 			houseNumberSelect.append(options);
 		}
 
-		const fillAddressFieldsNl = function (address, houseNumberAddition)
+		/**
+	 	 * @param {MappedAddressValues} values
+		 */
+		const fillAddressFieldsNl = function (values)
 		{
-			if (typeof houseNumberAddition !== 'undefined')
+			postcodeField.val(values.postcode);
+			houseNumberField.val(values.houseNumberAndAddition);
+			fillAddressFields(addressFields, values);
+
+			const mailLines = getMailLinesNl(values);
+			storedAddress.set(values, mailLines);
+
+			if (addressType === 'billing' && !window.checkout.ship_to_different_address.checked)
 			{
-				address.houseNumberAddition = houseNumberAddition;
+				// Also set shipping to avoid redundant validation at next pageview.
+				storedAddresses.shipping.set(values, mailLines);
 			}
-
-			const addition = address.houseNumberAddition || '',
-				building = `${address.houseNumber} ${addition}`.trim();
-
-			postcodeField.val(address.postcode);
-			houseNumberField.val(building);
-
-			fillAddressFields(addressFields, new Map([
-				[PostcodeNlAddressFieldMapping.street, address.street],
-				[PostcodeNlAddressFieldMapping.houseNumber, address.houseNumber],
-				[PostcodeNlAddressFieldMapping.houseNumberAddition, addition],
-				[PostcodeNlAddressFieldMapping.postcode, address.postcode],
-				[PostcodeNlAddressFieldMapping.city, address.city],
-				[PostcodeNlAddressFieldMapping.streetAndHouseNumber, address.street + ' ' + building],
-				[PostcodeNlAddressFieldMapping.houseNumberAndAddition, building],
-			]));
 
 			// Force WooCommerce to recalculate shipping costs after address change
 			$(document.body).trigger('update_checkout');
@@ -374,62 +488,21 @@
 			houseNumberSelect.children().eq(0).siblings().remove();
 		}
 
-		// Return a tuple of postcode and house number values, or null if one or both are not found.
-		const findPrefilledPostcodeHouseNumberValues = () => {
-			const findValue = (mappingName) => {
-				let key = findFieldMapping(mappingName);
-				if (key === null || addressFields[key].length === 0 || addressFields[key].val().trim() === '')
-				{
-					return null;
-				}
+		const extractHouseNumber = (streetAndHouseNumber) => {
+			const matches = [...streetAndHouseNumber.matchAll(/[1-9]\d{0,4}\D*/g)];
 
-				return addressFields[key].val().trim();
-			}
-
-			let postcode = findValue(PostcodeNlAddressFieldMapping.postcode);
-			if (postcode === null)
+			if (matches[0]?.index === 0)
 			{
-				return null;
+				matches.shift(); // Discard leading number as a valid house number.
 			}
 
-			let houseNumber;
-			if ((houseNumber = findValue(PostcodeNlAddressFieldMapping.houseNumber)))
+			if (matches.length === 1) // Single match is most likely the house number.
 			{
-				let houseNumberAddition = findValue(PostcodeNlAddressFieldMapping.houseNumberAddition);
-				if (houseNumberAddition !== null)
-				{
-					houseNumber = `${houseNumber} ${houseNumberAddition}`;
-				}
-
-				return [postcode, houseNumber];
+				return matches[0][0].trim();
 			}
 
-			if ((houseNumber = findValue(PostcodeNlAddressFieldMapping.houseNumberAndAddition)))
-			{
-				return [postcode, houseNumber];
-			}
-
-			let streetAndHouseNumber;
-			if ((streetAndHouseNumber = findValue(PostcodeNlAddressFieldMapping.streetAndHouseNumber)))
-			{
-				// Try to extract house number from street + house number combination as a last resort.
-				const matches = [...streetAndHouseNumber.matchAll(/[1-9]\d{0,4}\D*/g)];
-
-				if (matches[0]?.index === 0)
-				{
-					matches.shift(); // Discard leading number as a valid house number.
-				}
-
-				if (matches.length === 1) // Single match is most likely the house number.
-				{
-					return [postcode, matches[0][0].trim()];
-				}
-
-				// Else no match or ambiguous (i.e. multiple numbers found).
-			}
-
-			return [postcode, ''];
-		}
+			return null; // No match or ambiguous (i.e. multiple numbers found).
+		};
 
 		// Initialize
 		(() => {
@@ -440,38 +513,105 @@
 				return;
 			}
 
-			if (postcodeField.val() === '' && houseNumberField.val() === '')
+			const prefilledAddressValues = getPrefilledAddressValues(addressFields);
+			if (prefilledAddressValues === null)
 			{
-				const prefilledValues = findPrefilledPostcodeHouseNumberValues();
-				if (prefilledValues !== null)
-				{
-					postcodeField.val(prefilledValues[0]);
-					houseNumberField.val(prefilledValues[1]);
-				}
+				return;
 			}
 
+			// Check for stored address to use.
+			if (
+				!storedAddress.isExpired()
+				&& storedAddress.isEqual({
+					[PostcodeNlAddressFieldMapping.postcode]: prefilledAddressValues.postcode,
+					[PostcodeNlAddressFieldMapping.city]: prefilledAddressValues.city,
+					[PostcodeNlAddressFieldMapping.streetAndHouseNumber]: prefilledAddressValues.streetAndHouseNumber,
+				})
+			)
+			{
+				const {values, mailLines} = storedAddress.get();
+
+				postcodeField.val(values.postcode);
+				houseNumberField.val(values.houseNumberAndAddition);
+
+				setFieldValidity(postcodeField);
+				setFieldValidity(houseNumberField);
+
+				container.find('.postcode-eu-autofill-intl').trigger('address-result', {mailLines});
+
+				toggleAddressFields(addressFields, true);
+
+				return;
+			}
+
+			// No stored address found, continue with prefilled values.
+
+			const houseNumberAndAddition = prefilledAddressValues.houseNumberAndAddition ??
+				extractHouseNumber(prefilledAddressValues.streetAndHouseNumber);
+
+			postcodeField.val(prefilledAddressValues.postcode);
+
+			if (houseNumberAndAddition)
+			{
+				houseNumberField.val(houseNumberAndAddition);
+			}
+
+			// Use NL API if the postcode and house number are both valid.
 			if (isPostcodeValid() && isHouseNumberValid())
 			{
 				getAddress();
+				return;
+			}
+
+			// Fall back to Validate API for ambiguous house number cases. Because when a street line contains
+			// multiple numbers, the house number can't easily be determined via pattern matching.
+			if (houseNumberRegex.test(prefilledAddressValues.streetAndHouseNumber))
+			{
+				postcodeField.addClass(loadingClassName);
+
+				const {postcode, city, streetAndHouseNumber} = prefilledAddressValues;
+				getValidatedAddress('NLD', streetAndHouseNumber, postcode, city)
+					.then((result) => {
+						if (result === null)
+						{
+							resetAddressFields(addressFields);
+							setFieldValidity(
+								houseNumberField,
+								__('Please enter a valid address.', 'postcode-eu-address-validation')
+							);
+						}
+						else
+						{
+							const {address} = result;
+							fillAddressFieldsNl({
+								[PostcodeNlAddressFieldMapping.postcode]: address.postcode,
+								[PostcodeNlAddressFieldMapping.city]: address.locality,
+								[PostcodeNlAddressFieldMapping.street]: address.street,
+								[PostcodeNlAddressFieldMapping.streetAndHouseNumber]: address.street + ' ' + address.building,
+								[PostcodeNlAddressFieldMapping.houseNumber]: address.buildingNumber,
+								[PostcodeNlAddressFieldMapping.houseNumberAddition]: address.buildingNumberAddition,
+								[PostcodeNlAddressFieldMapping.houseNumberAndAddition]: address.building,
+							});
+
+							setFieldValidity(postcodeField);
+							setFieldValidity(houseNumberField);
+
+							container.find('.postcode-eu-autofill-intl').trigger('address-result', result);
+
+							toggleAddressFields(addressFields, true);
+						}
+					})
+					.finally(() => postcodeField.removeClass(loadingClassName));
 			}
 		})();
 	}
 
-	const addAddressAutocompleteIntl = function (container)
+	const addAddressAutocompleteIntl = function (container, addressType)
 	{
 		const countryToState = container.find('.country_to_state'),
 			intlFormRow = container.find('.postcode-eu-autofill-intl'),
 			intlField = intlFormRow.find('input'),
-			countryIsoMap = (function () {
-				const map = new Map();
-
-				for (let i in settings.enabledCountries)
-				{
-					map.set(settings.enabledCountries[i].iso2, settings.enabledCountries[i].iso3);
-				}
-
-				return map;
-			})();
+			storedAddress = storedAddresses[addressType];
 
 		let autocompleteInstance = null,
 			addressFields = getAddressFields(container),
@@ -499,56 +639,28 @@
 				province = PostcodeNlStateToValueMapping.CHE[result.details.cheCanton.name];
 			}
 
-			let address = result.address;
-			fillAddressFields(addressFields, new Map([
-				[PostcodeNlAddressFieldMapping.street, address.street],
-				[PostcodeNlAddressFieldMapping.houseNumber, address.buildingNumber || ''],
-				[PostcodeNlAddressFieldMapping.houseNumberAddition, address.buildingNumberAddition || ''],
-				[PostcodeNlAddressFieldMapping.postcode, address.postcode],
-				[PostcodeNlAddressFieldMapping.city, address.locality],
-				[PostcodeNlAddressFieldMapping.streetAndHouseNumber, result.streetLine],
-				[PostcodeNlAddressFieldMapping.houseNumberAndAddition, address.building],
-				[PostcodeNlAddressFieldMapping.province, province],
-			]));
+			const {address} = result,
+				values = {
+					[PostcodeNlAddressFieldMapping.street]: address.street,
+					[PostcodeNlAddressFieldMapping.houseNumber]: address.buildingNumber || '',
+					[PostcodeNlAddressFieldMapping.houseNumberAddition]: address.buildingNumberAddition || '',
+					[PostcodeNlAddressFieldMapping.postcode]: address.postcode,
+					[PostcodeNlAddressFieldMapping.city]: address.locality,
+					[PostcodeNlAddressFieldMapping.streetAndHouseNumber]: result.streetLine,
+					[PostcodeNlAddressFieldMapping.houseNumberAndAddition]: address.building,
+					[PostcodeNlAddressFieldMapping.province]: province,
+				};
+
+			fillAddressFields(addressFields, values);
+
+			storedAddress.set(values, result.mailLines);
+
+			if (addressType === 'billing' && !window.checkout.ship_to_different_address.checked)
+			{
+				storedAddresses.shipping.set(values, result.mailLines);
+			}
 
 			$(document.body).trigger('update_checkout');
-		}
-
-		// Get a prefilled address value from the intl field.
-		// If missing, try to construct a value from the address fields.
-		const getPrefilledAddressValue = () => {
-			const intlFieldValue = intlField.val().trim();
-			if (intlFieldValue !== '')
-			{
-				return intlFieldValue;
-			}
-
-			const addressParts = [];
-			const addValue = (mappingName) => {
-				let key = findFieldMapping(mappingName);
-				if (key === null || addressFields[key].length === 0 || addressFields[key].val().trim() === '')
-				{
-					return false;
-				}
-
-				addressParts.push(addressFields[key].val());
-				return true;
-			}
-			addValue(PostcodeNlAddressFieldMapping.postcode);
-			addValue(PostcodeNlAddressFieldMapping.city);
-
-			// Try separate street fields first for better precision.
-			if (addValue(PostcodeNlAddressFieldMapping.street))
-			{
-				addValue(PostcodeNlAddressFieldMapping.houseNumber);
-				addValue(PostcodeNlAddressFieldMapping.houseNumberAddition);
-			}
-			else
-			{
-				addValue(PostcodeNlAddressFieldMapping.streetAndHouseNumber);
-			}
-
-			return addressParts.join(' ');
 		}
 
 		const intlFieldObserver = new IntersectionObserver(function (entries) {
@@ -578,21 +690,21 @@
 						return;
 					}
 
-					intlField.addClass('postcode-eu-address-validation-loading');
+					intlField.addClass(loadingClassName);
 
 					autocompleteInstance.getDetails(item.context, (result) => {
 						callback(result);
 						addressDetailsCache.set(item.context, result);
-						intlField.removeClass('postcode-eu-address-validation-loading');
+						intlField.removeClass(loadingClassName);
 					});
 				}
 
 				const isSingleAddressMatch = () => matches.length === 1 && matches[0].precision === 'Address';
 
 				autocompleteInstance = new PostcodeNl.AutocompleteAddress(intlField[0], {
-					autocompleteUrl: settings.autocomplete,
-					addressDetailsUrl: settings.getDetails,
-					context: (countryIsoMap.get(countryToState.val()) || 'nld').toLowerCase(),
+					autocompleteUrl: settings.actions.autocomplete,
+					addressDetailsUrl: settings.actions.getDetails,
+					context: (settings.enabledCountries[countryToState.val()]?.iso3 ?? 'nld').toLowerCase(),
 				});
 
 				autocompleteInstance.getSuggestions = function (context, term, response)
@@ -620,7 +732,7 @@
 				intlField[0].addEventListener('autocomplete-error', function (e) {
 					console.error('Autocomplete XHR error', e);
 					toggleAddressFields(addressFields, true);
-					intlField.removeClass('postcode-eu-address-validation-loading');
+					intlField.removeClass(loadingClassName);
 					setFieldValidity(
 						intlField,
 						__('An error has occurred while retrieving address data. Please contact us if the problem persists.', 'postcode-eu-address-validation')
@@ -652,55 +764,96 @@
 					matches = [];
 				});
 
-				intlField.on('change', function (e) {
-					e.stopPropagation(); // Prevent default validation via delegated event handler.
-				});
-
-				// Initialize
-				(() => {
-					if (false === isSupportedCountryIntl(countryToState.val()))
-					{
-						return; // Only use values from supported countries.
-					}
-
-					// Run autocomplete if there's a prefilled address value.
-					const prefilledAddressValue = getPrefilledAddressValue();
-					if (prefilledAddressValue !== '')
-					{
-						intlField[0].addEventListener('autocomplete-response', () => {
-							if (isSingleAddressMatch() === true)
-							{
-								selectAutocompleteAddress(matches[0]);
-							}
-
-							matches = [];
-						}, { once: true });
-
-						autocompleteInstance.search(intlField[0], { term: prefilledAddressValue, showMenu: false });
-					}
-				})();
-			})
+				// Prevent default validation via delegated event handler.
+				intlField.on('change', (e) => e.stopPropagation());
+			});
 		});
 
 		intlFieldObserver.observe(intlFormRow[0]);
 
 		intlFormRow.toggle(isSupportedCountryIntl(countryToState.val()));
 
-		countryToState.on('change', window.setTimeout.bind(window, function () {
-				addressFields = getAddressFields(container);
+		countryToState.on('change', () => window.setTimeout(() => {
+			const isSupported = isSupportedCountryIntl(countryToState.val());
+			if (isSupported)
+			{
+				intlField.val('');
+				resetAddressFields(getAddressFields(container));
+				storedAddress.clear();
+				autocompleteInstance?.reset();
+				autocompleteInstance?.setCountry(settings.enabledCountries[countryToState.val()].iso3);
+			}
 
-				const isSupported = isSupportedCountryIntl(countryToState.val());
+			intlFormRow.toggle(isSupported);
+		}));
 
-				if (isSupported && autocompleteInstance !== null)
-				{
-					resetAddressFields(addressFields);
-					autocompleteInstance.reset();
-					autocompleteInstance.setCountry(countryIsoMap.get(countryToState.val()));
-				}
+		// Initialize
+		(() => {
+			if (false === isSupportedCountryIntl(countryToState.val()))
+			{
+				return; // Only use values from supported countries.
+			}
 
-				intlFormRow.toggle(isSupported);
-			})
-		);
+			const prefilledAddressValues = getPrefilledAddressValues(addressFields);
+			if (prefilledAddressValues === null)
+			{
+				return;
+			}
+
+			const {postcode, city, streetAndHouseNumber} = prefilledAddressValues;
+			intlField.val(`${postcode} ${city} ${streetAndHouseNumber}`.trim());
+
+			// Check for stored address to use.
+			if (
+				!storedAddress.isExpired()
+				&& storedAddress.isEqual({
+					[PostcodeNlAddressFieldMapping.postcode]: prefilledAddressValues.postcode,
+					[PostcodeNlAddressFieldMapping.city]: prefilledAddressValues.city,
+					[PostcodeNlAddressFieldMapping.streetAndHouseNumber]: prefilledAddressValues.streetAndHouseNumber,
+				})
+			)
+			{
+				setFieldValidity(intlField);
+
+				const {mailLines} = storedAddress.get();
+				intlFormRow.trigger('address-result', {mailLines});
+
+				return;
+			}
+
+			intlField.addClass(loadingClassName);
+
+			// Autocomplete prefilled address values using the Validate API.
+			const countryIso3 = settings.enabledCountries[countryToState.val()].iso3;
+			getValidatedAddress(countryIso3, streetAndHouseNumber, postcode, city)
+				.then((result) => {
+					if (result === null)
+					{
+						resetAddressFields(addressFields);
+						setFieldValidity(
+							intlField,
+							__('Please select a valid address', 'postcode-eu-address-validation')
+						);
+					}
+					else
+					{
+						fillAddressFieldsIntl(result);
+						setFieldValidity(intlField);
+						intlField.trigger('address-result', result);
+						toggleAddressFields(addressFields, true);
+					}
+				})
+				.finally(() => intlField.removeClass(loadingClassName));
+		})();
+	}
+
+	const getMailLinesNl = function (address)
+	{
+		const {street, houseNumber, houseNumberAddition, city, postcode} = address;
+		return [
+			`${street} ${houseNumber} ${houseNumberAddition ?? ''}`.trim(),
+			`${postcode} ${city}`
+		];
 	}
 
 	const addFormattedAddressOutput = function (container)
@@ -730,13 +883,7 @@
 				return;
 			}
 
-			const {street, houseNumber, houseNumberAddition, city, postcode} = result.address,
-				lines = [
-					`${street} ${houseNumber} ${houseNumberAddition ?? ''}`.trim(),
-					`${postcode} ${city}`
-				];
-
-			addressElement.html(lines.join('<br>'));
+			addressElement.html(getMailLinesNl(result.address).join('<br>'));
 			formRow.show();
 		});
 	}
@@ -769,5 +916,42 @@
 		}
 
 		return null;
+	}
+
+	class StoredAddress {
+		storageKey;
+
+		constructor(addressType)
+		{
+			this.storageKey = 'postcode-eu-validated-address-' + addressType;
+		}
+
+		get()
+		{
+			return JSON.parse(window.localStorage.getItem(this.storageKey)) ?? null;
+		}
+
+		set(values, mailLines)
+		{
+			const data = {timestamp: Date.now(), values, mailLines};
+			window.localStorage.setItem(this.storageKey, JSON.stringify(data));
+		}
+
+		isEqual(values)
+		{
+			const storedValues = this.get()?.values;
+			return (storedValues ?? false) && Object.entries(values).every(([k, v]) => storedValues[k] === v);
+		}
+
+		isExpired()
+		{
+			const data = JSON.parse(window.localStorage.getItem(this.storageKey));
+			return data?.timestamp + 90 * 24 * 60 * 60 * 1000 < Date.now();
+		}
+
+		clear()
+		{
+			window.localStorage.removeItem(this.storageKey);
+		}
 	}
 })();

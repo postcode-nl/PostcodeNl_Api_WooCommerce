@@ -1,34 +1,42 @@
 import { useSelect, useDispatch } from '@wordpress/data';
-import { useCallback } from '@wordpress/element';
+import { useCallback, useRef } from '@wordpress/element';
 import { CART_STORE_KEY, CHECKOUT_STORE_KEY } from '@woocommerce/block-data';
-import AutocompleteContainer from '../../components/address-autocomplete/container';
+import AutocompleteBlock from '../../components/address-autocomplete/block';
 
 const Block = () => {
-	const { getUseShippingAsBilling, getEditingShippingAddress } = useSelect(select => select(CHECKOUT_STORE_KEY), []),
+	const {isUseShippingAsBilling, isEditingAddress} = useSelect((select) => ({
+			isUseShippingAsBilling: select(CHECKOUT_STORE_KEY).getUseShippingAsBilling(),
+			isEditingAddress: select(CHECKOUT_STORE_KEY).getEditingShippingAddress(),
+		}), []),
+		{setEditingShippingAddress} = useDispatch(CHECKOUT_STORE_KEY),
 		{shippingAddress} = useSelect(select => select(CART_STORE_KEY).getCustomerData(), []),
-		{setShippingAddress, setBillingAddress} = useDispatch(CART_STORE_KEY);
+		{setShippingAddress, setBillingAddress} = useDispatch(CART_STORE_KEY),
+		isUseShippingAsBillingRef = useRef();
 
-	const setAddress = useCallback(
-		(values) => {
-			setShippingAddress(values);
+	isUseShippingAsBillingRef.current = isUseShippingAsBilling;
 
-			if (getUseShippingAsBilling())
-			{
-				// Billing address needs to be synced with shipping address after calling `setShippingAddress`.
-				setBillingAddress({...values});
-			}
-		},
-		[getUseShippingAsBilling, setShippingAddress, setBillingAddress]
-	);
+	const setAddress = useCallback((values) => {
+		setShippingAddress(values);
 
-	return getEditingShippingAddress() ? (
-		<AutocompleteContainer
-			addressType="shipping"
+		if (isUseShippingAsBillingRef.current)
+		{
+			// Billing address needs to be synced with shipping address after calling `setShippingAddress`.
+			setBillingAddress({...values});
+		}
+	}, [
+		setShippingAddress,
+		setBillingAddress,
+	]);
+
+	return (
+		<AutocompleteBlock
+			addressType='shipping'
 			address={shippingAddress}
 			setAddress={setAddress}
+			isEditingAddress={isEditingAddress}
+			setIsEditingAddress={setEditingShippingAddress}
 		/>
-	) : null
-
+	)
 }
 
 export default Block;

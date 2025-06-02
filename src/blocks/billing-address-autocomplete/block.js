@@ -1,17 +1,23 @@
 import { useSelect, useDispatch } from '@wordpress/data';
 import { CART_STORE_KEY, CHECKOUT_STORE_KEY } from '@woocommerce/block-data';
-import AutocompleteContainer from '../../components/address-autocomplete/container';
+import AutocompleteBlock from '../../components/address-autocomplete/block';
 
 const Block = () => {
-	const { getUseShippingAsBilling, getEditingBillingAddress } = useSelect(select => select(CHECKOUT_STORE_KEY), []),
+	const {isUseShippingAsBilling, isEditingAddress} = useSelect((select) => ({
+			isUseShippingAsBilling: select(CHECKOUT_STORE_KEY).getUseShippingAsBilling(),
+			isEditingAddress: select(CHECKOUT_STORE_KEY).getEditingBillingAddress(),
+		}), []),
+		{setEditingBillingAddress} = useDispatch(CHECKOUT_STORE_KEY),
 		{billingAddress} = useSelect(select => select(CART_STORE_KEY).getCustomerData(), []),
 		{setBillingAddress} = useDispatch(CART_STORE_KEY);
 
-	return getUseShippingAsBilling() || getEditingBillingAddress() === false ? null : (
-		<AutocompleteContainer
-			addressType="billing"
+	return isUseShippingAsBilling ? null : (
+		<AutocompleteBlock
+			addressType='billing'
 			address={billingAddress}
 			setAddress={setBillingAddress}
+			isEditingAddress={isEditingAddress}
+			setIsEditingAddress={setEditingBillingAddress}
 		/>
 	)
 }

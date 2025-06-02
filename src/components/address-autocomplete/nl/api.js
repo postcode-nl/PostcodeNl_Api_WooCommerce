@@ -1,7 +1,7 @@
 import { settings } from '..';
 
 export const getAddress = (postcode, houseNumber) => {
-	const url = settings.dutchAddressLookup
+	const url = settings.actions.dutchAddressLookup
 		.replace('${postcode}', encodeURIComponent(postcode))
 		.replace('${houseNumberAndAddition}', encodeURIComponent(houseNumber));
 

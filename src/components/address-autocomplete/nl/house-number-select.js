@@ -38,6 +38,7 @@ const HouseNumberSelect = ({id, onChange, options = [], value = ADDITION_PLACEHO
 		return () => clearValidationError(id);
 	}, [
 		value,
+		id,
 		setValidationErrors,
 		clearValidationError,
 	]);

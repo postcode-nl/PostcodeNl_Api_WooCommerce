@@ -12,7 +12,7 @@ const AutocompleteContainer = ({addressType, address, setAddress}) => {
 	addressRef.current = address;
 
 	const resetAddress = useCallback(() => {
-		setAddress({...addressRef.current, address_1: '', city: '', postcode: ''})
+		setAddress({...addressRef.current, address_1: '', city: '', postcode: ''});
 		setFormattedAddress(null);
 	}, [
 		setAddress,
@@ -24,7 +24,7 @@ const AutocompleteContainer = ({addressType, address, setAddress}) => {
 		const moveContainer = () => {
 			const targetElement = document.getElementById(`${addressType}-address_1`)?.parentElement;
 			return targetElement?.before(ref.current), targetElement;
-		}
+		};
 
 		if (!moveContainer())
 		{
@@ -96,7 +96,7 @@ const AutocompleteContainer = ({addressType, address, setAddress}) => {
 				</>
 			)}
 		</div>
-	)
-}
+	);
+};
 
 export default AutocompleteContainer;

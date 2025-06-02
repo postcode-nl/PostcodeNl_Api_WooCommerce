@@ -38,13 +38,13 @@ export function useAutocomplete(inputRef)
 					.replace('${term}', encodeURIComponent(btoa(binaryTerm)));
 
 			return this.xhrGet(`${url}`, response);
-		}
+		};
 
 		instance.current.getDetails = function (addressId, response)
 		{
 			const url = this.options.addressDetailsUrl.replace('${context}', encodeURIComponent(addressId));
 			return this.xhrGet(url, response);
-		}
+		};
 
 		return () => instance.current.destroy();
 	}, [

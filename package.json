@@ -12,16 +12,16 @@
 		"start": "wp-scripts start"
 	},
 	"devDependencies": {
-		"@eslint/js": "^9.22.0",
-		"@woocommerce/dependency-extraction-webpack-plugin": "^3.0.1",
+		"@eslint/js": "^9.27.0",
+		"@woocommerce/dependency-extraction-webpack-plugin": "^3.1.0",
 		"@wordpress/scripts": "^27.9.0",
 		"eslint": "^8.57.1",
-		"eslint-plugin-react": "^7.37.4",
+		"eslint-plugin-react": "^7.37.5",
 		"eslint-plugin-react-hooks": "^5.2.0",
-		"globals": "^16.0.0",
+		"globals": "^16.2.0",
 		"webpack-livereload-plugin": "^3.0.2"
 	},
 	"dependencies": {
-		"@wordpress/icons": "^10.18.0"
+		"@wordpress/icons": "^10.24.0"
 	}
 }

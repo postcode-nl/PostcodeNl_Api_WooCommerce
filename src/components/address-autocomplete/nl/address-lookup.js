@@ -204,7 +204,7 @@ const AddressLookup = (
 			return {
 				address: {...result.address, houseNumberAddition: isPlaceholder ? null : houseNumberAdditionValue},
 				status: isPlaceholder ? null : ADDRESS_RESULT_STATUS.VALID,
-			}
+			};
 		});
 	}, [
 		houseNumberAdditionValue,
@@ -245,7 +245,7 @@ const AddressLookup = (
 				<LookupError id={lookupErrorId} />
 			</div>
 		</>
-	)
-}
+	);
+};
 
 export default AddressLookup;

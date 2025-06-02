@@ -109,6 +109,6 @@ const AutocompleteBlock = ({isEditingAddress, setIsEditingAddress, setAddress, .
 	]);
 
 	return isEditingAddress ? <AutocompleteContainer {...props} setAddress={setAddressWithStorage} /> : null;
-}
+};
 
 export default AutocompleteBlock;

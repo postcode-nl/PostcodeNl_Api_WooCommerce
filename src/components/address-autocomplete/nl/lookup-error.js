@@ -26,6 +26,6 @@ const LookupError = ({id}) => {
 			</p>
 		</div>
 	);
-}
+};
 
 export default LookupError;

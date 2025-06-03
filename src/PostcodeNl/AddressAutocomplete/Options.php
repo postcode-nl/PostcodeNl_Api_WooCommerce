@@ -215,9 +215,11 @@ class Options
 		$markup .= '<div class="postcode-eu-api-status">';
 		$markup .= sprintf('<h3>%s</h3>', esc_html__('API connection', 'postcode-eu-address-validation'));
 		$markup .= sprintf(
-			'<dl><dt>%s</dt><dd><span class="subscription-status subscription-status-%s">%s</span></dd>',
+			'<dl><dt>%s</dt><dd><span class="subscription-status subscription-status-%s">%s</span> - %s</dd>',
 			esc_html__('Subscription status', 'postcode-eu-address-validation'),
-			$this->_apiAccountStatus, $this->getApiStatusDescription()
+			$this->_apiAccountStatus,
+			ucfirst($this->getApiStatusDescription()),
+			$this->getApiStatusHint()
 		);
 		$markup .= sprintf(
 			'<dl><dt>%s</dt><dd><span class="subscription-status-date">%s</span></dd>',
@@ -291,7 +293,7 @@ class Options
 		switch ($this->_apiAccountStatus)
 		{
 			case static::API_ACCOUNT_STATUS_NEW:
-				return esc_html__('not connected', 'postcode-eu-address-validation');
+				return esc_html__('new', 'postcode-eu-address-validation');
 			case static::API_ACCOUNT_STATUS_ACTIVE:
 				return esc_html__('active', 'postcode-eu-address-validation');
 			case static::API_ACCOUNT_STATUS_INVALID_CREDENTIALS:
@@ -308,15 +310,9 @@ class Options
 		switch ($this->_apiAccountStatus)
 		{
 			case static::API_ACCOUNT_STATUS_NEW:
+				return esc_html__('Add your Postcode.eu API subscription key and secret.', 'postcode-eu-address-validation');
 			case static::API_ACCOUNT_STATUS_INVALID_CREDENTIALS:
-				return
-					esc_html__('Make sure you used the correct Postcode.eu API subscription key and secret in the options page.', 'postcode-eu-address-validation')
-					. '<br/>' .
-					sprintf(
-						'<a href="%s">%s</a>',
-						menu_page_url(static::MENU_SLUG, false),
-						esc_html__('the options page', 'postcode-eu-address-validation')
-					);
+				return esc_html__('Make sure you used the correct Postcode.eu API subscription key and secret.', 'postcode-eu-address-validation');
 			case static::API_ACCOUNT_STATUS_ACTIVE:
 				return esc_html__('The Postcode.eu API is successfully connected.', 'postcode-eu-address-validation');
 			case static::API_ACCOUNT_STATUS_INACTIVE:

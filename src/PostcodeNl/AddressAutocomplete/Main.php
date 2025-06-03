@@ -10,6 +10,9 @@ defined('ABSPATH') || exit;
 
 class Main
 {
+	/** @var string Name of the plugin */
+	public const NAME = 'Postcode.eu Address Validation';
+
 	/** @var string The version number of the plugin should be equal to the commented version number in ../../../postcode-eu-address-validation.php */
 	public const VERSION = '2.6.0';
 
@@ -389,11 +392,16 @@ class Main
 		{
 			printf(
 				'<div class="notice notice-error is-dismissible">
-				<h3>%s</h3>
+				<h3>%s: %s</h3>
 				<p>%s</p>
 			</div>',
-				esc_html__('Postcode.eu Address Autocomplete: WooCommerce is required', 'postcode-eu-address-validation'),
-				esc_html__('Postcode.eu Address Autocomplete requires the WooCommerce plugin to be activated to be able to add address autocomplete to the checkout form.', 'postcode-eu-address-validation'),
+				Main::NAME,
+				esc_html__('WooCommerce is required', 'postcode-eu-address-validation'),
+				sprintf(
+					/* translators: %s is the plugin name. */
+					esc_html__('%s requires the WooCommerce plugin to be activated to be able to add address autocomplete to the checkout form.', 'postcode-eu-address-validation'),
+					Main::NAME
+				)
 			);
 		}
 
@@ -401,25 +409,6 @@ class Main
 		$page = get_current_screen();
 		if ($page !== null && $page->id === 'settings_page_' . Options::MENU_SLUG)
 		{
-			return;
-		}
-
-		if (!$this->_options->hasKeyAndSecret())
-		{
-			vprintf(
-				'<div class="notice notice-error">
-				<h3>%s</h3>
-				<p>%s</p>
-				<a href="%s">%s</a>
-			</div>',
-				[
-					esc_html__('Postcode.eu Address Autocomplete: Set your credentials', 'postcode-eu-address-validation'),
-					esc_html__('Please set your Postcode.eu API key and secret in the options to start using the Autocomplete in your WooCommerce checkout.', 'postcode-eu-address-validation'),
-					menu_page_url(Options::MENU_SLUG, false),
-					esc_html__('Options', 'postcode-eu-address-validation'),
-				]
-			);
-
 			return;
 		}
 
@@ -432,13 +421,16 @@ class Main
 			'<div class="notice notice-error">
 				<h3>%s</h3>
 				<p>%s</p>
+				<p><a href="%s">Plugin settings</a></p>
 			</div>',
 			sprintf(
-				/* translators: %s: API account status. */
-				esc_html__('Postcode.eu Address Autocomplete: Your API account is %s', 'postcode-eu-address-validation'),
+				/* translators: %1$s is the plugin name, %2$s is API account status. */
+				esc_html__('%1$s status: %2$s', 'postcode-eu-address-validation'),
+				Main::NAME,
 				$this->_options->getApiStatusDescription()
 			),
 			$this->_options->getApiStatusHint(),
+			menu_page_url(Options::MENU_SLUG, false)
 		);
 	}
 

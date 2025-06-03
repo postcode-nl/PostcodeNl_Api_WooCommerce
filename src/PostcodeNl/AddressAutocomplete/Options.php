@@ -111,7 +111,11 @@ class Options
 		}
 
 		$markup = '<div class="wrap postcode-eu">';
-		$markup .= vsprintf('<h2>%s</h2>', [esc_html__('Postcode.eu Address Autocomplete options', 'postcode-eu-address-validation')]);
+		$markup .= sprintf(
+			'<h2>%s</h2>',
+			/* translators: %s is the plugin name. */
+			sprintf(esc_html__('%s settings', 'postcode-eu-address-validation'), Main::NAME)
+		);
 		$markup .= '<form method="post" action="">';
 		$markup .= wp_nonce_field(static::FORM_ACTION_NAME, static::FORM_ACTION_NONCE_NAME, true, false);
 
@@ -194,6 +198,7 @@ class Options
 					isset($this->_apiDisabledCountries[$supportedCountry['iso3']]) ? 'disabled' : 'enabled',
 					'select',
 					sprintf(
+						/* translators: %s is the name of a country. */
 						esc_html__('Use autocomplete input for the country %s.', 'postcode-eu-address-validation'),
 						$this->_getCountryName($supportedCountry)
 					),
@@ -265,8 +270,8 @@ class Options
 	public function addPluginPage(): void
 	{
 		add_options_page(
-			'PostcodeNl Address Autocomplete',
-			'Address Autocomplete',
+			Main::NAME,
+			'Address Validation',
 			static::REQUIRED_USER_CAPABILITY,
 			static::MENU_SLUG,
 			[$this, 'show']

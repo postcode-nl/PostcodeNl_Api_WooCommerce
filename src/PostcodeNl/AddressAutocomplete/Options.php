@@ -186,28 +186,35 @@ class Options
 
 		if ($this->hasKeyAndSecret())
 		{
+			$countryListItems = [];
 			foreach ($this->getSupportedCountries() as $supportedCountry)
 			{
 				if ($supportedCountry['iso3'] === 'NLD' && $this->netherlandsMode === static::NETHERLANDS_MODE_POSTCODE_ONLY)
 				{
 					continue;
 				}
-				$markup .= $this->_getInputRow(
-					$this->_getCountryName($supportedCountry),
-					static::FORM_PER_COUNTRY_NAME . $supportedCountry['iso3'],
-					isset($this->_apiDisabledCountries[$supportedCountry['iso3']]) ? 'disabled' : 'enabled',
-					'select',
-					sprintf(
-						/* translators: %s is the name of a country. */
-						esc_html__('Use autocomplete input for the country %s.', 'postcode-eu-address-validation'),
-						$this->_getCountryName($supportedCountry)
-					),
-					[
-						'enabled' => esc_html__('Enabled', 'postcode-eu-address-validation'),
-						'disabled' => esc_html__('Disabled', 'postcode-eu-address-validation'),
-					]
+
+				$checkbox = sprintf(
+					'<input type="checkbox" name="%s" %s/>',
+					static::FORM_NAME_PREFIX . static::FORM_PER_COUNTRY_NAME . $supportedCountry['iso3'],
+					isset($this->_apiDisabledCountries[$supportedCountry['iso3']]) ? '' : 'checked'
+				);
+
+				$countryName = $this->_getCountryName($supportedCountry);
+				$countryListItems[$countryName] = sprintf(
+					'<li><label>%s %s</label></li>',
+					$checkbox,
+					$countryName
 				);
 			}
+
+			ksort($countryListItems);
+
+			$markup .= sprintf(
+				'<tr><th>%s</th><td><ul class="postcode-eu-enabled-countries">%s</ul></td></tr>',
+				esc_html__('Enabled countries', 'postcode-eu-address-validation'),
+				implode($countryListItems)
+			);
 		}
 
 		$markup .= '</table>';
@@ -399,7 +406,7 @@ class Options
 		foreach (array_column($this->getSupportedCountries(), 'iso3') as $countryCode)
 		{
 			$name = static::FORM_NAME_PREFIX . static::FORM_PER_COUNTRY_NAME . $countryCode;
-			if (($_POST[$name] ?? null) === 'disabled')
+			if (!isset($_POST[$name]))
 			{
 				$this->_apiDisabledCountries[$countryCode] = $countryCode;
 			}

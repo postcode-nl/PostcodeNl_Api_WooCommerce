@@ -51,10 +51,7 @@
 	background-color: #666;
 }
 
-.postcode-eu-supported-countries-list li {
-	display: inline;
-}
-
-.postcode-eu-supported-countries-list li:nth-last-child(n+2):after {
-	content: ', ';
+.postcode-eu-enabled-countries {
+	width: 400px;
+	columns: 2;
 }

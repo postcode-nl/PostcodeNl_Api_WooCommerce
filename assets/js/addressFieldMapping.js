@@ -7,10 +7,10 @@ const PostcodeNlAddressFieldMapping = {
 	houseNumber:            'houseNumber',
 	houseNumberAddition:    'houseNumberAddition',
 	city:                   'city',
-	streetAndHouseNumber:   'streetAndHouseNumber',
+	postcode:               'postcode',
 
 	// A combination of street and house number (including house number addition)
-	postcode:               'postcode',
+	streetAndHouseNumber:   'streetAndHouseNumber',
 
 	// A combination of house number and house number addition
 	houseNumberAndAddition: 'houseNumberAndAddition',

@@ -13,7 +13,7 @@
  * Tested up to: 6.8
  * Requires PHP: 7.4
  * WC requires at least: 8.5
- * WC tested up to: 9.8
+ * WC tested up to: 9.9
  */
 
 use Automattic\WooCommerce\Utilities\FeaturesUtil;

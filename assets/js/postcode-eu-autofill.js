@@ -472,7 +472,7 @@
 			const mailLines = getMailLinesNl(values);
 			storedAddress.set(values, mailLines);
 
-			if (addressType === 'billing' && !window.checkout.ship_to_different_address.checked)
+			if (addressType === 'billing' && isUseBillingAsShipping())
 			{
 				// Also set shipping to avoid redundant validation at next pageview.
 				storedAddresses.shipping.set(values, mailLines);
@@ -655,7 +655,7 @@
 
 			storedAddress.set(values, result.mailLines);
 
-			if (addressType === 'billing' && !window.checkout.ship_to_different_address.checked)
+			if (addressType === 'billing' && isUseBillingAsShipping())
 			{
 				storedAddresses.shipping.set(values, result.mailLines);
 			}
@@ -904,18 +904,15 @@
 		formRow.append(wrapper);
 	};
 
-	// Search PostcodeNlAddressFieldMapping.mapping for given value and
-	// return the first corresponding key if successful. Otherwise returns null.
-	const findFieldMapping = (value) => {
-		for (let key in PostcodeNlAddressFieldMapping.mapping)
+	const isUseBillingAsShipping = function ()
+	{
+		if (typeof window.checkout.ship_to_different_address === 'undefined')
 		{
-			if (PostcodeNlAddressFieldMapping.mapping[key] === value)
-			{
-				return key;
-			}
+			// Return false because there's no shipping form in this case.
+			return false;
 		}
 
-		return null;
+		return !window.checkout.ship_to_different_address.checked;
 	};
 
 	class StoredAddress {

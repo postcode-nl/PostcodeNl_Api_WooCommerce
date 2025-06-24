@@ -14,7 +14,7 @@ class Main
 	public const NAME = 'Postcode.eu Address Validation';
 
 	/** @var string The version number of the plugin should be equal to the commented version number in ../../../postcode-eu-address-validation.php */
-	public const VERSION = '2.6.0';
+	public const VERSION = '2.6.1';
 
 	/** @var string Script handle of the autocomplete library. */
 	public const AUTOCOMPLETE_LIBRARY_HANDLE = 'postcode-eu-autocomplete-address-library';

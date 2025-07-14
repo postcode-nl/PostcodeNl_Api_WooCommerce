@@ -23,7 +23,10 @@
 				return; // Already initialized.
 			}
 
-			const container = $(this);
+			const container = $(this),
+				addressType = container.find('#billing_city').length === 0 ? 'shipping' : 'billing';
+
+			storedAddresses[addressType] ??= new StoredAddress(addressType);
 
 			if (false === container.is(':visible'))
 			{
@@ -31,9 +34,6 @@
 			}
 
 			initializedElements.add(this);
-
-			const addressType = container.find('#billing_city').length === 0 ? 'shipping' : 'billing';
-			storedAddresses[addressType] ??= new StoredAddress(addressType);
 
 			if (settings.displayMode === 'default')
 			{

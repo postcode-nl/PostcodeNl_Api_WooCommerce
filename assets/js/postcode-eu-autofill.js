@@ -156,7 +156,7 @@
 			)
 			{
 				const field = addressFields[addressPart].val(values[addressPart])[0];
-				field.dispatchEvent(new Event('change'));
+				field.dispatchEvent(new Event('change', {bubbles: true, cancelable: true}));
 			}
 		}
 	};

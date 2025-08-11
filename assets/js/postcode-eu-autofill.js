@@ -267,7 +267,7 @@
 
 	const addAddressAutocompleteNl = function (container, addressType)
 	{
-		if (settings.netherlandsMode !== 'postcodeOnly')
+		if (typeof settings.enabledCountries.NL === 'undefined' || settings.netherlandsMode !== 'postcodeOnly')
 		{
 			return;
 		}

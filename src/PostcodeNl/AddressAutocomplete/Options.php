@@ -189,11 +189,6 @@ class Options
 			$countryListItems = [];
 			foreach ($this->getSupportedCountries() as $supportedCountry)
 			{
-				if ($supportedCountry['iso3'] === 'NLD' && $this->netherlandsMode === static::NETHERLANDS_MODE_POSTCODE_ONLY)
-				{
-					continue;
-				}
-
 				$checkbox = sprintf(
 					'<input type="checkbox" name="%s" %s/>',
 					static::FORM_NAME_PREFIX . static::FORM_PER_COUNTRY_NAME . $supportedCountry['iso3'],

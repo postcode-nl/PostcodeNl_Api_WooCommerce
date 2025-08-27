@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from '@wordpress/element';
+import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from '@wordpress/element';
 import { useSelect, useDispatch, select as selectStore } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import { VALIDATION_STORE_KEY } from '@woocommerce/block-data';
@@ -13,7 +13,8 @@ const initValue = (address) => {
 	return ['postcode', 'city', 'address_1', 'address_2'].map((field) => address[field]).join(' ').trim();
 };
 
-const AutocompleteInput = (
+const AutocompleteInput = forwardRef(
+(
 	{
 		id,
 		addressType,
@@ -22,7 +23,8 @@ const AutocompleteInput = (
 		setFormattedAddress,
 		addressRef,
 		resetAddress,
-	}
+	},
+	ref
 ) => {
 	const inputRef = useRef(null),
 		[isLoading, setIsLoading] = useState(false),
@@ -139,6 +141,15 @@ const AutocompleteInput = (
 		setFormattedAddress,
 		validateInput,
 	]);
+
+	useImperativeHandle(ref, () => ({
+		reset: () => {
+			autocomplete.instanceRef.current.reset();
+			setValue('');
+			resetAddress();
+		},
+		focus: () => inputRef.current?.focus(),
+	}));
 
 	useEffect(() => {
 		// Set form values on select.
@@ -258,6 +269,6 @@ const AutocompleteInput = (
 			title="" // Hide error message in title.
 		/>
 	);
-};
+});
 
 export default AutocompleteInput;

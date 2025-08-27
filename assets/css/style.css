@@ -27,6 +27,32 @@ input[class].postcodenl-autocomplete-address-input.postcode-eu-address-validatio
 	padding: 0;
 }
 
+.form-row-postcode-eu-autofill-address {
+	position: relative;
+}
+
+.postcode-eu-autofill-address-wrapper {
+	position: relative;
+	flex: 0 0 100%;
+}
+
+.postcode-eu-autofill-address-reset {
+	position: absolute;
+	top: 5px;
+	right: 5px;
+	width: 20px;
+	height: 20px;
+	line-height: 20px;
+	cursor: pointer;
+	text-align: center;
+	border-radius: 3px;
+	opacity: .75;
+}
+
+.postcode-eu-autofill-address-reset:hover {
+	background-color: rgb(0 0 0 / .1);
+}
+
 .postcode-eu-autofill-address {
 	padding: 20px;
 	font-size: 120%;
@@ -67,7 +93,6 @@ input[class].postcodenl-autocomplete-address-input.postcode-eu-address-validatio
 }
 
 .postcode-eu-autofill-container address {
-	flex: 0 0 100%;
 	margin: 0;
 	white-space: pre-line;
 }

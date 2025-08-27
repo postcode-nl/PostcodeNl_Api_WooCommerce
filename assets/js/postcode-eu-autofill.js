@@ -155,8 +155,7 @@
 				&& typeof addressFields[addressPart] !== 'undefined'
 			)
 			{
-				const field = addressFields[addressPart].val(values[addressPart])[0];
-				field.dispatchEvent(new Event('change', {bubbles: true}));
+				addressFields[addressPart].val(values[addressPart]).trigger('change');
 			}
 		}
 	};
@@ -391,6 +390,18 @@
 			toggleAddressFields(addressFields, true);
 			currentAddress.houseNumberAddition = this.value;
 			postcodeField.trigger('address-result', {address: currentAddress, status: 'valid'});
+		});
+
+		container.on('reset-address', () => {
+			if (isNl())
+			{
+				postcodeField.val('');
+				houseNumberField.val('');
+				resetHouseNumberSelect();
+				resetAddressFields(addressFields);
+				storedAddress.clear();
+				postcodeField.focus();
+			}
 		});
 
 		const getAddress = function ()
@@ -663,6 +674,33 @@
 			$(document.body).trigger('update_checkout');
 		};
 
+		const reset = function ()
+		{
+			intlField.val('');
+			resetAddressFields(getAddressFields(container));
+			storedAddress.clear();
+			autocompleteInstance?.reset();
+		};
+
+		countryToState.on('change', () => window.setTimeout(() => {
+			const isSupported = isSupportedCountryIntl(countryToState.val());
+			if (isSupported)
+			{
+				reset();
+				autocompleteInstance?.setCountry(settings.enabledCountries[countryToState.val()].iso3);
+			}
+
+			intlFormRow.toggle(isSupported);
+		}));
+
+		container.on('reset-address', () => {
+			if (isSupportedCountryIntl(countryToState.val()))
+			{
+				reset();
+				intlField.focus();
+			}
+		});
+
 		const intlFieldObserver = new IntersectionObserver(function (entries) {
 			entries.forEach((entry) => {
 				if (!entry.isIntersecting || autocompleteInstance !== null)
@@ -773,20 +811,6 @@
 
 		intlFormRow.toggle(isSupportedCountryIntl(countryToState.val()));
 
-		countryToState.on('change', () => window.setTimeout(() => {
-			const isSupported = isSupportedCountryIntl(countryToState.val());
-			if (isSupported)
-			{
-				intlField.val('');
-				resetAddressFields(getAddressFields(container));
-				storedAddress.clear();
-				autocompleteInstance?.reset();
-				autocompleteInstance?.setCountry(settings.enabledCountries[countryToState.val()].iso3);
-			}
-
-			intlFormRow.toggle(isSupported);
-		}));
-
 		// Initialize
 		(() => {
 			if (false === isSupportedCountryIntl(countryToState.val()))
@@ -858,9 +882,22 @@
 
 	const addFormattedAddressOutput = function (container)
 	{
-		const formRow = $('<div>', {class: 'form-row form-row-wide postcode-eu-autofill'}),
-			addressElement = $('<address>', {class: 'postcode-eu-autofill-address'}).appendTo(formRow);
+		const formRow = $('<div>', {class: 'form-row form-row-wide postcode-eu-autofill form-row-postcode-eu-autofill-address'}),
+			resetButton = $(
+				'<span>',
+				{
+					text: '✕',
+					title:__('Remove address', 'postcode-eu-address-validation'),
+					class: 'postcode-eu-autofill-address-reset',
+					click: () => {
+						container.trigger('reset-address');
+						formRow.hide();
+					},
+				}
+			),
+			addressElement = $('<address>', {class: 'postcode-eu-autofill-address'});
 
+		formRow.append(resetButton, addressElement);
 		container.find('.postcode-eu-autofill').last().after(formRow);
 
 		container.find('.country_to_state').on('change', function () {

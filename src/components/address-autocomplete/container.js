@@ -4,6 +4,7 @@ import { NlAddressLookup, IntlAutocomplete, IntlAutocompleteBypass, FormattedOut
 const AutocompleteContainer = ({addressType, address, setAddress}) => {
 	const ref = useRef(null),
 		addressRef = useRef(address),
+		autocompleteRef = useRef(null),
 		[formattedAddress, setFormattedAddress] = useState(null),
 		[visible, setVisible] = useState(false),
 		intlFieldId = `${addressType}-postcode-eu-address_autocomplete`,
@@ -78,21 +79,26 @@ const AutocompleteContainer = ({addressType, address, setAddress}) => {
 
 	const childProps = {addressType, address, setAddress, setFormattedAddress, addressRef, resetAddress};
 
+	const resetAndFocus = () => {
+		autocompleteRef.current.reset();
+		autocompleteRef.current.focus();
+	};
+
 	return (
 		<div className="postcode-eu-autofill-container" ref={ref} style={visible ? {} : {display: 'none'}}>
 			{isEnabledCountry && (
 				<>
 					{address.country === 'NL' && settings.netherlandsMode === 'postcodeOnly' ? (
-						<NlAddressLookup {...childProps} />
+						<NlAddressLookup ref={autocompleteRef} {...childProps} />
 					) : (
-						<IntlAutocomplete id={intlFieldId} {...childProps} />
+						<IntlAutocomplete ref={autocompleteRef} id={intlFieldId} {...childProps} />
 					)}
 
 					{settings.allowAutofillIntlBypass === 'y' && settings.displayMode !== 'showAll' && (
 						<IntlAutocompleteBypass forId={intlFieldId} onClick={() => setVisible(false)} />
 					)}
 
-					<FormattedOutput formattedAddress={formattedAddress} />
+					<FormattedOutput formattedAddress={formattedAddress} reset={resetAndFocus} />
 				</>
 			)}
 		</div>

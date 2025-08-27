@@ -1,5 +1,5 @@
 import { __ } from '@wordpress/i18n';
-import { useState, useEffect, useCallback, useRef } from '@wordpress/element';
+import { useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from '@wordpress/element';
 import { useDispatch } from '@wordpress/data';
 import { ValidatedTextInput, Spinner } from '@woocommerce/blocks-components';
 import { VALIDATION_STORE_KEY } from '@woocommerce/block-data';
@@ -18,7 +18,8 @@ import { getAddress } from './api';
 
 const initHouseNumber = ({address_1, address_2}) => extractHouseNumber(`${address_1} ${address_2}`) ?? '';
 
-const AddressLookup = (
+const AddressLookup = forwardRef(
+(
 	{
 		addressType,
 		address,
@@ -26,7 +27,8 @@ const AddressLookup = (
 		setFormattedAddress,
 		addressRef,
 		resetAddress,
-	}
+	},
+	ref
 ) => {
 	const postcodeInputId = `${addressType}-postcode-eu-postcode`,
 		houseNumberInputId = `${addressType}-postcode-eu-house_number`,
@@ -46,7 +48,8 @@ const AddressLookup = (
 		lookupTimeoutRef = useRef(),
 		{setValidationErrors, clearValidationError} = useDispatch(VALIDATION_STORE_KEY),
 		storedAddress = useStoredAddress(addressType),
-		initStoredAddressRef = useRef(!storedAddress.isExpired() && storedAddress.isEqual(addressRef.current));
+		initStoredAddressRef = useRef(!storedAddress.isExpired() && storedAddress.isEqual(addressRef.current)),
+		postcodeInputRef = useRef(null);
 
 	const isOptional = useCallback(() => validateStoreAddress(addressType) , [addressType]);
 
@@ -87,6 +90,17 @@ const AddressLookup = (
 		setValidationErrors,
 		setHouseNumberOptions,
 	]);
+
+	useImperativeHandle(ref, () => ({
+		reset: () => {
+			resetAddress();
+			setPostcodeValue('');
+			setHouseNumberValue('');
+			setHouseNumberOptions([]);
+			setHouseNumberAdditionValue(ADDITION_PLACEHOLDER_VALUE);
+		},
+		focus: () => postcodeInputRef.current?.focus(),
+	}));
 
 	useEffect(() => {
 		if (!initStoredAddressRef.current)
@@ -215,6 +229,7 @@ const AddressLookup = (
 		<>
 			<ValidatedTextInput
 				id={postcodeInputId}
+				ref={postcodeInputRef}
 				label={__('Postcode', 'postcode-eu-address-validation')}
 				value={postcodeValue}
 				onChange={setPostcodeValue}
@@ -246,6 +261,6 @@ const AddressLookup = (
 			</div>
 		</>
 	);
-};
+});
 
 export default AddressLookup;

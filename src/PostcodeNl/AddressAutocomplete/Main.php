@@ -295,6 +295,8 @@ class Main
 			'houseNumberPlaceholder' => '123 A',
 			'autofillIntlBypassLinkText' => esc_html__('Enter an address', 'postcode-eu-address-validation'),
 			'allowAutofillIntlBypass' => $this->_options->allowAutofillIntlBypass,
+			'allowPoBoxShipping' => $this->_options->allowPoBoxShipping,
+			'localStorageToken' => $this->_options->getLocalStorageToken(),
 		];
 	}
 

@@ -76,6 +76,7 @@ export function useStoredAddress(addressType)
 		{
 			const data = {
 				timestamp: Date.now(),
+				token: settings.localStorageToken,
 				values: {address_1, postcode, city},
 				mailLines: mailLines,
 			};
@@ -91,7 +92,7 @@ export function useStoredAddress(addressType)
 		isExpired()
 		{
 			const data = JSON.parse(window.localStorage.getItem(this.storageKey));
-			return data?.timestamp + 90 * 24 * 60 * 60 * 1000 < Date.now();
+			return data?.timestamp + 90 * 24 * 60 * 60 * 1000 < Date.now() || data?.token !== settings.localStorageToken;
 		},
 
 		clear()

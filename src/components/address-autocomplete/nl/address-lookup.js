@@ -5,7 +5,7 @@ import { ValidatedTextInput, Spinner } from '@woocommerce/blocks-components';
 import { VALIDATION_STORE_KEY } from '@woocommerce/block-data';
 import { settings } from '..';
 import { useStoredAddress } from '../hooks';
-import { validateStoreAddress, extractHouseNumber } from '../utils';
+import { validateStoreAddress, extractHouseNumber, validatePoBox } from '../utils';
 import { HouseNumberSelect, LookupError } from '.';
 import {
 	ADDRESS_LOOKUP_DELAY,
@@ -84,6 +84,15 @@ const AddressLookup = forwardRef(
 				label: `${address.houseNumber} ${addition}`.trim(),
 			})));
 		}
+		else if (status === ADDRESS_RESULT_STATUS.PO_BOX_NOT_ALLOWED)
+		{
+			setValidationErrors({
+				[lookupErrorId]: {
+					message: __('Sorry, we cannot ship to a PO Box address.', 'postcode-eu-address-validation'),
+					hidden: false,
+				},
+			});
+		}
 	}, [
 		clearValidationError,
 		lookupErrorId,
@@ -126,6 +135,10 @@ const AddressLookup = forwardRef(
 
 			getAddress(parsedPostcodeValue, parsedHouseNumberValue)
 				.then((response) => {
+					if (response.address && response.address.addressType === 'PO box' && !validatePoBox(addressType))
+					{
+						response.status = ADDRESS_RESULT_STATUS.PO_BOX_NOT_ALLOWED;
+					}
 					checkAddressStatus(response);
 					setAddressLookupResult(response);
 				})
@@ -151,6 +164,7 @@ const AddressLookup = forwardRef(
 		parsedPostcodeValue,
 		parsedHouseNumberValue,
 		setIsLoading,
+		addressType,
 		checkAddressStatus,
 		setAddressLookupResult,
 		setValidationErrors,

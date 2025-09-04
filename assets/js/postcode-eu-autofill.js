@@ -264,6 +264,11 @@
 			.catch((error) => console.error(error));
 	};
 
+	const validatePoBox = function (addressType)
+	{
+		return settings.allowPoBoxShipping === 'y' || !(addressType === 'shipping' || isBillingAsShipping());
+	};
+
 	const addAddressAutocompleteNl = function (container, addressType)
 	{
 		if (typeof settings.enabledCountries.NL === 'undefined' || settings.netherlandsMode !== 'postcodeOnly')
@@ -283,7 +288,8 @@
 			storedAddress = storedAddresses[addressType];
 
 		let lookupTimeout,
-			currentAddress = null;
+			currentAddress = null,
+			currentStatus = null;
 
 		const toggleNlFields = function (state)
 		{
@@ -304,6 +310,7 @@
 			window.clearTimeout(lookupTimeout);
 			clearFieldValidity(postcodeField);
 			resetHouseNumberSelect();
+			currentStatus = null;
 
 			if (isPostcodeValid() && isHouseNumberValid())
 			{
@@ -315,6 +322,7 @@
 			window.clearTimeout(lookupTimeout);
 			clearFieldValidity(houseNumberField);
 			resetHouseNumberSelect();
+			currentStatus = null;
 
 			if (isHouseNumberValid() && isPostcodeValid())
 			{
@@ -323,7 +331,7 @@
 		});
 
 		// Replace WooCommerce checkout validation.
-		postcodeField.on('change', (e) => {
+		postcodeField.on('change focusout validate', (e) => {
 			e.stopPropagation();
 
 			setFieldValidity(
@@ -332,13 +340,16 @@
 			);
 		});
 
-		houseNumberField.on('change', (e) => {
+		houseNumberField.on('change focusout validate', (e) => {
 			e.stopPropagation();
 
-			setFieldValidity(
-				houseNumberField,
-				isHouseNumberValid() ? '' : __('Please enter a valid house number', 'postcode-eu-address-validation')
-			);
+			if (currentStatus === null || currentStatus === 'valid')
+			{
+				setFieldValidity(
+					houseNumberField,
+					isHouseNumberValid() ? '' : __('Please enter a valid house number', 'postcode-eu-address-validation')
+				);
+			}
 		});
 
 		countryToState.on('change', () => {
@@ -377,19 +388,28 @@
 			}
 		});
 
-		houseNumberSelect.on('change', function () {
+		houseNumberSelect.on('change validate', function () {
 			if (this.value === '0') // '0' is the select-house-number label.
 			{
-				currentAddress.houseNumberAddition = null;
-				postcodeField.trigger('address-result', {address: currentAddress, status: 'houseNumberAdditionIncorrect'});
-				toggleAddressFields(addressFields, false);
-				resetAddressFields(addressFields);
+				if (this.children.length > 1)
+				{
+					currentAddress.houseNumberAddition = null;
+					postcodeField.trigger('address-result', {address: currentAddress, status: 'houseNumberAdditionIncorrect'});
+					toggleAddressFields(addressFields, false);
+					resetAddressFields(addressFields);
+					setFieldValidity(
+						houseNumberSelect,
+						__('Please select a house number.', 'postcode-eu-address-validation')
+					);
+				}
+
 				return;
 			}
 
 			toggleAddressFields(addressFields, true);
 			currentAddress.houseNumberAddition = this.value;
 			postcodeField.trigger('address-result', {address: currentAddress, status: 'valid'});
+			clearFieldValidity(houseNumberSelect);
 		});
 
 		container.on('reset-address', () => {
@@ -412,7 +432,7 @@
 
 			resetHouseNumberSelect();
 			resetAddressFields(addressFields);
-			currentAddress = null;
+			currentAddress = currentStatus = null;
 			postcodeField.addClass(loadingClassName);
 
 			$.get({
@@ -422,11 +442,22 @@
 				success: function (response) {
 					if (response.status === 'notFound')
 					{
-						setFieldValidity(houseNumberField, __('Address not found.', 'postcode-eu-address-validation'));
+						setFieldValidity(
+							houseNumberField,
+							__('Address not found.', 'postcode-eu-address-validation')
+						);
 						return;
 					}
 
-					currentAddress = response.address;
+					if (response.address.addressType === 'PO box' && !validatePoBox(addressType))
+					{
+						setFieldValidity(
+							houseNumberField,
+							__('Sorry, we cannot ship to a PO Box address.', 'postcode-eu-address-validation')
+						);
+						response.status = 'poBoxNotAllowed';
+						return;
+					}
 
 					if (response.status === 'houseNumberAdditionIncorrect')
 					{
@@ -439,6 +470,8 @@
 						setFieldValidity(postcodeField);
 						setFieldValidity(houseNumberField);
 					}
+
+					currentAddress = response.address;
 				}
 			}).fail(function () {
 				setFieldValidity(
@@ -446,11 +479,13 @@
 					__('An error has occurred. Please try again later or contact us.', 'postcode-eu-address-validation')
 				);
 			}).always(function (response, textStatus) {
+				currentStatus = response.status ?? textStatus;
+
 				postcodeField.removeClass(loadingClassName);
 
 				postcodeField.trigger(
 					'address-result',
-					textStatus === 'success' ? response : {status: 'error', address: null}
+					textStatus === 'success' ? response : {status: textStatus, address: null}
 				);
 			});
 		};
@@ -476,14 +511,12 @@
 		 */
 		const fillAddressFieldsNl = function (values)
 		{
-			postcodeField.val(values.postcode);
-			houseNumberField.val(values.houseNumberAndAddition);
 			fillAddressFields(addressFields, values);
 
 			const mailLines = getMailLinesNl(values);
 			storedAddress.set(values, mailLines);
 
-			if (addressType === 'billing' && isUseBillingAsShipping())
+			if (addressType === 'billing' && hasUnusedShippingForm())
 			{
 				// Also set shipping to avoid redundant validation at next pageview.
 				storedAddresses.shipping.set(values, mailLines);
@@ -555,7 +588,7 @@
 				return;
 			}
 
-			// No stored address found, continue with prefilled values.
+			// Stored address expired or not found, continue with prefilled values.
 
 			const houseNumberAndAddition = prefilledAddressValues.houseNumberAndAddition ??
 				extractHouseNumber(prefilledAddressValues.streetAndHouseNumber);
@@ -590,6 +623,16 @@
 								houseNumberField,
 								__('Please enter a valid address.', 'postcode-eu-address-validation')
 							);
+							currentStatus = 'notFound';
+						}
+						else if (result.isPoBox && !validatePoBox(addressType))
+						{
+							resetAddressFields(addressFields);
+							setFieldValidity(
+								houseNumberField,
+								__('Sorry, we cannot ship to a PO Box address.', 'postcode-eu-address-validation')
+							);
+							currentStatus = 'poBoxNotAllowed';
 						}
 						else
 						{
@@ -666,7 +709,7 @@
 
 			storedAddress.set(values, result.mailLines);
 
-			if (addressType === 'billing' && isUseBillingAsShipping())
+			if (addressType === 'billing' && hasUnusedShippingForm())
 			{
 				storedAddresses.shipping.set(values, result.mailLines);
 			}
@@ -677,7 +720,7 @@
 		const reset = function ()
 		{
 			intlField.val('');
-			resetAddressFields(getAddressFields(container));
+			resetAddressFields(addressFields);
 			storedAddress.clear();
 			autocompleteInstance?.reset();
 		};
@@ -713,11 +756,21 @@
 				const selectAutocompleteAddress = function (item)
 				{
 					const callback = (result) => {
-						fillAddressFieldsIntl(result);
-						toggleAddressFields(addressFields, true);
-						intlField.trigger('address-result', result);
-
-						setFieldValidity(intlField);
+						if (result.isPoBox && !validatePoBox(addressType))
+						{
+							resetAddressFields(addressFields);
+							setFieldValidity(
+								intlField,
+								__('Sorry, we cannot ship to a PO Box address.', 'postcode-eu-address-validation')
+							);
+}
+						else
+						{
+							fillAddressFieldsIntl(result);
+							toggleAddressFields(addressFields, true);
+							intlField.trigger('address-result', result);
+							setFieldValidity(intlField);
+						}
 
 						deferred.resolve();
 					};
@@ -803,7 +856,7 @@
 				});
 
 				// Prevent default validation via delegated event handler.
-				intlField.on('change', (e) => e.stopPropagation());
+				intlField.on('change focusout validate', (e) => e.stopPropagation());
 			});
 		});
 
@@ -857,6 +910,14 @@
 						setFieldValidity(
 							intlField,
 							__('Please select a valid address', 'postcode-eu-address-validation')
+						);
+					}
+					else if (result.isPoBox && !validatePoBox(addressType))
+					{
+						resetAddressFields(addressFields);
+						setFieldValidity(
+							intlField,
+							__('Sorry, we cannot ship to a PO Box address.', 'postcode-eu-address-validation')
 						);
 					}
 					else
@@ -941,12 +1002,21 @@
 		formRow.append(wrapper);
 	};
 
-	const isUseBillingAsShipping = function ()
+	const hasUnusedShippingForm = function ()
 	{
 		if (typeof window.checkout.ship_to_different_address === 'undefined')
 		{
-			// Return false because there's no shipping form in this case.
-			return false;
+			return false; // No separate shipping form exists.
+		}
+
+		return !window.checkout.ship_to_different_address.checked;
+	};
+
+	const isBillingAsShipping = function ()
+	{
+		if (typeof window.checkout.ship_to_different_address === 'undefined')
+		{
+			return true; // Forced shipping to billing address. No separate shipping form.
 		}
 
 		return !window.checkout.ship_to_different_address.checked;
@@ -967,7 +1037,7 @@
 
 		set(values, mailLines)
 		{
-			const data = {timestamp: Date.now(), values, mailLines};
+			const data = {timestamp: Date.now(), token: settings.localStorageToken, values, mailLines};
 			window.localStorage.setItem(this.storageKey, JSON.stringify(data));
 		}
 
@@ -980,7 +1050,7 @@
 		isExpired()
 		{
 			const data = JSON.parse(window.localStorage.getItem(this.storageKey));
-			return data?.timestamp + 90 * 24 * 60 * 60 * 1000 < Date.now();
+			return data?.timestamp + 90 * 24 * 60 * 60 * 1000 < Date.now() || data?.token !== settings.localStorageToken;
 		}
 
 		clear()

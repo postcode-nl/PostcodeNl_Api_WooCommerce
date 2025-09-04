@@ -5,5 +5,6 @@ export const ADDRESS_RESULT_STATUS = Object.freeze({
 	VALID: 'valid',
 	NOT_FOUND: 'notFound',
 	ADDITION_INCORRECT: 'houseNumberAdditionIncorrect',
+	PO_BOX_NOT_ALLOWED: 'poBoxNotAllowed',
 });
 export const ADDITION_PLACEHOLDER_VALUE = '_';

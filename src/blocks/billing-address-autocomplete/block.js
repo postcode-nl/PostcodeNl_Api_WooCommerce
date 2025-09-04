@@ -1,5 +1,6 @@
 import { useSelect, useDispatch } from '@wordpress/data';
 import { CART_STORE_KEY, CHECKOUT_STORE_KEY } from '@woocommerce/block-data';
+import { getSetting } from '@woocommerce/settings';
 import AutocompleteBlock from '../../components/address-autocomplete/block';
 
 const Block = () => {
@@ -11,7 +12,7 @@ const Block = () => {
 		{billingAddress} = useSelect(select => select(CART_STORE_KEY).getCustomerData(), []),
 		{setBillingAddress} = useDispatch(CART_STORE_KEY);
 
-	return isUseShippingAsBilling ? null : (
+	return (isUseShippingAsBilling && !getSetting('forcedBillingAddress')) ? null : (
 		<AutocompleteBlock
 			addressType='billing'
 			address={billingAddress}

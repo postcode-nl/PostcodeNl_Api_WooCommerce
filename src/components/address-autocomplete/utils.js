@@ -1,5 +1,6 @@
 import { select as selectStore } from '@wordpress/data';
 import { VALIDATION_STORE_KEY } from '@woocommerce/block-data';
+import { getSetting } from '@woocommerce/settings';
 import { settings } from '.';
 import { validate as validateAddress } from './intl/api';
 
@@ -48,4 +49,9 @@ export function extractHouseNumber(streetLine)
 
 	return null; // No match or ambiguous (i.e. multiple numbers found).
 
+}
+
+export function validatePoBox(addressType)
+{
+	return settings.allowPoBoxShipping === 'y' || !(addressType === 'shipping' || getSetting('forcedBillingAddress'));
 }

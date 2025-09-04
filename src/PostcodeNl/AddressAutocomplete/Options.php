@@ -37,6 +37,10 @@ class Options
 
 	protected const SUPPORTED_COUNTRY_LIST_EXPIRATION = '-1 day';
 
+	/** @var string Version of locally stored data. Change it to force client-side update. */
+	protected const LOCAL_STORAGE_VERSION = '1';
+
+
 	public $apiKey = '';
 	public $apiSecret = '';
 	/**
@@ -48,7 +52,11 @@ class Options
 	/** @var string The mode used for Dutch address validation.  */
 	public $netherlandsMode;
 
+	/** @var string Add manual entry link to skip autocomplete. */
 	public $allowAutofillIntlBypass;
+
+	/** @var string Allow shipping to PO boxes. */
+	public $allowPoBoxShipping;
 
 	/** @var array */
 	protected $_supportedCountries;
@@ -66,6 +74,9 @@ class Options
 	protected $_apiAccountStartDate;
 	/** @var array List of country codes for which the autocomplete API is disabled, even though it is supported. */
 	protected $_apiDisabledCountries;
+
+	/** @var int|null Local storage timestamp, used for local storage token. */
+	protected $_localStorageTimestamp;
 
 	public function __construct()
 	{
@@ -92,6 +103,8 @@ class Options
 		$this->_apiAccountUsage = $data['apiAccountUsage'] ?? null;
 		$this->_apiAccountStartDate = $data['apiAccountStartDate'] ?? null;
 		$this->_apiDisabledCountries = $data['apiDisabledCountries'] ?? [];
+		$this->allowPoBoxShipping = $data['allowPoBoxShipping'] ?? 'y';
+		$this->_localStorageTimestamp = $data['localStorageTimestamp'] ?? 0;
 	}
 
 	public function show(): void
@@ -181,7 +194,15 @@ class Options
 				esc_url(__('https://www.postcode.eu/products/address-api/prices', 'postcode-eu-address-validation')),
 				esc_html__('Product pricing', 'postcode-eu-address-validation')
 			),
-			$this->getNetherlandsModeDescriptions()
+			$this->getNetherlandsModeDescriptions(),
+		);
+		$markup .= $this->_getInputRow(
+			esc_html__('PO box shipping', 'postcode-eu-address-validation'),
+			'allowPoBoxShipping',
+			$this->allowPoBoxShipping,
+			'select',
+			esc_html__('Allow or deny shipping to post office boxes.', 'postcode-eu-address-validation'),
+			['y' => esc_html__('Allow', 'postcode-eu-address-validation'), 'n' => esc_html__('Deny', 'postcode-eu-address-validation')]
 		);
 
 		if ($this->hasKeyAndSecret())
@@ -413,7 +434,10 @@ class Options
 			'displayMode',
 			'allowAutofillIntlBypass',
 			'netherlandsMode',
+			'allowPoBoxShipping',
 		];
+
+		$changedOptions = [];
 
 		foreach ($options as $option => $value)
 		{
@@ -457,12 +481,19 @@ class Options
 			}
 
 			$options->{$option} = $newValue;
+			$changedOptions[$option] = $value !== $newValue;
 		}
 
 		if ($options->apiKey !== $existingKey || $options->apiSecret !== $existingSecret)
 		{
 			$this->_apiAccountStatus = static::API_ACCOUNT_STATUS_NEW;
 			$this->_apiAccountName = null;
+		}
+
+		if ($changedOptions['allowPoBoxShipping'] && $options->allowPoBoxShipping === 'n')
+		{
+			// PO boxes no longer allowed, flush local storage to remove any stored PO box addresses.
+			$this->_localStorageTimestamp = time();
 		}
 
 		$options->save();
@@ -519,6 +550,8 @@ class Options
 			'apiAccountUsage' => $this->_apiAccountUsage,
 			'apiAccountStartDate' => $this->_apiAccountStartDate,
 			'apiDisabledCountries' => $this->_apiDisabledCountries,
+			'allowPoBoxShipping' => $this->allowPoBoxShipping,
+			'localStorageTimestamp' => $this->_localStorageTimestamp,
 		];
 	}
 
@@ -566,5 +599,10 @@ class Options
 			static::NETHERLANDS_MODE_DEFAULT => esc_html__('Full lookup (default)', 'postcode-eu-address-validation'),
 			static::NETHERLANDS_MODE_POSTCODE_ONLY => esc_html__('Postcode and house number only', 'postcode-eu-address-validation'),
 		];
+	}
+
+	public function getLocalStorageToken(): string
+	{
+		return hash('crc32', $this->_localStorageTimestamp . static::LOCAL_STORAGE_VERSION);
 	}
 }

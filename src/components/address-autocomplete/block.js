@@ -2,7 +2,7 @@ import { useEffect, useCallback, useRef } from '@wordpress/element';
 import { settings } from '.';
 import AutocompleteContainer from './container';
 import { useStoredAddress } from './hooks';
-import { getValidatedAddress, extractHouseNumber } from './utils';
+import { getValidatedAddress, extractHouseNumber, validatePoBox } from './utils';
 import { getAddress as getNlAddress } from './nl/api';
 
 const AutocompleteBlock = ({isEditingAddress, setIsEditingAddress, setAddress, ...props}) => {
@@ -56,7 +56,7 @@ const AutocompleteBlock = ({isEditingAddress, setIsEditingAddress, setAddress, .
 				getNlAddress(postcode, houseNumber)
 					.then((response) => {
 						const {status, address} = response;
-						if (status === 'valid')
+						if (status === 'valid' && (address.addressType !== 'PO box' || validatePoBox(props.addressType)))
 						{
 							const house = `${address.houseNumber} ${address.houseNumberAddition ?? ''}`.trim();
 							setAddressWithStorage(
@@ -83,7 +83,7 @@ const AutocompleteBlock = ({isEditingAddress, setIsEditingAddress, setAddress, .
 		// Using Validate API:
 		getValidatedAddress(addressRef.current)
 			.then((result) => {
-				if (result === null)
+				if (result === null || (result.isPoBox && !validatePoBox(props.addressType)))
 				{
 					setIsEditingAddress(true);
 					setAddressWithStorage({...addressRef.current, address_1: '', city: '', postcode: ''});
@@ -105,6 +105,7 @@ const AutocompleteBlock = ({isEditingAddress, setIsEditingAddress, setAddress, .
 	}, [
 		storedAddress,
 		setIsEditingAddress,
+		props.addressType,
 		setAddressWithStorage,
 	]);
 

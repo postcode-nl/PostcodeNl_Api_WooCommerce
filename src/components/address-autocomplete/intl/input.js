@@ -3,7 +3,7 @@ import { useSelect, useDispatch, select as selectStore } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import { VALIDATION_STORE_KEY } from '@woocommerce/block-data';
 import { TextInput, ValidationInputError } from '@woocommerce/blocks-components';
-import { validateStoreAddress, getValidatedAddress } from '../utils';
+import { validateStoreAddress, getValidatedAddress, validatePoBox } from '../utils';
 import { settings } from '..';
 import { useAutocomplete, useStoredAddress } from '../hooks';
 
@@ -69,6 +69,19 @@ const AutocompleteInput = forwardRef(
 		setIsLoading(true);
 		autocomplete.getAddressDetails(selectedItem.context)
 			.then((result) => {
+				if (result.isPoBox && !validatePoBox(addressType))
+				{
+					resetAddress();
+					setValidationErrors({
+						[id]: {
+							message: __('Sorry, we cannot ship to a PO Box address.', 'postcode-eu-address-validation'),
+							hidden: false,
+						},
+					});
+
+					return;
+				}
+
 				const {locality, postcode} = result.address;
 				setAddress(
 					{
@@ -90,10 +103,13 @@ const AutocompleteInput = forwardRef(
 			.finally(() => setIsLoading(false));
 	}, [
 		autocomplete,
+		addressType,
 		setAddress,
 		addressRef,
 		setFormattedAddress,
 		clearValidationError,
+		resetAddress,
+		setValidationErrors,
 		id,
 	]);
 
@@ -108,11 +124,21 @@ const AutocompleteInput = forwardRef(
 			.then((result) => {
 				if (result === null)
 				{
-					setAddress({...addressRef.current, address_1: '', city: '', postcode: ''});
+					resetAddress();
 
 					// Make sure an error is set, otherwise the user may try to submit the
 					// form and never see an error message for an incomplete/invalid address.
 					validateInput(true);
+				}
+				else if (result.isPoBox && !validatePoBox(addressType))
+				{
+					resetAddress();
+					setValidationErrors({
+						[id]: {
+							message: __('Sorry, we cannot ship to a PO Box address.', 'postcode-eu-address-validation'),
+							hidden: false,
+						},
+					});
 				}
 				else
 				{
@@ -137,6 +163,9 @@ const AutocompleteInput = forwardRef(
 	}, [
 		addressRef,
 		addressType,
+		resetAddress,
+		setValidationErrors,
+		id,
 		setAddress,
 		setFormattedAddress,
 		validateInput,
@@ -257,10 +286,10 @@ const AutocompleteInput = forwardRef(
 			label={__('Start typing your address or zip/postal code', 'postcode-eu-address-validation')}
 			value={value}
 			onChange={(newValue) => {
-				validateInput(true);
+				hasError || validateInput(true);
 				setValue(newValue);
 			}}
-			onBlur={() => !isMenuOpen && validateInput(false)}
+			onBlur={() => !isMenuOpen && !hasError && validateInput(false)}
 			aria-invalid={hasError === true}
 			ariaDescribedBy={hasError && validationErrorId ? validationErrorId : null}
 			feedback={

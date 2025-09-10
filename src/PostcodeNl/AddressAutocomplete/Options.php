@@ -238,10 +238,22 @@ class Options
 			'<p class="submit"><input type="submit" name="%s" id="submit" class="button button-primary" value="%s"></p>',
 			[static::FORM_ACTION_NAME, esc_html__('Save changes', 'postcode-eu-address-validation')]
 		);
-		$markup .= '</form>';
 
-		$markup .= '<div class="postcode-eu-api-status">';
-		$markup .= sprintf('<h3>%s</h3>', esc_html__('API connection', 'postcode-eu-address-validation'));
+		$markup .= '<hr>';
+		$markup .= $this->_getApiStatusMarkup();
+
+		$markup .= '<hr>';
+		$markup .= $this->_getDebugInfoMarkup();
+
+		$markup .= '</form>';
+		$markup .= '</div>';
+
+		print($markup);
+	}
+
+	private function _getApiStatusMarkup(): string
+	{
+		$markup = sprintf('<h3>%s</h3>', esc_html__('API connection', 'postcode-eu-address-validation'));
 		$markup .= sprintf(
 			'<dl><dt>%s</dt><dd><span class="subscription-status subscription-status-%s">%s</span> - %s</dd>',
 			esc_html__('Subscription status', 'postcode-eu-address-validation'),
@@ -264,6 +276,7 @@ class Options
 				esc_html__('API account name', 'postcode-eu-address-validation'), $this->_apiAccountName
 			);
 		}
+
 		if ($this->_apiAccountStartDate !== null)
 		{
 			$markup .= sprintf(
@@ -272,6 +285,7 @@ class Options
 				wp_date(get_option('date_format'), (new DateTime($this->_apiAccountStartDate))->getTimestamp())
 			);
 		}
+
 		if ($this->_apiAccountLimit !== null && $this->_apiAccountUsage !== null)
 		{
 			$markup .= sprintf(
@@ -285,9 +299,270 @@ class Options
 
 		$markup .= '</dl>';
 
-		$markup .= '</div></div>';
+		return '<div class="postcode-eu-api-status">' . $markup . '</div>';
+	}
 
-		print($markup);
+	private function _getDebugInfoMarkup(): string
+	{
+		$head = sprintf('<h3>%s</h3>', esc_html__('Debug information', 'postcode-eu-address-validation'));
+		$head .= sprintf(
+			'<p class="description">%s<br>%s</p>',
+			esc_html__(
+				'View technical information about your system and plugin configuration.',
+				'postcode-eu-address-validation'
+			),
+			esc_html__(
+				'Please copy and provide this information when contacting support to help us resolve your issue faster.',
+				'postcode-eu-address-validation'
+			)
+		);
+
+		if (isset($_GET['view_debug']))
+		{
+			$head .= sprintf(
+				'<p><a href="%s">%s</a></p>',
+				admin_url('options-general.php?page=' . Options::MENU_SLUG),
+				esc_html__('Hide debug information', 'postcode-eu-address-validation')
+			);
+		}
+		else
+		{
+			$head .= sprintf(
+				'<p><a href="%s">%s</a></p>',
+				admin_url('options-general.php?page=' . Options::MENU_SLUG . '&view_debug#debug'),
+				esc_html__('View debug information', 'postcode-eu-address-validation')
+			);
+			return $head;
+		}
+
+		$copyBtn = sprintf(
+			'<a onclick="navigator.clipboard.writeText(this.nextElementSibling.textContent)">%s</a>',
+			esc_html__('Copy')
+		);
+
+		$md = sprintf('## %s', 'Environment');
+		$md .= PHP_EOL;
+		$md .= sprintf('- **WordPress**: %s', esc_html(get_bloginfo('version')));
+		$md .= PHP_EOL;
+		$md .= sprintf('- **WooCommerce**: %s', defined('WC_VERSION') ? esc_html(WC_VERSION) : 'Not installed');
+		$md .= PHP_EOL;
+		$md .= sprintf('- **PHP**: %s', esc_html(phpversion()));
+		$md .= PHP_EOL;
+		$md .= sprintf('- **Database**: %s', esc_html($GLOBALS['wpdb']->db_server_info()));
+		$md .= PHP_EOL;
+		$serverInfo = $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown';
+		$md .= sprintf('- **Server**: %s', esc_html($serverInfo));
+		$md .= PHP_EOL;
+		$theme = wp_get_theme();
+		$md .= sprintf('- **Active theme**: %s (%s)', esc_html($theme->get('Name')), esc_html($theme->get('Version')));
+		$md .= PHP_EOL;
+		$md .= sprintf('- **Site URL**: %s', esc_url(site_url()));
+		$md .= PHP_EOL;
+		$md .= sprintf('- **Current locale**: %s', esc_html(get_locale()));
+		$md .= PHP_EOL;
+		$md .= sprintf('- **Timezone**: %s', esc_html(wp_timezone_string()));
+		$md .= PHP_EOL;
+
+		$md .= sprintf('## %s', 'Plugin');
+		$md .= PHP_EOL;
+		$md .= sprintf('- **Name**: %s', esc_html(Main::NAME));
+		$md .= PHP_EOL;
+		$md .= sprintf('- **Version**: %s', esc_html(Main::VERSION));
+		$md .= PHP_EOL;
+		$md .= sprintf('- **Display mode**: %s', esc_html($this->displayMode));
+		$md .= PHP_EOL;
+		$md .= sprintf('- **Netherlands mode**: %s', esc_html($this->netherlandsMode));
+		$md .= PHP_EOL;
+		$md .= sprintf('- **Allow intl bypass**: %s', esc_html($this->allowAutofillIntlBypass));
+		$md .= PHP_EOL;
+		$md .= sprintf('- **Allow PO box shipping**: %s', esc_html($this->allowPoBoxShipping));
+		$md .= PHP_EOL;
+		$md .= sprintf('- **API disabled countries**: %s', esc_html(implode(', ', $this->_apiDisabledCountries)));
+		$md .= PHP_EOL;
+
+		$md .= sprintf('## %s', 'WooCommerce');
+		$md .= PHP_EOL;
+		$wcCountries = WC()->countries->get_allowed_countries();
+		$countryList = array_keys($wcCountries);
+		$md .= sprintf('- **Enabled countries**: %s', esc_html(implode(', ', $countryList)));
+		$md .= PHP_EOL;
+		$shipToDestination = get_option('woocommerce_ship_to_destination', 'N/A');
+		$md .= sprintf('- **Ship to destination**: %s', esc_html($shipToDestination));
+		$md .= PHP_EOL;
+
+		$md .= $this->_getCheckoutHooksPluginsTable();
+
+		return $head . '<div class="postcode-eu-debug code" id="debug">' . $copyBtn . '<pre>' . $md . '</pre></div>';
+	}
+
+	/**
+	 * Get markdown table of plugins that hook into WooCommerce checkout.
+	 *
+	 * @return string
+	 */
+	private function _getCheckoutHooksPluginsTable(): string
+	{
+		$hooks = [
+			'woocommerce_checkout_fields',
+			'woocommerce_before_checkout_form',
+			'woocommerce_after_checkout_form',
+			'woocommerce_checkout_before_customer_details',
+			'woocommerce_checkout_after_customer_details',
+			'woocommerce_before_checkout_billing_form',
+			'woocommerce_after_checkout_billing_form',
+			'woocommerce_before_checkout_shipping_form',
+			'woocommerce_after_checkout_shipping_form',
+		];
+		$pluginCallbacks = [];
+		$pluginDirs = [];
+		$pluginNames = [];
+
+		foreach (wp_get_active_and_valid_plugins() as $pluginFile)
+		{
+			$dir = dirname($pluginFile);
+			if (!str_ends_with($dir, '/woocommerce'))
+			{
+				$pluginDirs[$pluginFile] = $dir;
+				$pluginNames[$pluginFile] = get_plugin_data($pluginFile)['Name'];
+			}
+		}
+
+		global $wp_filter;
+		foreach ($hooks as $hook)
+		{
+			if (!isset($wp_filter[$hook]))
+			{
+				continue;
+			}
+
+			$hookCallbacks = $wp_filter[$hook]->callbacks;
+			$pluginCallbacks = array_merge($pluginCallbacks, $this->_getPluginCallbacks($hook, $hookCallbacks, $pluginDirs, $pluginNames));
+		}
+
+		if (empty($pluginCallbacks))
+		{
+			return '';
+		}
+
+		$md = '## Plugins with Checkout Hooks';
+		$md .= PHP_EOL;
+		$md .= '| Plugin | Hook | Callback | Priority |';
+		$md .= PHP_EOL;
+		$md .= "| --- | --- | --- | --- |";
+		$md .= PHP_EOL;
+
+		foreach ($pluginCallbacks as $item)
+		{
+			$md .= sprintf(
+				"| %s | %s | %s | %s |",
+				esc_html($item['plugin']), esc_html($item['hook']), esc_html($item['callback']), esc_html($item['priority'])
+			);
+			$md .= PHP_EOL;
+		}
+
+		return $md;
+	}
+
+	/**
+	 * Extract plugin callbacks for a given hook.
+	 *
+	 * @param string $hook The hook name.
+	 * @param array $hookCallbacks The callbacks registered for the hook.
+	 * @param array $pluginDirs Plugin directory paths.
+	 * @param array $pluginNames Plugin names.
+	 * @return array List of plugin callbacks.
+	 */
+	private function _getPluginCallbacks($hook, $hookCallbacks, $pluginDirs, $pluginNames)
+	{
+		$callbacks = [];
+
+		foreach ($hookCallbacks as $priority => $priorityCallbacks)
+		{
+			foreach ($priorityCallbacks as $callback)
+			{
+				$function = $callback['function'];
+				$file = $this->_getPluginCallbackFile($function);
+				if ($file === null)
+				{
+					continue;
+				}
+
+				foreach ($pluginDirs as $pluginFile => $dir)
+				{
+					if (strpos($file, $dir) === 0)
+					{
+						$callbacks[] = [
+							'plugin' => $pluginNames[$pluginFile],
+							'hook' => $hook,
+							'callback' => $this->_formatPluginCallback($function),
+							'priority' => $priority,
+						];
+						break;
+					}
+				}
+			}
+		}
+
+		return $callbacks;
+	}
+
+	/**
+	 * Get the file name of a callback function or method.
+	 *
+	 * @param mixed $function Callback function or method.
+	 * @return string|null File name or null if not found.
+	 */
+	private function _getPluginCallbackFile($function)
+	{
+		try
+		{
+			if (is_string($function) || $function instanceof Closure)
+			{
+				$ref = new \ReflectionFunction($function);
+				return $ref->getFileName();
+			}
+			elseif (is_array($function) && count($function) === 2)
+			{
+				$ref = new \ReflectionMethod($function[0], $function[1]);
+				return $ref->getFileName();
+			}
+		}
+		catch (Exception $e) {} // Skip invalid callbacks
+
+		return null;
+	}
+
+	/**
+	 * Format callback for display.
+	 *
+	 * @param mixed $callback
+	 * @return string
+	 */
+	private function _formatPluginCallback($callback): string
+	{
+		if (is_string($callback))
+		{
+			return $callback;
+		}
+
+		if (is_array($callback))
+		{
+			if (is_object($callback[0]))
+			{
+				return get_class($callback[0]) . '->' . $callback[1];
+			}
+			else
+			{
+				return $callback[0] . '::' . $callback[1];
+			}
+		}
+
+		if ($callback instanceof Closure)
+		{
+			return 'Closure';
+		}
+
+		return 'Unknown';
 	}
 
 	public function addPluginPage(): void

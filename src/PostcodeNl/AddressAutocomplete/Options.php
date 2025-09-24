@@ -419,11 +419,11 @@ class Options
 
 		foreach (wp_get_active_and_valid_plugins() as $pluginFile)
 		{
-			$dir = dirname($pluginFile);
-			if (!str_ends_with($dir, '/woocommerce'))
+			$pluginData = get_plugin_data($pluginFile);
+			if ($pluginData['Name'] !== 'WooCommerce')
 			{
-				$pluginDirs[$pluginFile] = $dir;
-				$pluginNames[$pluginFile] = get_plugin_data($pluginFile)['Name'];
+				$pluginDirs[$pluginFile] = dirname($pluginFile);
+				$pluginNames[$pluginFile] = $pluginData['Name'];
 			}
 		}
 

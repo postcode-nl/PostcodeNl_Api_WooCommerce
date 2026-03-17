@@ -155,7 +155,9 @@
 				&& typeof addressFields[addressPart] !== 'undefined'
 			)
 			{
-				addressFields[addressPart].val(values[addressPart]).trigger('change');
+				const field = addressFields[addressPart][0];
+				field.value = values[addressPart];
+				field.dispatchEvent(new Event('change', {bubbles: true, cancelable: true}));
 			}
 		}
 	};

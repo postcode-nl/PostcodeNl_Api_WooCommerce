@@ -1,7 +1,7 @@
 === Postcode.eu Address Validation ===
 Contributors: postcodenl
 Tags: address validation, address autocomplete, postcode api, address api, postcode check
-Stable tag: 2.7.2
+Stable tag: 2.7.3
 Tested up to: 6.9
 License: FreeBSD license
 License URI: https://directory.fsf.org/wiki/License:BSD-2-Clause-FreeBSD
@@ -85,6 +85,9 @@ For more details on the Postcode.eu API and how to obtain an account, please vis
 * If the above didn't answer your question, [contact us](https://www.postcode.eu/contact).
 
 == Changelog ==
+
+= 2.7.3 =
+* Fix MyParcel compatibility by using native change event on address fields.
 
 = 2.7.2 =
 * Fix notice about unregistered dependency in blocks checkout.

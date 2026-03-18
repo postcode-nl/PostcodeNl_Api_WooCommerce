@@ -1,7 +1,7 @@
 import { useSelect, useDispatch } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import { VALIDATION_STORE_KEY } from '@woocommerce/block-data';
-import { Icon, edit as editIcon } from '@wordpress/icons';
+import { Icon, pencil as editIcon } from '@wordpress/icons';
 
 const AutocompleteBypass = ({forId, onClick}) => {
 	const validationError = useSelect((select) => select(VALIDATION_STORE_KEY).getValidationError(forId)),

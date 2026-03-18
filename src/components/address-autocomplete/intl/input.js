@@ -28,7 +28,6 @@ const AutocompleteInput = forwardRef(
 ) => {
 	const inputRef = useRef(null),
 		[isLoading, setIsLoading] = useState(false),
-		[isMenuOpen, setIsMenuOpen] = useState(false),
 		[value, setValue] = useState(() => initValue(address)),
 		{setValidationErrors, clearValidationError} = useDispatch(VALIDATION_STORE_KEY),
 		autocomplete = useAutocomplete(inputRef, address.country),
@@ -205,15 +204,11 @@ const AutocompleteInput = forwardRef(
 				},
 			});
 		});
-
-		inputRef.current.addEventListener('autocomplete-open', () => setIsMenuOpen(true));
-		inputRef.current.addEventListener('autocomplete-close', () => setIsMenuOpen(false));
 	}, [
 		setValue,
 		resetAddress,
 		setIsLoading,
 		setValidationErrors,
-		setIsMenuOpen,
 		selectAddress,
 		id
 	]);
@@ -289,7 +284,12 @@ const AutocompleteInput = forwardRef(
 				hasError || validateInput(true);
 				setValue(newValue);
 			}}
-			onBlur={() => !isMenuOpen && !hasError && validateInput(false)}
+			onBlur={() => {
+				if (!hasError && !autocomplete.instanceRef.current.elements.menu.classList.contains('postcodenl-autocomplete-menu-open'))
+				{
+					validateInput(false)
+				}
+			} }
 			aria-invalid={hasError === true}
 			ariaDescribedBy={hasError && validationErrorId ? validationErrorId : null}
 			feedback={

@@ -28,8 +28,6 @@ class Main
 	/** @var string URL to the plugin */
 	public static $pluginUrl;
 
-	private static bool $_isCheckoutBlockDefault = false;
-
 	/** @var self Reference to own */
 	protected static $_instance;
 	/** @var Proxy The proxy object used to redirect requests to the Postcode.eu server */
@@ -57,13 +55,6 @@ class Main
 
 	public function wordPressInit(): void
 	{
-		add_action('woocommerce_init', function () {
-			if (class_exists('Automattic\\WooCommerce\\Blocks\\Utils\\CartCheckoutUtils'))
-			{
-				static::$_isCheckoutBlockDefault = CartCheckoutUtils::is_checkout_block_default();
-			}
-		});
-
 		add_filter('woocommerce_default_address_fields', [$this, 'addressFields']);
 		add_filter('plugin_action_links_' . static::$pluginFilePath, [$this, 'pluginActionLinks']);
 
@@ -443,10 +434,5 @@ class Main
 	public static function getInstance(): self
 	{
 		return static::$_instance;
-	}
-
-	public static function isCheckoutBlockDefault(): bool
-	{
-		return static::$_isCheckoutBlockDefault;
 	}
 }

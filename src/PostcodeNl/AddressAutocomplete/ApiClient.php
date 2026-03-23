@@ -314,7 +314,7 @@ class ApiClient
 		return sprintf(
 			'WordPress/%s WooCommerce/%s/%s PostcodeNl-WooCommerce/%s PHP/%s',
 			get_bloginfo('version'),
-			Main::isCheckoutBlockDefault() ? 'blocks' : 'classic',
+			$_SERVER['HTTP_X_WC_CHECKOUT_TYPE'] ?? 'Unknown',
 			WC()->version,
 			Main::VERSION,
 			PHP_VERSION

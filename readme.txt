@@ -88,6 +88,9 @@ For more details on the Postcode.eu API and how to obtain an account, please vis
 
 = 2.7.3 =
 * Fix MyParcel compatibility by using native change event on address fields.
+* Blocks checkout: fix validation not triggered on blur.
+* Blocks checkout: fix autocomplete menu not updating.
+* Fix checkout type detection.
 
 = 2.7.2 =
 * Fix notice about unregistered dependency in blocks checkout.

@@ -24,7 +24,12 @@ export function useAutocomplete(inputRef)
 	const search = useCallback((...args) => instance.current.search(inputRef.current, ...args), [inputRef]);
 
 	useEffect(() => {
-		instance.current = new PostcodeNl.AutocompleteAddress(inputRef.current, {
+		const inputElement = inputRef.current,
+			onXhrSend = ({detail: xhr}) => xhr.setRequestHeader('X-WC-Checkout-Type', 'blocks');
+
+		inputElement.addEventListener('autocomplete-xhr-send', onXhrSend);
+
+		instance.current = new PostcodeNl.AutocompleteAddress(inputElement, {
 			autocompleteUrl: settings.actions.autocomplete,
 			addressDetailsUrl: settings.actions.getDetails,
 		});
@@ -46,7 +51,10 @@ export function useAutocomplete(inputRef)
 			return this.xhrGet(url, response);
 		};
 
-		return () => instance.current.destroy();
+		return () => {
+			inputElement.removeEventListener('autocomplete-xhr-send', onXhrSend);
+			instance.current.destroy();
+		};
 	}, [
 		inputRef,
 	]);

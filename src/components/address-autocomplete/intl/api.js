@@ -7,7 +7,7 @@ export const validate = (country, streetAndBuilding, postcode, locality) => {
 		.replace('${postcode}', encodeURIComponent(postcode ?? ''))
 		.replace('${locality}', encodeURIComponent(locality ?? ''));
 
-	return fetch(url).then((response) => {
+	return fetch(url, {headers: {'X-WC-Checkout-Type': 'blocks'}}).then((response) => {
 		if (response.ok)
 		{
 			return response.json();

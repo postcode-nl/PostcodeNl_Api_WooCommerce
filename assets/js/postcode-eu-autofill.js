@@ -237,7 +237,7 @@
 			.replace('${postcode}', encodeURIComponent(postcode ?? ''))
 			.replace('${locality}', encodeURIComponent(locality ?? ''));
 
-		return fetch(url).then((response) => {
+		return fetch(url, {headers: {'X-WC-Checkout-Type': 'classic'}}).then((response) => {
 			if (response.ok)
 			{
 				return response.json();
@@ -441,6 +441,7 @@
 				url: url,
 				cache: true,
 				dataType: 'json',
+				headers: { 'X-WC-Checkout-Type': 'classic' },
 				success: function (response) {
 					if (response.status === 'notFound')
 					{
@@ -814,6 +815,10 @@
 					const url = this.options.addressDetailsUrl.replace('${context}', encodeURIComponent(addressId));
 					return this.xhrGet(url, response);
 				};
+
+				intlField[0].addEventListener('autocomplete-xhr-send', ({detail: xhr}) => {
+					xhr.setRequestHeader('X-WC-Checkout-Type', 'classic');
+				});
 
 				intlField[0].addEventListener('autocomplete-select', function (e) {
 					if (e.detail.precision === 'Address')

@@ -893,6 +893,9 @@
 
 			xhr.open('GET', url);
 			xhr.setRequestHeader('X-Autocomplete-Session', sessionId);
+			activeElement?.dispatchEvent(
+				new CustomEvent(EVENT_NAMESPACE + 'xhr-send', {detail: xhr, bubbles: true})
+			);
 			xhr.send();
 
 			return xhr;
@@ -1139,6 +1142,9 @@
 				return; // Menu is not part of the DOM, assume already destroyed.
 			}
 
+			// Prevent potential race condition with pending timeout scheduled by searchDebounced().
+			window.clearTimeout(searchTimeoutId);
+
 			document.body.removeChild(liveRegion);
 
 			for (let i = 0, element; (element = inputElements[i++]);)
@@ -1304,7 +1310,15 @@
 				{
 					menu.open(element);
 					data.context = e.detail.context;
-					window.setTimeout(search, 0, element);
+					window.setTimeout(() => {
+						if (!e.defaultPrevented)
+						{
+							// Make sure value isn't changed (e.g. via React render).
+							element.value = data.match.value;
+						}
+
+						search(element);
+					});
 				}
 			});
 

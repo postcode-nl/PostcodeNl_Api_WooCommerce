@@ -6,6 +6,8 @@ use DateTime;
 use PostcodeNl\AddressAutocomplete\Exception\AuthenticationException;
 use PostcodeNl\AddressAutocomplete\Exception\ClientException;
 use PostcodeNl\AddressAutocomplete\Exception\Exception;
+use PostcodeNl\AddressAutocomplete\Exception\ServerUnavailableException;
+use PostcodeNl\AddressAutocomplete\Exception\UnexpectedException;
 use function get_option;
 use function update_option;
 
@@ -39,6 +41,10 @@ class Options
 
 	/** @var string Version of locally stored data. Change it to force client-side update. */
 	protected const LOCAL_STORAGE_VERSION = '1';
+
+	protected const API_RETRY_INTERVALS = [
+		'+30 seconds', '+1 minute', '+2 minutes', '+5 minutes', '+10 minutes', '+15 minutes',
+	];
 
 
 	public $apiKey = '';
@@ -78,6 +84,12 @@ class Options
 	/** @var int|null Local storage timestamp, used for local storage token. */
 	protected $_localStorageTimestamp;
 
+	/** @var \DateTime|null Last failed Api response. null if never. */
+	protected $_apiFailedDateTime;
+	/** @var int The number of times the Api did not respond properly. */
+	protected $_apiFailedCount;
+
+
 	public function __construct()
 	{
 		$data = get_option(static::OPTION_KEY, []);
@@ -105,6 +117,9 @@ class Options
 		$this->_apiDisabledCountries = $data['apiDisabledCountries'] ?? [];
 		$this->allowPoBoxShipping = $data['allowPoBoxShipping'] ?? 'y';
 		$this->_localStorageTimestamp = $data['localStorageTimestamp'] ?? 0;
+		$apiFailedDateTime = $data['apiFailedDateTime'] ?? '';
+		$this->_apiFailedDateTime = $apiFailedDateTime === '' ? null : new DateTime($apiFailedDateTime);
+		$this->_apiFailedCount = $data['apiFailedCount'] ?? 0;
 	}
 
 	public function show(): void
@@ -122,6 +137,8 @@ class Options
 		{
 			$this->_handleSubmit();
 		}
+
+		$this->checkApiDown();
 
 		$markup = '<div class="wrap postcode-eu">';
 		$markup .= sprintf(
@@ -254,6 +271,17 @@ class Options
 	private function _getApiStatusMarkup(): string
 	{
 		$markup = sprintf('<h3>%s</h3>', esc_html__('API connection', 'postcode-eu-address-validation'));
+		$markup .= sprintf(
+			'<dl><dt>%s</dt><dd><span class="api-status api-status-%s">%s</span> - <a href="%s" target="_blank" rel="noopener">%s</a></dd>',
+			esc_html__('API status', 'postcode-eu-address-validation'),
+			$this->_apiFailedDateTime === null ? 'up' : 'down',
+			$this->_apiFailedDateTime === null
+				? esc_html__('up', 'postcode-eu-address-validation')
+				: esc_html__('down', 'postcode-eu-address-validation'),
+			esc_url(__('https://status.postcode.eu/', 'postcode-eu-address-validation')),
+			esc_html__('API Status', 'postcode-eu-address-validation')
+		);
+
 		$markup .= sprintf(
 			'<dl><dt>%s</dt><dd><span class="subscription-status subscription-status-%s">%s</span> - %s</dd>',
 			esc_html__('Subscription status', 'postcode-eu-address-validation'),
@@ -516,7 +544,7 @@ class Options
 	{
 		try
 		{
-			if (is_string($function) || $function instanceof Closure)
+			if (is_string($function) || $function instanceof \Closure)
 			{
 				$ref = new \ReflectionFunction($function);
 				return $ref->getFileName();
@@ -557,7 +585,7 @@ class Options
 			}
 		}
 
-		if ($callback instanceof Closure)
+		if ($callback instanceof \Closure)
 		{
 			return 'Closure';
 		}
@@ -777,35 +805,48 @@ class Options
 		// Retrieve account information after updating the options
 		if ($this->hasKeyAndSecret())
 		{
-			try
-			{
-				$accountInformation = Main::getInstance()->getProxy()->getClient()->accountInfo();
-				if ($accountInformation['hasAccess'] ?? false)
-				{
-					$this->_apiAccountStatus = static::API_ACCOUNT_STATUS_ACTIVE;
-					$this->_apiAccountInfoDateTime = new DateTime();
-				}
-				else
-				{
-					$this->_apiAccountStatus = static::API_ACCOUNT_STATUS_INACTIVE;
-				}
-				$this->_apiAccountName = $accountInformation['name'] ?? null;
-				$this->_apiAccountLimit = $accountInformation['subscription']['limit'] ?? null;
-				$this->_apiAccountUsage = $accountInformation['subscription']['usage'] ?? null;
-				$this->_apiAccountStartDate = $accountInformation['subscription']['startDate'] ?? null;
-			}
-			catch (AuthenticationException $e)
-			{
-				$this->_apiAccountStatus = static::API_ACCOUNT_STATUS_INVALID_CREDENTIALS;
-				$this->_apiAccountName = null;
-			}
-			catch (ClientException $e)
-			{
-				// Set account status to off
-				$this->_apiAccountStatus = static::API_ACCOUNT_STATUS_NEW;
-				$this->_apiAccountName = null;
-			}
+			$this->_updateAccountInformation();
 			$options->save();
+		}
+	}
+
+	protected function _updateAccountInformation(): void
+	{
+		try
+		{
+			$accountInformation = Main::getInstance()->getProxy()->getClient()->accountInfo();
+			if ($accountInformation['hasAccess'] ?? false)
+			{
+				$this->_apiAccountStatus = static::API_ACCOUNT_STATUS_ACTIVE;
+				$this->_apiAccountInfoDateTime = new DateTime();
+			}
+			else
+			{
+				$this->_apiAccountStatus = static::API_ACCOUNT_STATUS_INACTIVE;
+			}
+			$this->_apiAccountName = $accountInformation['name'] ?? null;
+			$this->_apiAccountLimit = $accountInformation['subscription']['limit'] ?? null;
+			$this->_apiAccountUsage = $accountInformation['subscription']['usage'] ?? null;
+			$this->_apiAccountStartDate = $accountInformation['subscription']['startDate'] ?? null;
+			$this->_apiFailedDateTime = null;
+			$this->_apiFailedCount = 0;
+		}
+		catch (AuthenticationException $e)
+		{
+			$this->_apiAccountStatus = static::API_ACCOUNT_STATUS_INVALID_CREDENTIALS;
+			$this->_apiAccountName = null;
+			$this->_apiFailedDateTime = null;
+			$this->_apiFailedCount = 0;
+		}
+		catch (ClientException $e)
+		{
+			if ($e instanceof ServerUnavailableException || $e instanceof UnexpectedException)
+			{
+				$this->registerApiDown();
+			}
+			// Set account status to off
+			$this->_apiAccountStatus = static::API_ACCOUNT_STATUS_NEW;
+			$this->_apiAccountName = null;
 		}
 	}
 
@@ -827,6 +868,8 @@ class Options
 			'apiDisabledCountries' => $this->_apiDisabledCountries,
 			'allowPoBoxShipping' => $this->allowPoBoxShipping,
 			'localStorageTimestamp' => $this->_localStorageTimestamp,
+			'apiFailedDateTime' => $this->_apiFailedDateTime === null ? '' : $this->_apiFailedDateTime->format('Y-m-d H:i:s'),
+			'apiFailedCount' => $this->_apiFailedCount,
 		];
 	}
 
@@ -879,5 +922,28 @@ class Options
 	public function getLocalStorageToken(): string
 	{
 		return hash('crc32', $this->_localStorageTimestamp . static::LOCAL_STORAGE_VERSION);
+	}
+
+	public function registerApiDown(): void
+	{
+		$this->_apiFailedDateTime = new DateTime();
+		$this->_apiFailedCount++;
+	}
+
+	public function checkApiDown(): bool
+	{
+		if ($this->_apiFailedDateTime === null || $this->_apiFailedCount === 0)
+		{
+			return false;
+		}
+
+		$modifier = static::API_RETRY_INTERVALS[$this->_apiFailedCount - 1] ?? array_last(static::API_RETRY_INTERVALS);
+		$nextCheck = (clone $this->_apiFailedDateTime)->modify($modifier);
+		if ($nextCheck <= new DateTime())
+		{
+			$this->_updateAccountInformation();
+		}
+
+		return $this->_apiFailedCount > 0;
 	}
 }

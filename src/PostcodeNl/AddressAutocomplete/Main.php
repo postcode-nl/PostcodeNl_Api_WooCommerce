@@ -4,7 +4,6 @@ namespace PostcodeNl\AddressAutocomplete;
 
 
 use PostcodeNl\AddressAutocomplete\Exception\Exception;
-use Automattic\WooCommerce\Blocks\Utils\CartCheckoutUtils;
 
 defined('ABSPATH') || exit;
 
@@ -292,6 +291,7 @@ class Main
 			'allowAutofillIntlBypass' => $this->_options->allowAutofillIntlBypass,
 			'allowPoBoxShipping' => $this->_options->allowPoBoxShipping,
 			'localStorageToken' => $this->_options->getLocalStorageToken(),
+			'apiIsDown' => $this->_options->checkApiDown(),
 		];
 	}
 
@@ -434,5 +434,11 @@ class Main
 	public static function getInstance(): self
 	{
 		return static::$_instance;
+	}
+
+	public function registerApiDown(): void
+	{
+		$this->_options->registerApiDown();
+		$this->_options->save();
 	}
 }

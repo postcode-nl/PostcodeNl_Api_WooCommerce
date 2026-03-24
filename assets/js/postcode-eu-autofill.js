@@ -18,6 +18,11 @@
 	const initialize = function ()
 	{
 		$('.postcode-eu-autofill-intl').closest('div').each(function () {
+			if (settings.apiIsDown)
+			{
+				return;
+			}
+
 			if (initializedElements.has(this))
 			{
 				return; // Already initialized.
@@ -766,7 +771,7 @@
 								intlField,
 								__('Sorry, we cannot ship to a PO Box address.', 'postcode-eu-address-validation')
 							);
-}
+						}
 						else
 						{
 							fillAddressFieldsIntl(result);
@@ -829,8 +834,16 @@
 
 				intlField[0].addEventListener('autocomplete-error', function (e) {
 					console.error('Autocomplete XHR error', e);
-					toggleAddressFields(addressFields, true);
 					intlField.removeClass(loadingClassName);
+					if (JSON.parse(e.detail.request.response).apiIsDown)
+					{
+						clearFieldValidity(intlField);
+						reset();
+						intlFormRow.toggle(false);
+						toggleAddressFields(addressFields, true, true);
+						return;
+					}
+					toggleAddressFields(addressFields, true);
 					setFieldValidity(
 						intlField,
 						__('An error has occurred while retrieving address data. Please contact us if the problem persists.', 'postcode-eu-address-validation')

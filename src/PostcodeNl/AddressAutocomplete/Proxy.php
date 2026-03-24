@@ -50,7 +50,7 @@ class Proxy
 		}
 		catch (ClientException $e)
 		{
-			$this->_errorResponse($this->_logException($e));
+			$this->_errorResponse($this->_logException($e), $e);
 		}
 	}
 
@@ -68,7 +68,7 @@ class Proxy
 		}
 		catch (ClientException $e)
 		{
-			$this->_errorResponse($this->_logException($e));
+			$this->_errorResponse($this->_logException($e), $e);
 		}
 	}
 
@@ -125,7 +125,8 @@ class Proxy
 
 		if ($houseNumber === null)
 		{
-			$this->_errorResponse($this->_logException(new Exception('Missing house number.')));
+			$exception = new Exception('Missing house number.');
+			$this->_errorResponse($this->_logException($exception), $exception);
 		}
 
 		try
@@ -148,7 +149,7 @@ class Proxy
 		catch (ClientException $e)
 		{
 			$status = null;
-			$this->_errorResponse($this->_logException($e));
+			$this->_errorResponse($this->_logException($e), $e);
 		}
 
 		$address['postcode'] = wc_format_postcode($address['postcode'], 'NL');
@@ -172,7 +173,8 @@ class Proxy
 
 		if (empty($params['country']))
 		{
-			$this->_errorResponse($this->_logException(new Exception('Country not specified.')));
+			$exception = new Exception('Country not specified.');
+			$this->_errorResponse($this->_logException($exception), $exception);
 		}
 
 		try
@@ -181,7 +183,8 @@ class Proxy
 		}
 		catch (ClientException $e)
 		{
-			$this->_errorResponse($this->_logException($e));
+			$this->_errorResponse($this->_logException($e), $e);
+			return;
 		}
 
 		foreach ($result['matches'] as &$m)
@@ -275,8 +278,14 @@ class Proxy
 		return ['error' => true, 'message' => $e->getMessage()];
 	}
 
-	protected function _errorResponse(array $response): void
+	protected function _errorResponse(array $response, \Exception $e): void
 	{
+		if (in_array(get_class($e),  [ServerUnavailableException::class, UnexpectedException::class], true))
+		{
+			Main::getInstance()->registerApiDown();
+			$response['apiIsDown'] = true;
+		}
+
 		wp_die(wp_json_encode($response), 500);
 	}
 

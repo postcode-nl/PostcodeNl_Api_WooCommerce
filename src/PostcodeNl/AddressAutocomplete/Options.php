@@ -195,7 +195,7 @@ class Options
 			'allowAutofillIntlBypass',
 			$this->allowAutofillIntlBypass,
 			'select',
-			esc_html__('Allows users to skip the autocomplete field and manually enter an address.', 'postcode-eu-address-validation'),
+			esc_html__('Allows users to skip the autocomplete field and manually enter an address. Enabling this option may lead to invalid addresses. Applies only to the full lookup method.', 'postcode-eu-address-validation'),
 			['n' => esc_html__('No'), 'y' => esc_html__('Yes')]
 		);
 		$markup .= $this->_getInputRow(

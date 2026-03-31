@@ -9,21 +9,21 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "POT-Creation-Date: 2021-05-20 13:18+0000\n"
-"PO-Revision-Date: 2025-09-10 08:12+0000\n"
+"PO-Revision-Date: 2026-03-31 09:29+0000\n"
 "Language: nl_NL\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Loco https://localise.biz/\n"
-"X-Loco-Version: 2.8.0; wp-6.8.1; php-8.2.17\n"
+"X-Loco-Version: 2.8.3; wp-6.9.4; php-8.2.22\n"
 "X-Domain: postcode-eu-address-validation\n"
 
 #. %1$s is the plugin name, %2$s is API account status.
-#: src/PostcodeNl/AddressAutocomplete/Main.php:430
+#: src/PostcodeNl/AddressAutocomplete/Main.php:425
 #, php-format
 msgid "%1$s status: %2$s"
 msgstr ""
 
 #. %s is the plugin name.
-#: src/PostcodeNl/AddressAutocomplete/Main.php:404
+#: src/PostcodeNl/AddressAutocomplete/Main.php:399
 #, php-format
 msgid ""
 "%s requires the WooCommerce plugin to be activated to be able to add address "
@@ -33,32 +33,32 @@ msgstr ""
 "van adressen toe te voegen aan het checkout formulier."
 
 #. %s is the plugin name.
-#: src/PostcodeNl/AddressAutocomplete/Options.php:130
+#: src/PostcodeNl/AddressAutocomplete/Options.php:149
 #, php-format
 msgid "%s settings"
 msgstr "%s instellingen"
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:161
+#: src/PostcodeNl/AddressAutocomplete/Main.php:152
 msgid "- Select house number -"
 msgstr "- Selecteer huisnummer -"
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:139
+#: src/PostcodeNl/AddressAutocomplete/Main.php:130
 msgid "123 A"
 msgstr ""
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:124
+#: src/PostcodeNl/AddressAutocomplete/Main.php:115
 msgid "1234 AB"
 msgstr ""
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:601
+#: src/PostcodeNl/AddressAutocomplete/Options.php:631
 msgid "active"
 msgstr "actief"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:175
+#: src/PostcodeNl/AddressAutocomplete/Options.php:194
 msgid "Add manual entry link"
 msgstr "Handmatige invoer link toevoegen"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:616
+#: src/PostcodeNl/AddressAutocomplete/Options.php:646
 msgid "Add your Postcode.eu API subscription key and secret."
 msgstr "Voeg de key en secret van je Postcode.eu API abonnement toe"
 
@@ -67,50 +67,58 @@ msgid "Address autocomplete and validation using the Postcode.eu API."
 msgstr ""
 "Automatisch aanvullen en valideren van adressen met de API van Postcode.eu."
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:167
+#: src/PostcodeNl/AddressAutocomplete/Options.php:186
 msgid "Address field display mode"
 msgstr "Adres velden weergave"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:205
+#: src/PostcodeNl/AddressAutocomplete/Options.php:224
 msgid "Allow"
 msgstr "Toestaan"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:204
+#: src/PostcodeNl/AddressAutocomplete/Options.php:223
 msgid "Allow or deny shipping to post office boxes."
 msgstr "Verzending naar postbussen toestaan of weigeren."
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:179
+#: src/PostcodeNl/AddressAutocomplete/Options.php:198
 msgid ""
-"Allows users to skip the autocomplete field and manually enter an address."
+"Allows users to skip the autocomplete field and manually enter an address. "
+"Enabling this option may lead to invalid addresses. Applies only to the full "
+"lookup method."
 msgstr ""
-"Hiermee kunnen gebruikers het autocomplete veld overslaan en handmatig een "
-"adres invoeren."
+"Hiermee kunnen gebruikers het veld voor automatisch aanvullen overslaan en "
+"handmatig een adres invoeren. Het inschakelen van deze optie kan leiden tot "
+"ongeldige adressen. Alleen van toepassing op de \"Volledige zoekopdracht\" "
+"methode."
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:179
+#: src/PostcodeNl/AddressAutocomplete/Main.php:170
 msgid "API account"
 msgstr ""
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:276
+#: src/PostcodeNl/AddressAutocomplete/Options.php:306
 msgid "API account name"
 msgstr "API account naam"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:256
+#: src/PostcodeNl/AddressAutocomplete/Options.php:275
 msgid "API connection"
 msgstr "API verbinding"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:138
+#: src/PostcodeNl/AddressAutocomplete/Options.php:157
 msgid "API key"
 msgstr ""
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:160
+#: src/PostcodeNl/AddressAutocomplete/Options.php:179
 msgid "API secret"
 msgstr ""
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:284
+#: src/PostcodeNl/AddressAutocomplete/Options.php:278
+msgid "API status"
+msgstr ""
+
+#: src/PostcodeNl/AddressAutocomplete/Options.php:314
 msgid "API subscription start date"
 msgstr "API abonnement start datum"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:293
+#: src/PostcodeNl/AddressAutocomplete/Options.php:323
 msgid "API subscription usage"
 msgstr "API abonnement verbruik"
 
@@ -130,69 +138,77 @@ msgctxt "block title"
 msgid "International Address Autocomplete"
 msgstr ""
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:307
+#: src/PostcodeNl/AddressAutocomplete/Options.php:337
 msgid "Debug information"
 msgstr "Foutopsporingsinformatie"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:205
+#: src/PostcodeNl/AddressAutocomplete/Options.php:224
 msgid "Deny"
 msgstr "Weigeren"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:183
+#: src/PostcodeNl/AddressAutocomplete/Options.php:282
+msgid "Down"
+msgstr ""
+
+#: src/PostcodeNl/AddressAutocomplete/Options.php:202
 msgid "Dutch address lookup method"
 msgstr "Zoekmethode Nederlandse adressen"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:231
+#: src/PostcodeNl/AddressAutocomplete/Options.php:250
 msgid "Enabled countries"
 msgstr "Ingeschakelde landen"
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:294
+#: src/PostcodeNl/AddressAutocomplete/Main.php:289
 msgid "Enter a postcode and house number."
 msgstr "Vul een postcode en huisnummer in."
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:296
+#: src/PostcodeNl/AddressAutocomplete/Main.php:291
 msgid "Enter an address"
 msgstr "Vul een adres in"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:296
+#: src/PostcodeNl/AddressAutocomplete/Options.php:326
 msgid "euro"
 msgstr ""
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:874
+#: src/PostcodeNl/AddressAutocomplete/Options.php:919
 msgid "Full lookup (default)"
 msgstr "Alles doorzoeken (standaard)"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:325
+#: src/PostcodeNl/AddressAutocomplete/Options.php:355
 msgid "Hide debug information"
 msgstr "Debug-informatie verbergen"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:865
+#: src/PostcodeNl/AddressAutocomplete/Options.php:910
 msgid "Hide fields and show a formatted address instead (default)"
 msgstr "Verberg velden en toon alleen een gevonden adres (standaard)"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:866
+#: src/PostcodeNl/AddressAutocomplete/Options.php:911
 msgid "Hide fields until an address is selected (classic checkout only)"
 msgstr ""
 "Velden verbergen totdat een adres is geselecteerd (alleen classic checkout)"
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:138
+#: src/PostcodeNl/AddressAutocomplete/Main.php:129
 msgid "House number and addition"
 msgstr "Huisnummer en toevoeging"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:171
+#: src/PostcodeNl/AddressAutocomplete/Options.php:190
 msgid "How to display the address fields in the checkout form."
 msgstr "Hoe de adresvelden in het checkoutformulier getoond worden."
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:149
+#: src/PostcodeNl/AddressAutocomplete/Options.php:168
 msgid "https://account.postcode.eu/"
+msgstr ""
+
+#: src/PostcodeNl/AddressAutocomplete/Options.php:283
+msgid "https://status.postcode.eu/"
 msgstr ""
 
 #. URI of the plugin
 msgid "https://www.postcode.eu/products/address-api/implementation"
 msgstr ""
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:155
-#: src/PostcodeNl/AddressAutocomplete/Options.php:194
+#: src/PostcodeNl/AddressAutocomplete/Options.php:174
+#: src/PostcodeNl/AddressAutocomplete/Options.php:213
 msgid "https://www.postcode.eu/products/address-api/prices"
 msgstr ""
 
@@ -200,19 +216,19 @@ msgstr ""
 msgid "https://www.postcode.nl"
 msgstr ""
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:605
+#: src/PostcodeNl/AddressAutocomplete/Options.php:635
 msgid "inactive"
 msgstr "inactief"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:603
+#: src/PostcodeNl/AddressAutocomplete/Options.php:633
 msgid "invalid key and/or secret"
 msgstr "ongeldige key en/of secret"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:150
+#: src/PostcodeNl/AddressAutocomplete/Options.php:169
 msgid "Log into your Postcode.eu account"
 msgstr "Log in op je Postcode.nl account"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:618
+#: src/PostcodeNl/AddressAutocomplete/Options.php:648
 #| msgid ""
 #| "Make sure you used the correct Postcode.eu API subscription key and "
 #| "secret in the options page."
@@ -222,19 +238,19 @@ msgstr ""
 "Controleer of je de juiste Postcode.nl API abonnement key en secret hebt "
 "gebruikt."
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:268
+#: src/PostcodeNl/AddressAutocomplete/Options.php:298
 msgid "Never"
 msgstr "Nooit"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:599
+#: src/PostcodeNl/AddressAutocomplete/Options.php:629
 msgid "new"
 msgstr "nieuw"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:114
+#: src/PostcodeNl/AddressAutocomplete/Options.php:133
 msgid "Not accessible."
 msgstr "Geen toegang."
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:314
+#: src/PostcodeNl/AddressAutocomplete/Options.php:344
 msgid ""
 "Please copy and provide this information when contacting support to help us "
 "resolve your issue faster."
@@ -242,35 +258,35 @@ msgstr ""
 "Kopieer en verstrek deze informatie wanneer je contact opneemt met "
 "technische ondersteuning voor een snellere oplossing."
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:330
+#: src/PostcodeNl/AddressAutocomplete/Main.php:325
 msgid "Please enter a postcode and house number for the billing address."
 msgstr "Voer een postcode en huisnummer in voor het factuuradres."
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:352
+#: src/PostcodeNl/AddressAutocomplete/Main.php:347
 msgid "Please enter a postcode and house number for the shipping address."
 msgstr "Voer een postcode en huisnummer in voor het verzendadres."
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:334
+#: src/PostcodeNl/AddressAutocomplete/Main.php:329
 msgid "Please enter and select a billing address."
 msgstr "Voer een factuuradres in en selecteer het."
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:356
+#: src/PostcodeNl/AddressAutocomplete/Main.php:351
 msgid "Please enter and select a shipping address."
 msgstr "Voer een verzendadres in en selecteer het."
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:200
+#: src/PostcodeNl/AddressAutocomplete/Options.php:219
 msgid "PO box shipping"
 msgstr "Postbus verzending"
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:123
+#: src/PostcodeNl/AddressAutocomplete/Main.php:114
 msgid "Postcode"
 msgstr ""
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:292
+#: src/PostcodeNl/AddressAutocomplete/Main.php:287
 msgid "Postcode and house number"
 msgstr "Postcode en huisnummer"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:875
+#: src/PostcodeNl/AddressAutocomplete/Options.php:920
 msgid "Postcode and house number only"
 msgstr "Alleen postcode en huisnummer"
 
@@ -282,39 +298,39 @@ msgstr ""
 msgid "Postcode.nl"
 msgstr ""
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:195
+#: src/PostcodeNl/AddressAutocomplete/Options.php:214
 msgid "Product pricing"
 msgstr "Product prijzen"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:156
+#: src/PostcodeNl/AddressAutocomplete/Options.php:175
 msgid "Register a new Postcode.eu account"
 msgstr "Registreer een nieuwe Postcode.eu account"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:239
+#: src/PostcodeNl/AddressAutocomplete/Options.php:258
 msgid "Save changes"
 msgstr "Wijzigingen opslaan"
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:175
+#: src/PostcodeNl/AddressAutocomplete/Main.php:166
 msgid "Settings"
 msgstr "Instellingen"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:867
+#: src/PostcodeNl/AddressAutocomplete/Options.php:912
 msgid "Show fields"
 msgstr "Toon velden"
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:110
+#: src/PostcodeNl/AddressAutocomplete/Main.php:101
 msgid "Start typing your address or zip/postal code"
 msgstr "Begin met het typen van je adres of postcode"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:259
+#: src/PostcodeNl/AddressAutocomplete/Options.php:289
 msgid "Subscription status"
 msgstr "Abonnement status"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:266
+#: src/PostcodeNl/AddressAutocomplete/Options.php:296
 msgid "Subscription status retrieved"
 msgstr "Abonnementsstatus opgehaald"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:142
+#: src/PostcodeNl/AddressAutocomplete/Options.php:161
 msgid ""
 "The API key is provided by Postcode.eu after completing account registration."
 " You can also request new credentials if you lost them."
@@ -323,26 +339,34 @@ msgstr ""
 "accountregistratie. Je kunt ook nieuwe inloggegevens aanvragen als je die "
 "kwijt bent."
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:620
+#: src/PostcodeNl/AddressAutocomplete/Options.php:650
 msgid "The Postcode.eu API is successfully connected."
 msgstr "De Postcode.nl API is succesvol verbonden."
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:333
+#: src/PostcodeNl/AddressAutocomplete/Options.php:281
+msgid "Up"
+msgstr ""
+
+#: src/PostcodeNl/AddressAutocomplete/Options.php:284
+msgid "View API status page"
+msgstr "API status pagina bekijken"
+
+#: src/PostcodeNl/AddressAutocomplete/Options.php:363
 msgid "View debug information"
 msgstr "Debug-informatie bekijken"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:310
+#: src/PostcodeNl/AddressAutocomplete/Options.php:340
 #| msgid ""
 #| "View technical information about your environment and plugin "
 #| "configuration."
 msgid "View technical information about your system and plugin configuration."
 msgstr "Bekijk technische informatie over je systeem en plugin configuratie."
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:153
+#: src/PostcodeNl/AddressAutocomplete/Main.php:144
 msgid "Which house number do you mean?"
 msgstr "Welk huisnummer bedoel je?"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:187
+#: src/PostcodeNl/AddressAutocomplete/Options.php:206
 msgid ""
 "Which method to use for Dutch address lookups. \"Full lookup\" allows "
 "searching through city and street names, the \"Postcode and house number "
@@ -354,15 +378,15 @@ msgstr ""
 "postcode en huisnummer\" methode ondersteunt alleen exacte postcode en "
 "huisnummer zoekacties maar kost minder per adres."
 
-#: src/PostcodeNl/AddressAutocomplete/Main.php:401
+#: src/PostcodeNl/AddressAutocomplete/Main.php:396
 msgid "WooCommerce is required"
 msgstr "WooCommerce is vereist"
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:164
+#: src/PostcodeNl/AddressAutocomplete/Options.php:183
 msgid "Your API secret as provided by Postcode.eu."
 msgstr "Je API secret zoals opgegeven door Postcode.nl."
 
-#: src/PostcodeNl/AddressAutocomplete/Options.php:622
+#: src/PostcodeNl/AddressAutocomplete/Options.php:652
 msgid ""
 "Your Postcode.eu API subscription is currently inactive, please login to "
 "your account and follow the steps to activate your account."

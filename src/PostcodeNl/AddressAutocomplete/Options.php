@@ -89,6 +89,8 @@ class Options
 	/** @var int The number of times the Api did not respond properly. */
 	protected $_apiFailedCount;
 
+	protected $_isApiDown = false;
+
 
 	public function __construct()
 	{
@@ -120,6 +122,8 @@ class Options
 		$apiFailedDateTime = $data['apiFailedDateTime'] ?? '';
 		$this->_apiFailedDateTime = $apiFailedDateTime === '' ? null : new DateTime($apiFailedDateTime);
 		$this->_apiFailedCount = $data['apiFailedCount'] ?? 0;
+
+		add_action('init', function () { $this->_isApiDown = $this->checkApiDown(); });
 	}
 
 	public function show(): void
@@ -137,8 +141,6 @@ class Options
 		{
 			$this->_handleSubmit();
 		}
-
-		$this->checkApiDown();
 
 		$markup = '<div class="wrap postcode-eu">';
 		$markup .= sprintf(
@@ -276,10 +278,10 @@ class Options
 			esc_html__('API status', 'postcode-eu-address-validation'),
 			$this->_apiFailedDateTime === null ? 'up' : 'down',
 			$this->_apiFailedDateTime === null
-				? esc_html__('up', 'postcode-eu-address-validation')
-				: esc_html__('down', 'postcode-eu-address-validation'),
+				? esc_html__('Up', 'postcode-eu-address-validation')
+				: esc_html__('Down', 'postcode-eu-address-validation'),
 			esc_url(__('https://status.postcode.eu/', 'postcode-eu-address-validation')),
-			esc_html__('API Status', 'postcode-eu-address-validation')
+			esc_html__('View API status page', 'postcode-eu-address-validation')
 		);
 
 		$markup .= sprintf(
@@ -616,7 +618,7 @@ class Options
 
 	public function isApiActive(): bool
 	{
-		return $this->_apiAccountStatus === static::API_ACCOUNT_STATUS_ACTIVE;
+		return $this->_apiAccountStatus === static::API_ACCOUNT_STATUS_ACTIVE && !$this->_isApiDown;
 	}
 
 	public function getApiStatusDescription(): string

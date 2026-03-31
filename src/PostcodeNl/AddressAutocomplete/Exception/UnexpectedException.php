@@ -6,5 +6,5 @@ defined('ABSPATH') || exit;
 
 class UnexpectedException extends ClientException
 {
-
+	protected $code = 503;
 }

@@ -29,11 +29,12 @@ class Main
 
 	/** @var self Reference to own */
 	protected static $_instance;
+
 	/** @var Proxy The proxy object used to redirect requests to the Postcode.eu server */
 	protected $_proxy;
+
 	/** @var Options */
 	protected $_options;
-
 
 	public function __construct()
 	{
@@ -291,7 +292,6 @@ class Main
 			'allowAutofillIntlBypass' => $this->_options->allowAutofillIntlBypass,
 			'allowPoBoxShipping' => $this->_options->allowPoBoxShipping,
 			'localStorageToken' => $this->_options->getLocalStorageToken(),
-			'apiIsDown' => $this->_options->checkApiDown(),
 		];
 	}
 

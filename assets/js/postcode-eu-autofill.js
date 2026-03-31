@@ -18,11 +18,6 @@
 	const initialize = function ()
 	{
 		$('.postcode-eu-autofill-intl').closest('div').each(function () {
-			if (settings.apiIsDown)
-			{
-				return;
-			}
-
 			if (initializedElements.has(this))
 			{
 				return; // Already initialized.
@@ -276,6 +271,16 @@
 		return settings.allowPoBoxShipping === 'y' || !(addressType === 'shipping' || isBillingAsShipping());
 	};
 
+	const destruct = function ()
+	{
+		$('.postcode-eu-autofill-intl').closest('div').each((index, element) => {
+			const container = $(element);
+			container.find('.country_to_state').off('change.postcode-eu');
+			container.find('.form-row.postcode-eu-autofill').remove();
+			toggleAddressFields(getAddressFields(container), true, true);
+		});
+	};
+
 	const addAddressAutocompleteNl = function (container, addressType)
 	{
 		if (typeof settings.enabledCountries.NL === 'undefined' || settings.netherlandsMode !== 'postcodeOnly')
@@ -359,7 +364,7 @@
 			}
 		});
 
-		countryToState.on('change', () => {
+		countryToState.on('change.postcode-eu', () => {
 			toggleNlFields(isNl());
 
 			if (!isNl())
@@ -481,7 +486,13 @@
 
 					currentAddress = response.address;
 				}
-			}).fail(function () {
+			}).fail(function (jqXhr) {
+				if (jqXhr.status === 503)
+				{
+					destruct();
+					return;
+				}
+
 				setFieldValidity(
 					houseNumberField,
 					__('An error has occurred. Please try again later or contact us.', 'postcode-eu-address-validation')
@@ -733,7 +744,7 @@
 			autocompleteInstance?.reset();
 		};
 
-		countryToState.on('change', () => window.setTimeout(() => {
+		countryToState.on('change.postcode-eu', () => window.setTimeout(() => {
 			const isSupported = isSupportedCountryIntl(countryToState.val());
 			if (isSupported)
 			{
@@ -835,14 +846,14 @@
 				intlField[0].addEventListener('autocomplete-error', function (e) {
 					console.error('Autocomplete XHR error', e);
 					intlField.removeClass(loadingClassName);
-					if (JSON.parse(e.detail.request.response).apiIsDown)
+
+					if (e.detail.request.status === 503)
 					{
-						clearFieldValidity(intlField);
-						reset();
-						intlFormRow.toggle(false);
-						toggleAddressFields(addressFields, true, true);
+						// API seems to be down, restore standard address fields.
+						destruct();
 						return;
 					}
+
 					toggleAddressFields(addressFields, true);
 					setFieldValidity(
 						intlField,

@@ -50,7 +50,7 @@ class Proxy
 		}
 		catch (ClientException $e)
 		{
-			$this->_errorResponse($this->_logException($e), $e);
+			$this->_handleException($e);
 		}
 	}
 
@@ -68,7 +68,7 @@ class Proxy
 		}
 		catch (ClientException $e)
 		{
-			$this->_errorResponse($this->_logException($e), $e);
+			$this->_handleException($e);
 		}
 	}
 
@@ -125,8 +125,7 @@ class Proxy
 
 		if ($houseNumber === null)
 		{
-			$exception = new Exception('Missing house number.');
-			$this->_errorResponse($this->_logException($exception), $exception);
+			$this->_handleException(new Exception('Missing house number.'));
 		}
 
 		try
@@ -149,7 +148,7 @@ class Proxy
 		catch (ClientException $e)
 		{
 			$status = null;
-			$this->_errorResponse($this->_logException($e), $e);
+			$this->_handleException($e);
 		}
 
 		$address['postcode'] = wc_format_postcode($address['postcode'], 'NL');
@@ -173,8 +172,7 @@ class Proxy
 
 		if (empty($params['country']))
 		{
-			$exception = new Exception('Country not specified.');
-			$this->_errorResponse($this->_logException($exception), $exception);
+			$this->_handleException(new Exception('Country not specified.'));
 		}
 
 		try
@@ -183,7 +181,7 @@ class Proxy
 		}
 		catch (ClientException $e)
 		{
-			$this->_errorResponse($this->_logException($e), $e);
+			$this->_handleException($e);
 			return;
 		}
 
@@ -278,15 +276,17 @@ class Proxy
 		return ['error' => true, 'message' => $e->getMessage()];
 	}
 
-	protected function _errorResponse(array $response, \Exception $e): void
+	protected function _handleException(\Exception $e): void
 	{
-		if (in_array(get_class($e),  [ServerUnavailableException::class, UnexpectedException::class], true))
+		$response = $this->_logException($e);
+
+		if (in_array(get_class($e), [ServerUnavailableException::class, UnexpectedException::class], true))
 		{
 			Main::getInstance()->registerApiDown();
 			$response['apiIsDown'] = true;
 		}
 
-		wp_die(wp_json_encode($response), 500);
+		wp_die(wp_json_encode($response), $e->getCode());
 	}
 
 	protected function _getLanguage(): ?string

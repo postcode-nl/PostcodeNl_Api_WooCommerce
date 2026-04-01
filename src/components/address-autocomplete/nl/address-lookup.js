@@ -27,6 +27,7 @@ const AddressLookup = forwardRef(
 		setFormattedAddress,
 		addressRef,
 		resetAddress,
+		setIsApiDown,
 	},
 	ref
 ) => {
@@ -142,7 +143,12 @@ const AddressLookup = forwardRef(
 					checkAddressStatus(response);
 					setAddressLookupResult(response);
 				})
-				.catch(() => {
+				.catch((error) => {
+					if (error.cause?.status === 503)
+					{
+						setIsApiDown(true);
+					}
+
 					setValidationErrors({
 						[lookupErrorId]: {
 							message: __(
@@ -167,6 +173,7 @@ const AddressLookup = forwardRef(
 		addressType,
 		checkAddressStatus,
 		setAddressLookupResult,
+		setIsApiDown,
 		setValidationErrors,
 		lookupErrorId,
 	]);

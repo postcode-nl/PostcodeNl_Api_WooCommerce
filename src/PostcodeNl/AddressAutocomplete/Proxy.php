@@ -278,14 +278,12 @@ class Proxy
 
 	protected function _handleException(\Exception $e): void
 	{
-		$response = $this->_logException($e);
-
-		if (in_array(get_class($e), [ServerUnavailableException::class, UnexpectedException::class], true))
+		if ($e->getCode() === 503)
 		{
 			Main::getInstance()->registerApiDown();
-			$response['apiIsDown'] = true;
 		}
 
+		$response = $this->_logException($e);
 		wp_die(wp_json_encode($response), $e->getCode());
 	}
 

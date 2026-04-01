@@ -11,6 +11,6 @@ export const getAddress = (postcode, houseNumber) => {
 			return response.json();
 		}
 
-		throw new Error(response.statusText);
+		throw new Error(response.statusText, {cause: response});
 	});
 };

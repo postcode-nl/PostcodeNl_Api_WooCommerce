@@ -80,10 +80,13 @@ class Main
 
 		add_action('admin_notices', [$this, 'adminNotice']);
 
-		add_action(
-			'woocommerce_blocks_checkout_block_registration',
-			function($integrationRegistry) { $integrationRegistry->register(new BlocksIntegration()); }
-		);
+		if ($this->_options->isApiActive())
+		{
+			add_action(
+				'woocommerce_blocks_checkout_block_registration',
+				function($integrationRegistry) { $integrationRegistry->register(new BlocksIntegration()); }
+			);
+		}
 
 		// Fix path for language files.
 		load_plugin_textdomain('postcode-eu-address-validation', false, basename(static::$pluginDirPath) . '/languages');

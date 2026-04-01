@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from '@wordpress/element';
+import { useEffect, useCallback, useRef, useState } from '@wordpress/element';
 import { settings } from '.';
 import AutocompleteContainer from './container';
 import { useStoredAddress } from './hooks';
@@ -8,7 +8,8 @@ import { getAddress as getNlAddress } from './nl/api';
 const AutocompleteBlock = ({isEditingAddress, setIsEditingAddress, setAddress, ...props}) => {
 	const storedAddress = useStoredAddress(props.addressType),
 		addressRef = useRef(),
-		isEditingAddressRef = useRef();
+		isEditingAddressRef = useRef(),
+		[isApiDown, setIsApiDown] = useState(false);
 
 	addressRef.current = props.address;
 	isEditingAddressRef.current = isEditingAddress;
@@ -109,7 +110,17 @@ const AutocompleteBlock = ({isEditingAddress, setIsEditingAddress, setAddress, .
 		setAddressWithStorage,
 	]);
 
-	return isEditingAddress ? <AutocompleteContainer {...props} setAddress={setAddressWithStorage} /> : null;
+	if (isEditingAddress)
+	{
+		return <AutocompleteContainer
+			{...props}
+			setAddress={setAddressWithStorage}
+			isApiDown={isApiDown}
+			setIsApiDown={setIsApiDown}
+		/>;
+	}
+
+	return null;
 };
 
 export default AutocompleteBlock;

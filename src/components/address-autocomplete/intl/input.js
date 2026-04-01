@@ -23,6 +23,7 @@ const AutocompleteInput = forwardRef(
 		setFormattedAddress,
 		addressRef,
 		resetAddress,
+		setIsApiDown,
 	},
 	ref
 ) => {
@@ -192,7 +193,12 @@ const AutocompleteInput = forwardRef(
 
 		inputRef.current.addEventListener('autocomplete-search', resetAddress);
 
-		inputRef.current.addEventListener('autocomplete-error', () => {
+		inputRef.current.addEventListener('autocomplete-error', (e) => {
+			if (e.detail.request.status === 503)
+			{
+				setIsApiDown(true);
+			}
+
 			setIsLoading(false);
 			setValidationErrors({
 				[id]: {
@@ -207,10 +213,11 @@ const AutocompleteInput = forwardRef(
 	}, [
 		setValue,
 		resetAddress,
+		setIsApiDown,
 		setIsLoading,
 		setValidationErrors,
 		selectAddress,
-		id
+		id,
 	]);
 
 	// Reset values when switching country.

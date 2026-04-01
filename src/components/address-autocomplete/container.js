@@ -1,14 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from '@wordpress/element';
 import { NlAddressLookup, IntlAutocomplete, IntlAutocompleteBypass, FormattedOutput, settings } from '.';
 
-const AutocompleteContainer = ({addressType, address, setAddress}) => {
+const AutocompleteContainer = ({addressType, address, setAddress, isApiDown, setIsApiDown}) => {
 	const ref = useRef(null),
 		addressRef = useRef(address),
 		autocompleteRef = useRef(null),
 		[formattedAddress, setFormattedAddress] = useState(null),
 		[visible, setVisible] = useState(false),
 		intlFieldId = `${addressType}-postcode-eu-address_autocomplete`,
-		isEnabledCountry = Object.hasOwn(settings.enabledCountries, address.country);
+		isEnabledCountry = !isApiDown && Object.hasOwn(settings.enabledCountries, address.country);
 
 	addressRef.current = address;
 
@@ -77,7 +77,7 @@ const AutocompleteContainer = ({addressType, address, setAddress}) => {
 		isEnabledCountry,
 	]);
 
-	const childProps = {addressType, address, setAddress, setFormattedAddress, addressRef, resetAddress};
+	const childProps = {addressType, address, setAddress, setFormattedAddress, addressRef, resetAddress, setIsApiDown};
 
 	const resetAndFocus = () => {
 		autocompleteRef.current.reset();

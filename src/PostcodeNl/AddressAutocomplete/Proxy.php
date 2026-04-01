@@ -20,6 +20,7 @@ class Proxy
 	public const AJAX_GET_DETAILS = 'postcodenl_address_get_details';
 	public const AJAX_DUTCH_ADDRESS_LOOKUP = 'postcodenl_address_dutch_address_lookup';
 	public const AJAX_VALIDATE = 'postcodenl_address_validate';
+	public const NONCE_ACTION = 'postcode_eu_api_nonce';
 
 	/** @var ApiClient */
 	protected $_client;
@@ -34,6 +35,7 @@ class Proxy
 
 	public function autocomplete(): void
 	{
+		$this->_verifyRequest();
 		$this->_populateSession();
 		$context = sanitize_text_field(wp_unslash($_GET['context']));
 		$term = base64_decode(sanitize_text_field(wp_unslash($_GET['term']))); // Base64 is used to preserve whitespace.
@@ -56,6 +58,7 @@ class Proxy
 
 	public function getDetails(): void
 	{
+		$this->_verifyRequest();
 		$this->_populateSession();
 		$context = sanitize_text_field(wp_unslash($_GET['context']));
 
@@ -114,6 +117,8 @@ class Proxy
 
 	public function dutchAddressLookup(): void
 	{
+		$this->_verifyRequest();
+
 		$postcode = sanitize_text_field(wp_unslash($_GET['postcode']));
 		$houseNumberAndAddition = sanitize_text_field(wp_unslash($_GET['houseNumberAndAddition']));
 
@@ -161,6 +166,8 @@ class Proxy
 
 	public function validate(): void
 	{
+		$this->_verifyRequest();
+
 		$params = [];
 		foreach (['country', 'postcode', 'locality', 'street', 'building', 'region', 'streetAndBuilding'] as $name)
 		{
@@ -297,5 +304,13 @@ class Proxy
 		}
 
 		return null;
+	}
+
+	protected function _verifyRequest(): void
+	{
+		if (!check_ajax_referer(static::NONCE_ACTION, '_wpnonce', false))
+		{
+			$this->_handleException(new ForbiddenException('Invalid or missing nonce.'));
+		}
 	}
 }

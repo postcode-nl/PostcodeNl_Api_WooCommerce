@@ -265,23 +265,25 @@ class Main
 
 	public function getSettings(): array
 	{
+		$nonce = wp_create_nonce(PROXY::NONCE_ACTION);
+
 		return [
 			'actions' => [
 				'autocomplete' => vsprintf(
-					'%s?action=%s&context=${context}&term=${term}',
-					[admin_url('admin-ajax.php'), Proxy::AJAX_AUTOCOMPLETE]
+					'%s?action=%s&context=${context}&term=${term}&_wpnonce=%s',
+					[admin_url('admin-ajax.php'), Proxy::AJAX_AUTOCOMPLETE, $nonce]
 				),
 				'getDetails' => vsprintf(
-					'%s?action=%s&context=${context}',
-					[admin_url('admin-ajax.php'), Proxy::AJAX_GET_DETAILS]
+					'%s?action=%s&context=${context}&_wpnonce=%s',
+					[admin_url('admin-ajax.php'), Proxy::AJAX_GET_DETAILS, $nonce]
 				),
 				'dutchAddressLookup' => vsprintf(
-					'%s?action=%s&postcode=${postcode}&houseNumberAndAddition=${houseNumberAndAddition}',
-					[admin_url('admin-ajax.php'), Proxy::AJAX_DUTCH_ADDRESS_LOOKUP]
+					'%s?action=%s&postcode=${postcode}&houseNumberAndAddition=${houseNumberAndAddition}&_wpnonce=%s',
+					[admin_url('admin-ajax.php'), Proxy::AJAX_DUTCH_ADDRESS_LOOKUP, $nonce]
 				),
 				'validate' => vsprintf(
-					'%s?action=%s&country=${country}&postcode=${postcode}&locality=${locality}&streetAndBuilding=${streetAndBuilding}',
-					[admin_url('admin-ajax.php'), Proxy::AJAX_VALIDATE]
+					'%s?action=%s&country=${country}&postcode=${postcode}&locality=${locality}&streetAndBuilding=${streetAndBuilding}&_wpnonce=%s',
+					[admin_url('admin-ajax.php'), Proxy::AJAX_VALIDATE, $nonce]
 				),
 			],
 			'enabledCountries' => $this->_options->getEnabledCountries(),

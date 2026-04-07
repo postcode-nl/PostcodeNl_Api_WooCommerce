@@ -80,10 +80,16 @@ const AddressLookup = forwardRef(
 		}
 		else if (status === ADDRESS_RESULT_STATUS.ADDITION_INCORRECT)
 		{
-			setHouseNumberOptions(address.houseNumberAdditions.map((addition) => ({
-				value: addition,
-				label: `${address.houseNumber} ${addition}`.trim(),
-			})));
+			const options = address.houseNumberAdditions.map((addition) => ({
+					value: addition,
+					label: `${address.houseNumber} ${addition}`.trim(),
+				})),
+				labelSuffix = __('unknown addition', 'postcode-eu-address-validation');
+			options.push({
+				value: address.unknownHouseNumberAddition,
+				label: `${address.houseNumber} ${address.unknownHouseNumberAddition} (${labelSuffix})`,
+			});
+			setHouseNumberOptions(options);
 		}
 		else if (status === ADDRESS_RESULT_STATUS.PO_BOX_NOT_ALLOWED)
 		{

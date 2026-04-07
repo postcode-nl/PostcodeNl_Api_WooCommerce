@@ -515,14 +515,20 @@
 
 			let options = document.createDocumentFragment();
 
-			address.houseNumberAdditions.forEach(function (addition) {
+			address.houseNumberAdditions.forEach((addition) => options.appendChild(createOption(addition)));
+			options.appendChild(createOption(
+				address.unknownHouseNumberAddition,
+				'(' + __('unknown addition', 'postcode-eu-address-validation') + ')'
+			));
+			houseNumberSelect.append(options);
+
+			function createOption(addition, labelSuffix)
+			{
 				const option = document.createElement('option');
 				option.value = addition;
-				option.textContent = (address.houseNumber + ' ' + addition).trim();
-				options.appendChild(option);
-			});
-
-			houseNumberSelect.append(options);
+				option.textContent = (address.houseNumber + ' ' + addition + ' ' + (labelSuffix ?? '')).trim();
+				return option;
+			}
 		};
 
 		/**

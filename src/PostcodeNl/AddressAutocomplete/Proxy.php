@@ -144,6 +144,7 @@ class Proxy
 			)
 			{
 				$status = 'houseNumberAdditionIncorrect';
+				$address['unknownHouseNumberAddition'] = $houseNumberAddition;
 			}
 		}
 		catch (NotFoundException $e)

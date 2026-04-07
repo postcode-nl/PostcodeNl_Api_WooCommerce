@@ -218,38 +218,34 @@ class Main
 			true
 		);
 
-		// For Classic Checkout and My Account Page:
-		if (!has_block('woocommerce/checkout') || has_block('woocommerce/classic-shortcode'))
-		{
-			wp_enqueue_script(
+		wp_enqueue_script(
+			'postcode-eu-autocomplete-address-field-mapping',
+			static::$pluginUrl . '/assets/js/addressFieldMapping.js',
+			[],
+			static::VERSION,
+			true
+		);
+		wp_enqueue_script(
+			'postcode-eu-autofill',
+			static::$pluginUrl . '/assets/js/postcode-eu-autofill.js',
+			[
+				static::AUTOCOMPLETE_LIBRARY_HANDLE,
 				'postcode-eu-autocomplete-address-field-mapping',
-				static::$pluginUrl . '/assets/js/addressFieldMapping.js',
-				[],
-				static::VERSION,
-				true
-			);
-			wp_enqueue_script(
-				'postcode-eu-autofill',
-				static::$pluginUrl . '/assets/js/postcode-eu-autofill.js',
-				[
-					static::AUTOCOMPLETE_LIBRARY_HANDLE,
-					'postcode-eu-autocomplete-address-field-mapping',
-					'postcode-eu-autocomplete-state-mapping',
-					'wp-i18n',
-				],
-				static::VERSION,
-				true
-			);
+				'postcode-eu-autocomplete-state-mapping',
+				'wp-i18n',
+			],
+			static::VERSION,
+			true
+		);
 
-			wp_add_inline_script(
-				'postcode-eu-autofill',
-				sprintf(
-					'const PostcodeEuSettings = %s;',
-					wp_json_encode($this->getSettings())
-				),
-				'before'
-			);
-		}
+		wp_add_inline_script(
+			'postcode-eu-autofill',
+			sprintf(
+				'const PostcodeEuSettings = %s;',
+				wp_json_encode($this->getSettings())
+			),
+			'before'
+		);
 
 		wp_set_script_translations(
 			'postcode-eu-autofill',

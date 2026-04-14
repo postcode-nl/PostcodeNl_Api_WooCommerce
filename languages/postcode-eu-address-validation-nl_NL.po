@@ -9,7 +9,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "POT-Creation-Date: 2021-05-20 13:18+0000\n"
-"PO-Revision-Date: 2026-04-07 12:25+0000\n"
+"PO-Revision-Date: 2026-04-14 14:36+0000\n"
 "Language: nl_NL\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Loco https://localise.biz/\n"
@@ -92,8 +92,7 @@ msgid ""
 msgstr ""
 "Hiermee kunnen gebruikers het veld voor automatisch aanvullen overslaan en "
 "handmatig een adres invoeren. Het inschakelen van deze optie kan leiden tot "
-"ongeldige adressen. Alleen van toepassing op de \"Volledige zoekopdracht\" "
-"methode."
+"ongeldige adressen. Alleen van toepassing op de \"Alles doorzoeken\" methode."
 
 #: assets/js/postcode-eu-autofill.js:866
 #: build/billing-address-autocomplete-frontend.js:1

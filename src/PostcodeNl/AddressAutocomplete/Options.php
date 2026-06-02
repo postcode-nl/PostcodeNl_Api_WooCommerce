@@ -944,6 +944,7 @@ class Options
 		if ($nextCheck <= new DateTime())
 		{
 			$this->_updateAccountInformation();
+			$this->save(); // Persist success or updated failure state
 		}
 
 		return $this->_apiFailedCount > 0;

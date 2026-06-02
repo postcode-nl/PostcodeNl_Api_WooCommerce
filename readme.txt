@@ -1,8 +1,8 @@
 === Postcode.eu Address Validation ===
 Contributors: postcodenl
 Tags: address validation, address autocomplete, postcode api, address api, postcode check
-Stable tag: 2.8.0
-Tested up to: 6.9
+Stable tag: 2.8.1
+Tested up to: 7.0
 License: FreeBSD license
 License URI: https://directory.fsf.org/wiki/License:BSD-2-Clause-FreeBSD
 
@@ -85,6 +85,9 @@ For more details on the Postcode.eu API and how to obtain an account, please vis
 * If the above didn't answer your question, [contact us](https://www.postcode.eu/contact).
 
 == Changelog ==
+
+= 2.8.1 =
+* Fix repeated calls to account info.
 
 = 2.8.0 =
 * Handle API outage gracefully.

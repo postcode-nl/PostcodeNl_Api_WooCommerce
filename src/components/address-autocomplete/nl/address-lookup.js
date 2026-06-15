@@ -121,7 +121,11 @@ const AddressLookup = forwardRef(
 	useEffect(() => {
 		if (!initStoredAddressRef.current)
 		{
-			resetAddress();
+			if (!addressRef.current?.address_1 && !addressRef.current?.city && !addressRef.current?.postcode)
+			{
+				resetAddress();
+			}
+
 			setHouseNumberOptions([]);
 			setHouseNumberAdditionValue(ADDITION_PLACEHOLDER_VALUE);
 		}
@@ -182,6 +186,7 @@ const AddressLookup = forwardRef(
 		setIsApiDown,
 		setValidationErrors,
 		lookupErrorId,
+		addressRef,
 	]);
 
 	useEffect(() => {

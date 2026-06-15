@@ -30,7 +30,10 @@ export function getValidatedAddress({country, address_1, address_2, postcode, ci
 
 			return null;
 		})
-		.catch((error) => console.error(error));
+		.catch((error) => {
+			console.error(error);
+			return null;
+		});
 }
 
 export function extractHouseNumber(streetLine)

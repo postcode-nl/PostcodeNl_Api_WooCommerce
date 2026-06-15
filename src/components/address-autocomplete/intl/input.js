@@ -7,8 +7,6 @@ import { validateStoreAddress, getValidatedAddress, validatePoBox } from '../uti
 import { settings } from '..';
 import { useAutocomplete, useStoredAddress } from '../hooks';
 
-let didInit = false;
-
 const initValue = (address) => {
 	return ['postcode', 'city', 'address_1', 'address_2'].map((field) => address[field]).join(' ').trim();
 };
@@ -28,6 +26,7 @@ const AutocompleteInput = forwardRef(
 	ref
 ) => {
 	const inputRef = useRef(null),
+		didInit = useRef(false),
 		[isLoading, setIsLoading] = useState(false),
 		[value, setValue] = useState(() => initValue(address)),
 		{setValidationErrors, clearValidationError} = useDispatch(VALIDATION_STORE_KEY),
@@ -222,7 +221,7 @@ const AutocompleteInput = forwardRef(
 
 	// Reset values when switching country.
 	useEffect(() => {
-		if (didInit)
+		if (didInit.current)
 		{
 			autocomplete.instanceRef.current.reset();
 			setValue('');
@@ -255,7 +254,7 @@ const AutocompleteInput = forwardRef(
 	]);
 
 	useEffect(() => {
-		if (didInit)
+		if (didInit.current)
 		{
 			return;
 		}
@@ -275,7 +274,7 @@ const AutocompleteInput = forwardRef(
 		storedAddress,
 	]);
 
-	useEffect(() => { didInit = true; }, []);
+	useEffect(() => { didInit.current = true; }, []);
 
 	const hasError = validationError?.message && !validationError?.hidden;
 
@@ -294,7 +293,7 @@ const AutocompleteInput = forwardRef(
 			onBlur={() => {
 				if (!hasError && !autocomplete.instanceRef.current.elements.menu.classList.contains('postcodenl-autocomplete-menu-open'))
 				{
-					validateInput(false)
+					validateInput(false);
 				}
 			} }
 			aria-invalid={hasError === true}

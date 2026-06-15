@@ -75,7 +75,10 @@ const AutocompleteBlock = ({isEditingAddress, setIsEditingAddress, setAddress, .
 							setIsEditingAddress(true);
 						}
 					})
-					.catch((error) => console.error(error));
+					.catch((error) => {
+						console.error(error);
+						setIsEditingAddress(true);
+					});
 
 				return;
 			}

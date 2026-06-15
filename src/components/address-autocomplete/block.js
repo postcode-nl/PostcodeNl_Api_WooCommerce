@@ -95,7 +95,7 @@ const AutocompleteBlock = ({isEditingAddress, setIsEditingAddress, setAddress, .
 					setAddressWithStorage(
 						{
 							...addressRef.current,
-							address_1: `${address.street} ${address.building}`,
+							address_1: `${result.streetLine}`,
 							city: address.locality,
 							postcode: address.postcode,
 						},

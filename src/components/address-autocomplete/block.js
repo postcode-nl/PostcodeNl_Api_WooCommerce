@@ -43,9 +43,6 @@ const AutocompleteBlock = ({isEditingAddress, setIsEditingAddress, setAddress, .
 
 		// Address is assumed to have values at this point, otherwise it would be in editing mode.
 
-		// Clear the currently stored address, because it's expired and/or different from the current address.
-		storedAddress.clear();
-
 		if (country.iso2 === 'NL' && settings.netherlandsMode === 'postcodeOnly')
 		{
 			const {address_1, address_2, postcode} = addressRef.current,
@@ -72,11 +69,13 @@ const AutocompleteBlock = ({isEditingAddress, setIsEditingAddress, setAddress, .
 						}
 						else
 						{
+							storedAddress.clear();
 							setIsEditingAddress(true);
 						}
 					})
 					.catch((error) => {
 						console.error(error);
+						storedAddress.clear();
 						setIsEditingAddress(true);
 					});
 

@@ -1,85 +1,194 @@
 // noinspection JSNonASCIINames
 const PostcodeNlStateToValueMapping = {
-	'ESP': {
-		'Araba/Álava': 'VI', // Province Araba/Álava
-		'Albacete': 'AB', // Province Albacete
-		'Alacant/Alicante': 'A',  // Province Alacant/Alicante
-		'Almería': 'AL', // Province Almería
-		'Ávila': 'AV', // Province Ávila
-		'Badajoz': 'BA', // Province Badajoz
-		'Illes Balears': 'PM', // Province Illes Balears
-		'Barcelona': 'B',  // Province Barcelona
-		'Burgos': 'BU', // Province Burgos
-		'Cáceres': 'CC', // Province Cáceres
-		'Cádiz': 'CA', // Province Cádiz
-		'Castelló/Castellón': 'CS', // Province Castelló/Castellón
-		'Ciudad Real': 'CR', // Province Ciudad Real
-		'Córdoba': 'CO', // Province Córdoba
-		'A Coruña': 'C',  // Province A Coruña
-		'Cuenca': 'CU', // Province Cuenca
-		'Girona': 'GI', // Province Girona
-		'Granada': 'GR', // Province Granada
-		'Guadalajara': 'GU', // Province Guadalajara
-		'Gipuzkoa': 'SS', // Province Gipuzkoa
-		'Huelva': 'H',  // Province Huelva
-		'Huesca': 'HU', // Province Huesca
-		'Jaén': 'J',  // Province Jaén
-		'León': 'LE', // Province León
-		'Lleida': 'L',  // Province Lleida
-		'La Rioja': 'LO', // Province La Rioja
-		'Lugo': 'LU', // Province Lugo
-		'Madrid': 'M',  // Province Madrid
-		'Málaga': 'MA', // Province Málaga
-		'Murcia': 'MU', // Province Murcia
-		'Navarra': 'NA', // Province Navarra
-		'Ourense': 'OR', // Province Ourense
-		'Asturias': 'O',  // Province Asturias
-		'Palencia': 'P',  // Province Palencia
-		'Las Palmas': 'GC', // Province Las Palmas
-		'Pontevedra': 'PO', // Province Pontevedra
-		'Salamanca': 'SA', // Province Salamanca
-		'Santa Cruz de Tenerife': 'TF', // Province Santa Cruz de Tenerife
-		'Cantabria': 'S',  // Province Cantabria
-		'Segovia': 'SG', // Province Segovia
-		'Sevilla': 'SE', // Province Sevilla
-		'Soria': 'SO', // Province Soria
-		'Tarragona': 'T',  // Province Tarragona
-		'Teruel': 'TE', // Province Teruel
-		'Toledo': 'TO', // Province Toledo
-		'València/Valencia': 'V',  // Province València/Valencia
-		'Valladolid': 'VA', // Province Valladolid
-		'Bizkaia': 'BI', // Province Bizkaia
-		'Zamora': 'ZA', // Province Zamora
-		'Zaragoza': 'Z',  // Province Zaragoza
-		'Ceuta': 'CE', // Province Ceuta
-		'Melilla': 'ML', // Province Melilla
+	'ESP': { // Spanish states
+		'A Coruña': 'C',
+		'Alacant/Alicante': 'A',
+		'Albacete': 'AB',
+		'Almería': 'AL',
+		'Araba/Álava': 'VI',
+		'Asturias': 'O',
+		'Badajoz': 'BA',
+		'Barcelona': 'B',
+		'Bizkaia': 'BI',
+		'Burgos': 'BU',
+		'Cantabria': 'S',
+		'Castelló/Castellón': 'CS',
+		'Ceuta': 'CE',
+		'Ciudad Real': 'CR',
+		'Cuenca': 'CU',
+		'Cáceres': 'CC',
+		'Cádiz': 'CA',
+		'Córdoba': 'CO',
+		'Gipuzkoa': 'SS',
+		'Girona': 'GI',
+		'Granada': 'GR',
+		'Guadalajara': 'GU',
+		'Huelva': 'H',
+		'Huesca': 'HU',
+		'Illes Balears': 'PM',
+		'Jaén': 'J',
+		'La Rioja': 'LO',
+		'Las Palmas': 'GC',
+		'León': 'LE',
+		'Lleida': 'L',
+		'Lugo': 'LU',
+		'Madrid': 'M',
+		'Melilla': 'ML',
+		'Murcia': 'MU',
+		'Málaga': 'MA',
+		'Navarra': 'NA',
+		'Ourense': 'OR',
+		'Palencia': 'P',
+		'Pontevedra': 'PO',
+		'Salamanca': 'SA',
+		'Santa Cruz de Tenerife': 'TF',
+		'Segovia': 'SG',
+		'Sevilla': 'SE',
+		'Soria': 'SO',
+		'Tarragona': 'T',
+		'Teruel': 'TE',
+		'Toledo': 'TO',
+		'Valladolid': 'VA',
+		'València/Valencia': 'V',
+		'Zamora': 'ZA',
+		'Zaragoza': 'Z',
+		'Ávila': 'AV',
 	},
-	'CHE': {
-		'Aargau': 'AG', // Canton Aargau
-		'Appenzell Ausserrhoden': 'AR', // Canton Appenzell Ausserrhoden
-		'Appenzell Innerrhoden': 'AI', // Canton Appenzell Innerrhoden
-		'Basel-Landschaft': 'BL', // Canton Basel-Landschaft
-		'Basel-Stadt': 'BS', // Canton Basel-Stadt
-		'Berne': 'BE', // Canton Berne
-		'Fribourg': 'FR', // Canton Fribourg
-		'Geneva': 'GE', // Canton Geneva
-		'Glarus': 'GL', // Canton Glarus
-		'Graubünden': 'GR', // Canton Graubünden
-		'Jura': 'JU', // Canton Jura
-		'Lucerne': 'LU', // Canton Lucerne
-		'Neuchâtel': 'NE', // Canton Neuchâtel
-		'Nidwalden': 'NW', // Canton Nidwalden
-		'Obwalden': 'OW', // Canton Obwalden
-		'Schaffhausen': 'SH', // Canton Schaffhausen
-		'Schwyz': 'SZ', // Canton Schwyz
-		'Solothurn': 'SO', // Canton Solothurn
-		'St. Gallen': 'SG', // Canton St. Gallen
-		'Thurgau': 'TG', // Canton Thurgau
-		'Ticino': 'TI', // Canton Ticino
-		'Uri': 'UR', // Canton Uri
-		'Valais': 'VS', // Canton Valais
-		'Vaud': 'VD', // Canton Vaud
-		'Zug': 'ZG', // Canton Zug
-		'Zurich': 'ZH', // Canton Zurich
+	'CHE': { // Swiss cantons
+		'Aargau': 'AG',
+		'Appenzell Ausserrhoden': 'AR',
+		'Appenzell Innerrhoden': 'AI',
+		'Basel-Landschaft': 'BL',
+		'Basel-Stadt': 'BS',
+		'Berne': 'BE',
+		'Fribourg': 'FR',
+		'Geneva': 'GE',
+		'Glarus': 'GL',
+		'Graubünden': 'GR',
+		'Jura': 'JU',
+		'Lucerne': 'LU',
+		'Neuchâtel': 'NE',
+		'Nidwalden': 'NW',
+		'Obwalden': 'OW',
+		'Schaffhausen': 'SH',
+		'Schwyz': 'SZ',
+		'Solothurn': 'SO',
+		'St. Gallen': 'SG',
+		'Thurgau': 'TG',
+		'Ticino': 'TI',
+		'Uri': 'UR',
+		'Valais': 'VS',
+		'Vaud': 'VD',
+		'Zug': 'ZG',
+		'Zurich': 'ZH',
+	},
+	'ITA': { // Italian provinces
+		"L'Aquila": 'AQ',
+		'Agrigento': 'AG',
+		'Alessandria': 'AL',
+		'Ancona': 'AN',
+		'Aosta': 'AO',
+		'Arezzo': 'AR',
+		'Ascoli Piceno': 'AP',
+		'Asti': 'AT',
+		'Avellino': 'AV',
+		'Bari': 'BA',
+		'Barletta-Andria-Trani': 'BT',
+		'Belluno': 'BL',
+		'Benevento': 'BN',
+		'Bergamo': 'BG',
+		'Biella': 'BI',
+		'Bologna': 'BO',
+		'Bolzano': 'BZ',
+		'Brescia': 'BS',
+		'Brindisi': 'BR',
+		'Cagliari': 'CA',
+		'Caltanissetta': 'CL',
+		'Campobasso': 'CB',
+		'Caserta': 'CE',
+		'Catania': 'CT',
+		'Catanzaro': 'CZ',
+		'Chieti': 'CH',
+		'Como': 'CO',
+		'Cosenza': 'CS',
+		'Cremona': 'CR',
+		'Crotone': 'KR',
+		'Cuneo': 'CN',
+		'Enna': 'EN',
+		'Fermo': 'FM',
+		'Ferrara': 'FE',
+		'Firenze': 'FI',
+		'Foggia': 'FG',
+		'Forlì-Cesena': 'FC',
+		'Frosinone': 'FR',
+		'Genova': 'GE',
+		'Gorizia': 'GO',
+		'Grosseto': 'GR',
+		'Imperia': 'IM',
+		'Isernia': 'IS',
+		'La Spezia': 'SP',
+		'Latina': 'LT',
+		'Lecce': 'LE',
+		'Lecco': 'LC',
+		'Livorno': 'LI',
+		'Lodi': 'LO',
+		'Lucca': 'LU',
+		'Macerata': 'MC',
+		'Mantova': 'MN',
+		'Massa-Carrara': 'MS',
+		'Matera': 'MT',
+		'Messina': 'ME',
+		'Milano': 'MI',
+		'Modena': 'MO',
+		'Monza e della Brianza': 'MB',
+		'Napoli': 'NA',
+		'Novara': 'NO',
+		'Nuoro': 'NU',
+		'Oristano': 'OR',
+		'Padova': 'PD',
+		'Palermo': 'PA',
+		'Parma': 'PR',
+		'Pavia': 'PV',
+		'Perugia': 'PG',
+		'Pesaro e Urbino': 'PU',
+		'Pescara': 'PE',
+		'Piacenza': 'PC',
+		'Pisa': 'PI',
+		'Pistoia': 'PT',
+		'Pordenone': 'PN',
+		'Potenza': 'PZ',
+		'Prato': 'PO',
+		'Ragusa': 'RG',
+		'Ravenna': 'RA',
+		'Reggio Calabria': 'RC',
+		'Reggio Emilia': 'RE',
+		'Rieti': 'RI',
+		'Rimini': 'RN',
+		'Roma': 'RM',
+		'Rovigo': 'RO',
+		'Salerno': 'SA',
+		'Sassari': 'SS',
+		'Savona': 'SV',
+		'Siena': 'SI',
+		'Siracusa': 'SR',
+		'Sondrio': 'SO',
+		'Sud Sardegna': 'SU',
+		'Taranto': 'TA',
+		'Teramo': 'TE',
+		'Terni': 'TR',
+		'Torino': 'TO',
+		'Trapani': 'TP',
+		'Trento': 'TN',
+		'Treviso': 'TV',
+		'Trieste': 'TS',
+		'Udine': 'UD',
+		'Varese': 'VA',
+		'Venezia': 'VE',
+		'Verbano-Cusio-Ossola': 'VB',
+		'Vercelli': 'VC',
+		'Verona': 'VR',
+		'Vibo Valentia': 'VV',
+		'Vicenza': 'VI',
+		'Viterbo': 'VT',
 	},
 };

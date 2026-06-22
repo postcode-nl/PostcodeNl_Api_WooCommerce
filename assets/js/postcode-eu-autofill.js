@@ -717,6 +717,10 @@
 			{
 				province = PostcodeNlStateToValueMapping.CHE[result.details.cheCanton.name];
 			}
+			else if(result.country.iso3Code === 'ITA')
+			{
+				province = PostcodeNlStateToValueMapping.ITA[result.details.itaTerritory.name];
+			}
 
 			const {address} = result,
 				values = {

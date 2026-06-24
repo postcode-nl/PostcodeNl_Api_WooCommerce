@@ -29,7 +29,7 @@ class BlocksIntegration implements IntegrationInterface
 	public function initialize(): void
 	{
 		$this->_register_block_frontend_scripts();
-		$this->_register_block_main_integration();
+		$this->_register_block_types();
 	}
 
 	private function _register_block_frontend_scripts(): void
@@ -54,25 +54,11 @@ class BlocksIntegration implements IntegrationInterface
 		}
 	}
 
-	private function _register_block_main_integration(): void
+	private function _register_block_types(): void
 	{
 		foreach (self::BLOCK_NAMES as $name)
 		{
-			$handle = $name . '-index';
-			$scriptAsset = require(Main::$pluginDirPath . 'build/' . $name . '-index.asset.php');
-			wp_register_script(
-				$handle,
-				Main::$pluginUrl . '/build/' . $name . '-index.js',
-				$scriptAsset['dependencies'],
-				$scriptAsset['version'],
-				true
-			);
-
-			wp_set_script_translations(
-				$handle,
-				'postcode-eu-address-validation',
-				realpath(Main::$pluginDirPath . 'languages')
-			);
+			register_block_type(Main::$pluginDirPath . 'src/blocks/' . $name . '/block.json');
 		}
 	}
 
@@ -87,7 +73,6 @@ class BlocksIntegration implements IntegrationInterface
 		$result = [];
 		foreach (self::BLOCK_NAMES as $name)
 		{
-			$result[] = $name . '-index';
 			$result[] = $name . '-frontend';
 		}
 
@@ -101,14 +86,7 @@ class BlocksIntegration implements IntegrationInterface
 	 */
 	public function get_editor_script_handles(): array
 	{
-		// NB. paths to entries are configured in Webpack config.
-		$result = [];
-		foreach (self::BLOCK_NAMES as $name)
-		{
-			$result[] = $name . '-index';
-		}
-
-		return $result;
+		return [];
 	}
 
 	/**

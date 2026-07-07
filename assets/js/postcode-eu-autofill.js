@@ -715,11 +715,11 @@
 			}
 			else if(result.country.iso3Code === 'CHE')
 			{
-				province = PostcodeNlStateToValueMapping.CHE[result.details.cheCanton.name];
+				province = result.details.cheCanton.code;
 			}
 			else if(result.country.iso3Code === 'ITA')
 			{
-				province = PostcodeNlStateToValueMapping.ITA[result.details.itaTerritory.name];
+				province = result.details.itaTerritory.code;
 			}
 
 			const {address} = result,

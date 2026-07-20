@@ -219,18 +219,10 @@ class Main
 		);
 
 		wp_enqueue_script(
-			'postcode-eu-autocomplete-address-field-mapping',
-			static::$pluginUrl . '/assets/js/addressFieldMapping.js',
-			[],
-			static::VERSION,
-			true
-		);
-		wp_enqueue_script(
 			'postcode-eu-autofill',
 			static::$pluginUrl . '/assets/js/postcode-eu-autofill.js',
 			[
 				static::AUTOCOMPLETE_LIBRARY_HANDLE,
-				'postcode-eu-autocomplete-address-field-mapping',
 				'postcode-eu-autocomplete-state-mapping',
 				'wp-i18n',
 			],
@@ -293,7 +285,43 @@ class Main
 			'allowAutofillIntlBypass' => $this->_options->allowAutofillIntlBypass,
 			'allowPoBoxShipping' => $this->_options->allowPoBoxShipping,
 			'localStorageToken' => $this->_options->getLocalStorageToken(),
+			'addressFieldMapping' => $this->_getAddressFieldMapping(),
 		];
+	}
+
+	/**
+	 * Get mapped address fields.
+	 *
+	 * Provides a default mapping of WooCommerce address fields to address parts returned by the Postcode.eu API.
+	 * The mapping can be customized using the 'postcodenl_address_field_mapping' filter (see also README.md).
+	 *
+	 * @return array
+	 */
+	private function _getAddressFieldMapping(): array
+	{
+		/**
+		 * Address parts which can be used to populate form fields:
+		 * - street
+		 * - houseNumber
+		 * - houseNumberAddition
+		 * - city
+		 * - postcode
+		 * - streetAndHouseNumber: A combination of street and house number (including house number addition)
+		 * - houseNumberAndAddition: A combination of house number and house number addition
+		 * - province: Contains the province or similar administrative level (state, canton) for supported countries
+		 */
+		$default = [
+			'address_1'           => 'streetAndHouseNumber',
+			'address_2'           => null, // Address line 2
+			'postcode'            => 'postcode',
+			'city'                => 'city',
+			'state'               => 'province',
+			'street_name'         => 'street',
+			'house_number'        => 'houseNumber',
+			'house_number_suffix' => 'houseNumberAddition',
+		];
+
+		return apply_filters('postcodenl_address_field_mapping', $default);
 	}
 
 	/**

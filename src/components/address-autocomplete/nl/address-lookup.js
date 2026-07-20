@@ -199,18 +199,12 @@ const AddressLookup = forwardRef(
 		const {status, address} = addressLookupResult;
 		if (status === ADDRESS_RESULT_STATUS.VALID)
 		{
-			const house = `${address.houseNumber} ${address.houseNumberAddition ?? ''}`.trim(),
-				mailLines = [`${address.street} ${house}`, `${address.postcode} ${address.city}`];
+			const mailLines = [
+				`${address.street} ${address.houseNumber} ${address.houseNumberAddition ?? ''}`.trim(),
+				`${address.postcode} ${address.city}`,
+			];
 
-			setAddress(
-				{
-					...addressRef.current,
-					address_1: `${address.street} ${house}`,
-					city: address.city,
-					postcode: address.postcode,
-				},
-				mailLines
-			);
+			setAddress(address, mailLines);
 
 			if (settings.displayMode === 'default')
 			{

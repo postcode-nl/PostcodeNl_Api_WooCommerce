@@ -12,10 +12,12 @@ export function validateStoreAddress(addressType)
 	});
 }
 
-export function getValidatedAddress({country, address_1, address_2, postcode, city})
+export function getValidatedAddress(storeAddress)
 {
-	const countryIso3 = settings.enabledCountries[country].iso3;
-	return validateAddress(countryIso3, `${address_1} ${address_2}`.trim(), postcode, city)
+	const countryIso3 = settings.enabledCountries[storeAddress.country].iso3,
+		{streetAndHouseNumber, postcode, city} = getMappedAddressValues(storeAddress);
+
+	return validateAddress(countryIso3, streetAndHouseNumber, postcode, city)
 		.then((response) => {
 			const top = response.matches[0];
 			if (
@@ -57,4 +59,37 @@ export function extractHouseNumber(streetLine)
 export function validatePoBox(addressType)
 {
 	return settings.allowPoBoxShipping === 'y' || !(addressType === 'shipping' || getSetting('forcedBillingAddress'));
+}
+
+/**
+ * @param {Object} storeAddress
+ * @return {Object} Store-address values keyed according to fields mapping
+ */
+export function getMappedAddressValues(storeAddress)
+{
+	// Get values according to field mapping. Mapped key must exist in store address.
+	const values = {};
+	for (const [key, prop] of Object.entries(settings.addressFieldMapping))
+	{
+		if (prop && key in storeAddress)
+		{
+			values[prop] = storeAddress[key];
+		}
+	}
+
+	// Check for separate street and house number fields, fill combined fields.
+	if ('street' in values)
+	{
+		if ('houseNumber' in values)
+		{
+			values.houseNumberAndAddition = [values.houseNumber, values.houseNumberAddition ?? ''].join(' ').trim();
+		}
+
+		if ('houseNumberAndAddition' in values)
+		{
+			values.streetAndHouseNumber = [values.street, values.houseNumberAndAddition].join(' ');
+		}
+	}
+
+	return values;
 }

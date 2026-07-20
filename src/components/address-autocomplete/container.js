@@ -13,7 +13,7 @@ const AutocompleteContainer = ({addressType, address, setAddress, isApiDown, set
 	addressRef.current = address;
 
 	const resetAddress = useCallback(() => {
-		setAddress({...addressRef.current, address_1: '', city: '', postcode: ''});
+		setAddress(null);
 		setFormattedAddress(null);
 	}, [
 		setAddress,

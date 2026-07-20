@@ -47,21 +47,9 @@ For example, limiting shipping to French overseas territories, set up a shipping
 
 = Address form field mapping =
 
-Depending on your checkout form fields the selected address data might not be placed in the form fields you would like.
-The mapping from form field names to address data is defined in [addressFieldMapping.js](https://github.com/postcode-nl/PostcodeNl_Api_WooCommerce/blob/master/assets/js/addressFieldMapping.js).
-By changing `PostcodeNlAddressFieldMapping.mapping` you can assign your own preferred address data parts to their respective form fields.
+We provide a filter to map WooCommerce address fields to address parts returned by the Postcode.eu API.
 
-An example of a mapping where `_address_1` is used for the street, `_house_number` for the house number `_address_2` for the house number addition:
-```javascript
-PostcodeNlAddressFieldMapping.mapping = {
-	'_address_1': PostcodeNlAddressFieldMapping.street,
-	'_house_number': PostcodeNlAddressFieldMapping.houseNumber,
-	'_address_2': PostcodeNlAddressFieldMapping.houseNumberAddition,
-	'_postcode': PostcodeNlAddressFieldMapping.postcode,
-	'_city': PostcodeNlAddressFieldMapping.city,
-};
-```
-To use this mapping replace `PostcodeNlAddressFieldMapping.mapping = {...};` with the code above.
+For more information and usage see our [GitHub page](https://github.com/postcode-nl/PostcodeNl_Api_WooCommerce#address-form-field-mapping).
 
 == Third-Party Service Usage ==
 

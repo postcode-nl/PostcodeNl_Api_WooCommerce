@@ -80,15 +80,17 @@ export function useStoredAddress(addressType)
 			return JSON.parse(window.localStorage.getItem(this.storageKey)) ?? null;
 		},
 
-		set({address_1, postcode, city}, mailLines)
+		set(values, mailLines)
 		{
-			const data = {
-				timestamp: Date.now(),
-				token: settings.localStorageToken,
-				values: {address_1, postcode, city},
-				mailLines: mailLines,
-			};
-			window.localStorage.setItem(this.storageKey, JSON.stringify(data));
+			window.localStorage.setItem(
+				this.storageKey,
+				JSON.stringify({
+					timestamp: Date.now(),
+					token: settings.localStorageToken,
+					values: Object.fromEntries(Object.entries(values).filter(([, v]) => v !== '')),
+					mailLines,
+				})
+			);
 		},
 
 		isEqual(values)

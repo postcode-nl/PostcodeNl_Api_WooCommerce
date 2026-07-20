@@ -38,24 +38,49 @@ For example, limiting shipping to French overseas territories, set up a shipping
 
 ### Address form field mapping
 
-Depending on your checkout form fields the selected address data might not be placed in the form fields you would like.
-The mapping from form field names to address data is defined in [addressFieldMapping.js](https://github.com/postcode-nl/PostcodeNl_Api_WooCommerce/blob/master/assets/js/addressFieldMapping.js).
-By changing `PostcodeNlAddressFieldMapping.mapping` you can assign your own preferred address data parts to their respective form fields.
+Depending on your checkout form fields, the selected address data might not be placed in the fields you would like. The plugin provides the `postcodenl_address_field_mapping` filter to map WooCommerce address fields to address parts returned by the Postcode.eu API.
 
-An example of a mapping where `_address_1` is used for the street, `_house_number` for the house number `_address_2` for the house number addition:
-```javascript
-PostcodeNlAddressFieldMapping.mapping = {
-	'_address_1': PostcodeNlAddressFieldMapping.street,
-	'_house_number': PostcodeNlAddressFieldMapping.houseNumber,
-	'_address_2': PostcodeNlAddressFieldMapping.houseNumberAddition,
-	'_postcode': PostcodeNlAddressFieldMapping.postcode,
-	'_city': PostcodeNlAddressFieldMapping.city,
-};
+Add the filter to your theme's `functions.php` file or, preferably, to a custom plugin. The keys are WooCommerce address field names and the values are Postcode.eu address parts. Set a value to `null` when a field should not be populated by the plugin.
+
+Address parts which can be used to populate form fields:
+
+- `street`: Street name without the house number.
+- `houseNumber`: House number.
+- `houseNumberAddition`: House number addition or suffix.
+- `city`: City or locality.
+- `postcode`: Postal code.
+- `streetAndHouseNumber`: Street name and house number, including any addition.
+- `houseNumberAndAddition`: House number and house number addition combined.
+- `province`: Province or a similar administrative level, such as a state or canton.
+
+For example, to split the street name and building information over two fields:
+
+```php
+add_filter('postcodenl_address_field_mapping', function ($mapping) {
+    $mapping['address_1'] = 'street';
+    $mapping['address_2'] = 'houseNumberAndAddition';
+
+    return $mapping;
+});
 ```
-To use this mapping replace `PostcodeNlAddressFieldMapping.mapping = {...};` with the code above.
+
+The default mapping is:
+
+- `address_1` → `streetAndHouseNumber`
+- `address_2` → not populated
+- `postcode` → `postcode`
+- `city` → `city`
+- `state` → `province`
+- `street_name` → `street`
+- `house_number` → `houseNumber`
+- `house_number_suffix` → `houseNumberAddition`
+
+> [!WARNING]
+> The mapping applies to newly selected and validated addresses in both the classic and block-based WooCommerce checkout. Changing a mapping does not migrate values already stored in WooCommerce carts, checkout sessions, or customer profiles. Existing data may have been saved in the format of the previous mapping. After changing a mapping, clear active WooCommerce customer sessions and review or migrate saved customer addresses as needed.
 
 ### WooCommerce block-based checkout
-The plugin now has support for the new block-based checkout. Note that this currently only works with the single address input field. Autocomplete based on Dutch postcode and house number will be supported in a future version.
+
+The plugin now has support for the new block-based checkout.
 
 ## Third-Party Service Usage
 

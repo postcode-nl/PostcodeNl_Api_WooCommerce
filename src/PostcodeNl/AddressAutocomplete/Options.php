@@ -40,7 +40,7 @@ class Options
 	protected const SUPPORTED_COUNTRY_LIST_EXPIRATION = '-1 day';
 
 	/** @var string Version of locally stored data. Change it to force client-side update. */
-	protected const LOCAL_STORAGE_VERSION = '1';
+	protected const LOCAL_STORAGE_VERSION = '2';
 
 	protected const API_RETRY_INTERVALS = [
 		'+30 seconds', '+1 minute', '+2 minutes', '+5 minutes', '+10 minutes', '+15 minutes',

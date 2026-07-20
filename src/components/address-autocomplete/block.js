@@ -2,7 +2,7 @@ import { useEffect, useCallback, useRef, useState } from '@wordpress/element';
 import { settings } from '.';
 import AutocompleteContainer from './container';
 import { useStoredAddress } from './hooks';
-import { getValidatedAddress, extractHouseNumber, validatePoBox } from './utils';
+import { getValidatedAddress, extractHouseNumber, validatePoBox, getMappedAddressValues } from './utils';
 import { getAddress as getNlAddress } from './nl/api';
 
 const AutocompleteBlock = ({isEditingAddress, setIsEditingAddress, setAddress, ...props}) => {
@@ -14,17 +14,42 @@ const AutocompleteBlock = ({isEditingAddress, setIsEditingAddress, setAddress, .
 	addressRef.current = props.address;
 	isEditingAddressRef.current = isEditingAddress;
 
-	const setAddressWithStorage = useCallback((values, mailLines = null) => {
-		if (['address_1', 'city', 'postcode'].some((name) => values[name] === ''))
+	/**
+	 * @param {Object|null} apiAddress - Address object from API result. If null, clears address.
+	 * @param {Array|null} [mailLines] - Optional mail lines, default null.
+	 */
+	const setAddressWithStorage = useCallback((apiAddress, mailLines = null) => {
+		const mappedValues = {},
+			values = apiAddress === null ? {} : {
+				street: apiAddress.street,
+				streetAndHouseNumber: apiAddress.streetLine,
+				houseNumber: apiAddress.buildingNumber ?? apiAddress.houseNumber,
+				houseNumberAddition: apiAddress.buildingNumberAddition ?? apiAddress.houseNumberAddition,
+				houseNumberAndAddition: apiAddress.building,
+				postcode: apiAddress.postcode,
+				city: apiAddress.locality ?? apiAddress.city,
+				province: apiAddress.province,
+			};
+
+		for (const key of Object.keys(addressRef.current))
+		{
+			const prop = settings.addressFieldMapping[key] ?? null;
+			if (prop !== null)
+			{
+				mappedValues[key] = String(values[prop] ?? '');
+			}
+		}
+
+		if (apiAddress === null)
 		{
 			storedAddress.clear();
 		}
 		else
 		{
-			storedAddress.set(values, mailLines);
+			storedAddress.set(mappedValues, mailLines);
 		}
 
-		setAddress(values);
+		setAddress({...addressRef.current, ...mappedValues});
 	}, [
 		storedAddress,
 		setAddress,
@@ -45,26 +70,25 @@ const AutocompleteBlock = ({isEditingAddress, setIsEditingAddress, setAddress, .
 
 		if (country.iso2 === 'NL' && settings.netherlandsMode === 'postcodeOnly')
 		{
-			const {address_1, address_2, postcode} = addressRef.current,
-				houseNumber = extractHouseNumber(`${address_1} ${address_2}`);
+			const addressValues = getMappedAddressValues(addressRef.current),
+				houseNumber = addressValues.houseNumberAndAddition || extractHouseNumber(
+					addressValues.streetAndHouseNumber ?? `${addressRef.current.address_1} ${addressRef.current.address_2}`
+				);
 
 			// If house number is unambiguous, validate using NL API. Otherwise fall back to Validate API.
 			if (houseNumber !== null)
 			{
-				getNlAddress(postcode, houseNumber)
+				getNlAddress(addressValues.postcode, houseNumber)
 					.then((response) => {
 						const {status, address} = response;
 						if (status === 'valid' && (address.addressType !== 'PO box' || validatePoBox(props.addressType)))
 						{
-							const house = `${address.houseNumber} ${address.houseNumberAddition ?? ''}`.trim();
 							setAddressWithStorage(
-								{
-									...addressRef.current,
-									address_1: `${address.street} ${house}`,
-									city: address.city,
-									postcode: address.postcode,
-								},
-								[`${address.street} ${house}`, `${address.postcode} ${address.city}`]
+								address,
+								[
+									`${address.street} ${address.houseNumber} ${address.houseNumberAddition ?? ''}`.trim(),
+									`${address.postcode} ${address.city}`,
+								]
 							);
 						}
 						else
@@ -89,20 +113,11 @@ const AutocompleteBlock = ({isEditingAddress, setIsEditingAddress, setAddress, .
 				if (result === null || (result.isPoBox && !validatePoBox(props.addressType)))
 				{
 					setIsEditingAddress(true);
-					setAddressWithStorage({...addressRef.current, address_1: '', city: '', postcode: ''});
+					setAddressWithStorage(null);
 				}
 				else
 				{
-					const {address} = result;
-					setAddressWithStorage(
-						{
-							...addressRef.current,
-							address_1: `${result.streetLine}`,
-							city: address.locality,
-							postcode: address.postcode,
-						},
-						result.mailLines
-					);
+					setAddressWithStorage(result.address, result.mailLines);
 				}
 			});
 	}, [

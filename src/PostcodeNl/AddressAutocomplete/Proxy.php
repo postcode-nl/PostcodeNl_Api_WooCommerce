@@ -65,7 +65,7 @@ class Proxy
 		try
 		{
 			$result = $this->_client->internationalGetDetails($context, $this->_session);
-			$result['streetLine'] = $this->_getStreetLine($result);
+			$result['address']['streetLine'] = $this->_getStreetLine($result);
 			$result['address']['postcode'] = wc_format_postcode($result['address']['postcode'], $result['country']['iso2Code']);
 			$this->_outputJsonResponse($result);
 		}
@@ -158,6 +158,8 @@ class Proxy
 		}
 
 		$address['postcode'] = wc_format_postcode($address['postcode'], 'NL');
+		$address['building'] = trim(sprintf('%s %s', $address['houseNumber'], $address['houseNumberAddition']));
+		$address['streetLine'] = trim(sprintf('%s %s %s', $address['street'], $address['houseNumber'], $address['houseNumberAddition']));
 
 		$this->_outputJsonResponse([
 			'status' => $status,
@@ -197,7 +199,7 @@ class Proxy
 		{
 			if (in_array($m['status']['validationLevel'], ['Building', 'BuildingPartial'], true))
 			{
-				$m['streetLine'] = $this->_getStreetLine($m);
+				$m['address']['streetLine'] = $this->_getStreetLine($m);
 			}
 
 			if (is_string($m['address']['postcode']))

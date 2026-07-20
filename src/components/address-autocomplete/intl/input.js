@@ -3,12 +3,13 @@ import { useSelect, useDispatch, select as selectStore } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import { VALIDATION_STORE_KEY } from '@woocommerce/block-data';
 import { TextInput, ValidationInputError } from '@woocommerce/blocks-components';
-import { validateStoreAddress, getValidatedAddress, validatePoBox } from '../utils';
+import { validateStoreAddress, getValidatedAddress, validatePoBox, getMappedAddressValues } from '../utils';
 import { settings } from '..';
 import { useAutocomplete, useStoredAddress } from '../hooks';
 
 const initValue = (address) => {
-	return ['postcode', 'city', 'address_1', 'address_2'].map((field) => address[field]).join(' ').trim();
+	const {postcode, city, streetAndHouseNumber} = getMappedAddressValues(address);
+	return `${postcode ?? ''} ${city ?? ''} ${streetAndHouseNumber ?? ''}`.trim();
 };
 
 const AutocompleteInput = forwardRef(
@@ -81,16 +82,7 @@ const AutocompleteInput = forwardRef(
 					return;
 				}
 
-				const {locality, postcode} = result.address;
-				setAddress(
-					{
-						...addressRef.current,
-						address_1: result.streetLine,
-						city: locality,
-						postcode: postcode,
-					},
-					result.mailLines
-				);
+				setAddress(result.address, result.mailLines);
 
 				if (settings.displayMode === 'default')
 				{
@@ -104,7 +96,6 @@ const AutocompleteInput = forwardRef(
 		autocomplete,
 		addressType,
 		setAddress,
-		addressRef,
 		setFormattedAddress,
 		clearValidationError,
 		resetAddress,
@@ -141,16 +132,7 @@ const AutocompleteInput = forwardRef(
 				}
 				else
 				{
-					const {locality, postcode} = result.address;
-					setAddress(
-						{
-							...addressRef.current,
-							address_1: result.streetLine,
-							city: locality,
-							postcode: postcode,
-						},
-						result.mailLines
-					);
+					setAddress(result.address, result.mailLines);
 
 					if (settings.displayMode === 'default')
 					{

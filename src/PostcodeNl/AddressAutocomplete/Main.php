@@ -210,20 +210,12 @@ class Main
 
 		// Javascript
 		wp_enqueue_script(static::AUTOCOMPLETE_LIBRARY_HANDLE);
-		wp_enqueue_script(
-			'postcode-eu-autocomplete-state-mapping',
-			static::$pluginUrl . '/assets/js/stateMapping.js',
-			[],
-			static::VERSION,
-			true
-		);
 
 		wp_enqueue_script(
 			'postcode-eu-autofill',
 			static::$pluginUrl . '/assets/js/postcode-eu-autofill.js',
 			[
 				static::AUTOCOMPLETE_LIBRARY_HANDLE,
-				'postcode-eu-autocomplete-state-mapping',
 				'wp-i18n',
 			],
 			static::VERSION,

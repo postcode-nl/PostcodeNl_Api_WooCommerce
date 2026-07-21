@@ -673,19 +673,6 @@
 
 		const fillAddressFieldsIntl = function (result)
 		{
-			if (result.country.iso3Code === 'ESP')
-			{
-				result.address.province = PostcodeNlStateToValueMapping.ESP[result.details.espProvince.name];
-			}
-			else if(result.country.iso3Code === 'CHE')
-			{
-				result.address.province = result.details.cheCanton.code;
-			}
-			else if(result.country.iso3Code === 'ITA')
-			{
-				result.address.province = result.details.itaTerritory.code;
-			}
-
 			setAddressWithStorage(addressType, result.address, result.mailLines);
 		};
 

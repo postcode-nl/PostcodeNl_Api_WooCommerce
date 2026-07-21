@@ -279,7 +279,7 @@ class Proxy
 		{
 			throw new Exception(sprintf('Missing HTTP session header `%s`.', ApiClient::SESSION_HEADER_KEY));
 		}
-		$this->_session = sanitize_text_field($_SERVER[$sessionHeaderKey]);
+		$this->_session = sanitize_text_field(wp_unslash($_SERVER[$sessionHeaderKey]));
 	}
 
 	protected function _logException(\Exception $e): array

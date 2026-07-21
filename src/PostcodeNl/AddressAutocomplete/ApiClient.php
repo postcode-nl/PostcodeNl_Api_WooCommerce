@@ -308,7 +308,7 @@ class ApiClient
 		return sprintf(
 			'WordPress/%s WooCommerce/%s/%s PostcodeNl-WooCommerce/%s PHP/%s',
 			get_bloginfo('version'),
-			$_SERVER['HTTP_X_WC_CHECKOUT_TYPE'] ?? 'Unknown',
+			sanitize_text_field(wp_unslash($_SERVER['HTTP_X_WC_CHECKOUT_TYPE'] ?? 'Unknown')),
 			WC()->version,
 			Main::VERSION,
 			PHP_VERSION

@@ -253,13 +253,9 @@ class ApiClient
 			'verifyname' => false,
 			'headers' => [
 				'Authorization' => 'Basic ' . base64_encode($this->_key . ':' . $this->_secret),
+				'Referer' => home_url(),
 			],
 		];
-
-		if (isset($_SERVER['HTTP_REFERER']))
-		{
-			$arguments['headers']['Referer'] = sanitize_url($_SERVER['HTTP_REFERER']);
-		}
 
 		if ($session !== null)
 		{

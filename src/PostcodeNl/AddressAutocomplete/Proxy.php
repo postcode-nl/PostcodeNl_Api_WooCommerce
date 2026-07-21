@@ -67,6 +67,13 @@ class Proxy
 			$result = $this->_client->internationalGetDetails($context, $this->_session);
 			$result['address']['streetLine'] = $this->_getStreetLine($result);
 			$result['address']['postcode'] = wc_format_postcode($result['address']['postcode'], $result['country']['iso2Code']);
+
+			$states = WC()->countries->get_states($result['country']['iso2Code']);
+			if (!empty($states))
+			{
+				$result['address']['province'] = $this->_getStateCode($result);
+			}
+
 			$this->_outputJsonResponse($result);
 		}
 		catch (ClientException $e)
@@ -113,6 +120,32 @@ class Proxy
 		}
 
 		return trim($address['street'] . ' ' . $address['building']);
+	}
+
+	/**
+	 * Get state code from address details response or mapping.
+	 *
+	 * @param array $addressDetails
+	 * @return string|null - State code if any, else null
+	 */
+	private function _getStateCode(array $addressDetails): ?string
+	{
+		$countryIso3 = $addressDetails['country']['iso3Code'];
+		switch ($countryIso3)
+		{
+			case 'CHE': return $addressDetails['details']['cheCanton']['code'];
+			case 'ITA': return $addressDetails['details']['itaTerritory']['code'];
+			case 'ESP':
+				$name = $addressDetails['details']['espProvince']['name'];
+			break;
+			case 'DEU':
+				$name = $addressDetails['details']['deuFederalState']['name'];
+			break;
+			default: return null;
+		}
+
+		$stateCodes = require_once('../../state-codes.php');
+		return $stateCodes[$countryIso3][$name];
 	}
 
 	public function dutchAddressLookup(): void

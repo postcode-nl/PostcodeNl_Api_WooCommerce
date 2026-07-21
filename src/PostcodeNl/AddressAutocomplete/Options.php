@@ -380,7 +380,7 @@ class Options
 		$md .= PHP_EOL;
 		$md .= sprintf('- **Database**: %s', esc_html($GLOBALS['wpdb']->db_server_info()));
 		$md .= PHP_EOL;
-		$serverInfo = $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown';
+		$serverInfo = sanitize_text_field(wp_unslash($_SERVER['SERVER_SOFTWARE'] ?? 'Unknown'));
 		$md .= sprintf('- **Server**: %s', esc_html($serverInfo));
 		$md .= PHP_EOL;
 		$theme = wp_get_theme();
@@ -939,7 +939,7 @@ class Options
 			return false;
 		}
 
-		$modifier = static::API_RETRY_INTERVALS[$this->_apiFailedCount - 1] ?? array_last(static::API_RETRY_INTERVALS);
+		$modifier = static::API_RETRY_INTERVALS[$this->_apiFailedCount - 1] ?? end(static::API_RETRY_INTERVALS);
 		$nextCheck = (clone $this->_apiFailedDateTime)->modify($modifier);
 		if ($nextCheck <= new DateTime())
 		{

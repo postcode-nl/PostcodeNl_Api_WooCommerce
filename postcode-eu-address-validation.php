@@ -6,10 +6,10 @@
  * Version: 2.8.2
  * Author: Postcode.nl
  * Author URI: https://www.postcode.nl
- * License: FreeBSD license
+ * License: BSD-2-Clause-FreeBSD
  * License URI: https://directory.fsf.org/wiki/License:BSD-2-Clause-FreeBSD
  * Text Domain: postcode-eu-address-validation
- * Requires at least: 5.2
+ * Requires at least: 5.3
  * Tested up to: 7.0
  * Requires PHP: 7.4
  * WC requires at least: 8.5

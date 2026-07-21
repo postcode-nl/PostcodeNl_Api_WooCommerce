@@ -249,8 +249,6 @@ class ApiClient
 		$arguments = [
 			'timeout' => 5,
 			'user-agent' => $this->_getUserAgent(),
-			'verify' => false,
-			'verifyname' => false,
 			'headers' => [
 				'Authorization' => 'Basic ' . base64_encode($this->_key . ':' . $this->_secret),
 				'Referer' => home_url(),

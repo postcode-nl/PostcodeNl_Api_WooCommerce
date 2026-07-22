@@ -140,6 +140,12 @@ const AutocompleteInput = forwardRef(
 					}
 				}
 			})
+			.catch((error) => {
+				if (error.cause?.status === 503)
+				{
+					setIsApiDown(true);
+				}
+			})
 			.finally(() => setIsLoading(false));
 	}, [
 		addressRef,
@@ -150,6 +156,7 @@ const AutocompleteInput = forwardRef(
 		setAddress,
 		setFormattedAddress,
 		validateInput,
+		setIsApiDown,
 	]);
 
 	useImperativeHandle(ref, () => ({

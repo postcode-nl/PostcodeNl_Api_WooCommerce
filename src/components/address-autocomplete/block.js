@@ -119,6 +119,12 @@ const AutocompleteBlock = ({isEditingAddress, setIsEditingAddress, setAddress, .
 				{
 					setAddressWithStorage(result.address, result.mailLines);
 				}
+			})
+			.catch((error) => {
+				if (error.cause?.status === 503)
+				{
+					setIsApiDown(true);
+				}
 			});
 	}, [
 		storedAddress,

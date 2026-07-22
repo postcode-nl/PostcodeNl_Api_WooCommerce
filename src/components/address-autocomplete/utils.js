@@ -34,7 +34,7 @@ export function getValidatedAddress(storeAddress)
 		})
 		.catch((error) => {
 			console.error(error);
-			return null;
+			throw error;
 		});
 }
 

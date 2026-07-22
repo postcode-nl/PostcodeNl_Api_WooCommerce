@@ -3,7 +3,7 @@
  * Plugin Name: Postcode.eu Address Validation
  * Plugin URI: https://www.postcode.eu/products/address-api/implementation
  * Description: Address autocomplete and validation using the Postcode.eu API.
- * Version: 2.8.2
+ * Version: 2.9.0
  * Author: Postcode.nl
  * Author URI: https://www.postcode.nl
  * License: BSD-2-Clause-FreeBSD
@@ -13,7 +13,7 @@
  * Tested up to: 7.0
  * Requires PHP: 7.4
  * WC requires at least: 8.5
- * WC tested up to: 10.8
+ * WC tested up to: 10.9
  */
 
 use Automattic\WooCommerce\Utilities\FeaturesUtil;

@@ -1,7 +1,7 @@
 === Postcode.eu Address Validation ===
 Contributors: postcodenl
 Tags: address validation, address autocomplete, postcode api, address api, postcode check
-Stable tag: 2.8.2
+Stable tag: 2.9.0
 Tested up to: 7.0
 License: BSD-2-Clause-FreeBSD
 License URI: https://directory.fsf.org/wiki/License:BSD-2-Clause-FreeBSD
@@ -73,6 +73,13 @@ For more details on the Postcode.eu API and how to obtain an account, please vis
 * If the above didn't answer your question, [contact us](https://www.postcode.eu/contact).
 
 == Changelog ==
+
+= 2.9.0 =
+* Support field mapping via filter.
+* Support field mapping in blocks checkout.
+* Set province/state in blocks checkout.
+* Handle 503 response in Validate API calls
+* Bugfixes and maintenance.
 
 = 2.8.2 =
 * Autofill Italian province field.

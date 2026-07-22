@@ -251,7 +251,7 @@
 				return response.json();
 			}
 
-			throw new Error(response.statusText);
+			throw new Error(response.statusText, {cause: response});
 		});
 	};
 
@@ -271,7 +271,10 @@
 
 				return null;
 			})
-			.catch((error) => console.error(error));
+			.catch((error) => {
+				console.error(error);
+				throw error;
+			});
 	};
 
 	const validatePoBox = function (addressType)
@@ -645,6 +648,12 @@
 							toggleAddressFields(addressFields, true);
 						}
 					})
+					.catch((error) => {
+						if (error.cause?.status === 503)
+						{
+							destruct();
+						}
+					})
 					.finally(() => postcodeField.removeClass(loadingClassName));
 			}
 		})();
@@ -890,6 +899,12 @@
 						setFieldValidity(intlField);
 						intlField.trigger('address-result', result);
 						toggleAddressFields(addressFields, true);
+					}
+				})
+				.catch((error) => {
+					if (error.cause?.status === 503)
+					{
+						destruct();
 					}
 				})
 				.finally(() => intlField.removeClass(loadingClassName));

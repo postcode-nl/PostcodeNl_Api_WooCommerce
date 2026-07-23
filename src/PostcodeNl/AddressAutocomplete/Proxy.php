@@ -145,7 +145,7 @@ class Proxy
 		}
 
 		$stateCodes = require_once('../../state-codes.php');
-		return $stateCodes[$countryIso3][$name];
+		return $stateCodes[$countryIso3][$name] ?? null;
 	}
 
 	public function dutchAddressLookup(): void

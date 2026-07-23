@@ -144,7 +144,7 @@ class Proxy
 			default: return null;
 		}
 
-		$stateCodes = require_once('../../state-codes.php');
+		$stateCodes = require Main::$pluginDirPath . 'src/state-codes.php';
 		return $stateCodes[$countryIso3][$name] ?? null;
 	}
 

@@ -201,7 +201,7 @@ const AddressLookup = forwardRef(
 		{
 			const mailLines = [
 				`${address.street} ${address.houseNumber} ${address.houseNumberAddition ?? ''}`.trim(),
-				`${address.postcode} ${address.city}`,
+				`${address.postcode}  ${address.city}`,
 			];
 
 			setAddress(address, mailLines);

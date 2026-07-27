@@ -913,7 +913,7 @@
 
 	const getMailLinesNl = function (address)
 	{
-		return [address.streetLine, `${address.postcode} ${address.city}`];
+		return [address.streetLine, `${address.postcode}  ${address.city}`];
 	};
 
 	const addFormattedAddressOutput = function (container)

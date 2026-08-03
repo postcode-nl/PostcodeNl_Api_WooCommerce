@@ -179,6 +179,10 @@ class Proxy
 				$status = 'houseNumberAdditionIncorrect';
 				$address['unknownHouseNumberAddition'] = $houseNumberAddition;
 			}
+
+			$address['postcode'] = wc_format_postcode($address['postcode'], 'NL');
+			$address['building'] = trim(sprintf('%s %s', $address['houseNumber'], $address['houseNumberAddition']));
+			$address['streetLine'] = trim(sprintf('%s %s %s', $address['street'], $address['houseNumber'], $address['houseNumberAddition']));
 		}
 		catch (NotFoundException $e)
 		{
@@ -189,10 +193,6 @@ class Proxy
 			$status = null;
 			$this->_handleException($e);
 		}
-
-		$address['postcode'] = wc_format_postcode($address['postcode'], 'NL');
-		$address['building'] = trim(sprintf('%s %s', $address['houseNumber'], $address['houseNumberAddition']));
-		$address['streetLine'] = trim(sprintf('%s %s %s', $address['street'], $address['houseNumber'], $address['houseNumberAddition']));
 
 		$this->_outputJsonResponse([
 			'status' => $status,

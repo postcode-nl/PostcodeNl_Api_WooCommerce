@@ -329,6 +329,12 @@
 
 		const isHouseNumberValid = () => houseNumberRegex.test(houseNumberField.val());
 
+		const setHouseNumberAddition = function (value)
+		{
+			currentAddress.houseNumberAddition = value;
+			currentAddress.streetLine = `${currentAddress.street} ${currentAddress.houseNumber} ${currentAddress.houseNumberAddition ?? ''}`.trim();
+		};
+
 		postcodeField.on('input', () => {
 			window.clearTimeout(lookupTimeout);
 			clearFieldValidity(postcodeField);
@@ -404,7 +410,7 @@
 			{
 				if (this.children.length > 1)
 				{
-					currentAddress.houseNumberAddition = null;
+					setHouseNumberAddition(null);
 					postcodeField.trigger('address-result', {address: currentAddress, status: 'houseNumberAdditionIncorrect'});
 					toggleAddressFields(addressFields, false);
 					resetAddressFields(addressFields);
@@ -418,7 +424,7 @@
 			}
 
 			toggleAddressFields(addressFields, true);
-			currentAddress.houseNumberAddition = this.value;
+			setHouseNumberAddition(this.value);
 			postcodeField.trigger('address-result', {address: currentAddress, status: 'valid'});
 			clearFieldValidity(houseNumberSelect);
 		});

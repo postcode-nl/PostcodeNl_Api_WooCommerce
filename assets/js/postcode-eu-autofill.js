@@ -1,4 +1,4 @@
-/* global PostcodeEuSettings, PostcodeNlAddressFieldMapping, PostcodeNlStateToValueMapping */
+/* global PostcodeEuSettings, PostcodeNlAddressFieldMapping */
 (function () {
 	'use strict';
 
@@ -13,7 +13,7 @@
 		initializedElements = new Set(),
 		addressDetailsCache = new Map(),
 		storedAddresses = {},
-		checkoutElements = {},
+		addressForms = {},
 		loadingClassName = 'postcode-eu-address-validation-loading';
 
 	const initialize = function ()
@@ -42,8 +42,9 @@
 
 			initializedElements.add(this);
 
-			const addressFields = getAddressFields(addressType);
-			checkoutElements[addressType] = { container, addressFields };
+			addressForms[addressType] = { container, form: this.closest('form') };
+
+			const addressFields = addressForms[addressType].addressFields = getAddressFields(addressType);
 
 			if (settings.displayMode === 'default')
 			{
@@ -91,11 +92,13 @@
 
 	const getAddressFields = function (addressType)
 	{
-		const fields = {};
+		const fields = {},
+			{container, form} = addressForms[addressType];
 
 		for (const [key, addressPart] of Object.entries(settings.addressFieldMapping))
 		{
-			const field = document.forms.checkout[`${addressType}_${key}`];
+			const name = `${addressType}_${key}`,
+				field = form ? form.elements[name] : container[0].querySelector(`[name="${name}"]`);
 			if (field && addressPart !== null && field.type !== 'hidden')
 			{
 				fields[key] = $(field);
@@ -107,7 +110,7 @@
 
 	const getAddressFieldValues = function (addressType)
 	{
-		const fields = checkoutElements[addressType]?.addressFields ?? {};
+		const fields = addressForms[addressType]?.addressFields ?? {};
 		return Object.fromEntries(Object.entries(fields).map(([k, el]) => [k, el.val()]));
 	};
 
@@ -162,7 +165,7 @@
 				province: apiAddress.province,
 			};
 
-		for (const [key, field] of Object.entries(checkoutElements[addressType].addressFields))
+		for (const [key, field] of Object.entries(addressForms[addressType].addressFields))
 		{
 			mappedValues[key] = String(values[settings.addressFieldMapping[key]] ?? '');
 			field[0].value = mappedValues[key];
@@ -209,9 +212,9 @@
 		const values = {};
 		for (const [key, prop] of Object.entries(settings.addressFieldMapping))
 		{
-			if (prop && key in checkoutElements[addressType].addressFields)
+			if (prop && key in addressForms[addressType].addressFields)
 			{
-				values[prop] = checkoutElements[addressType].addressFields[key].val();
+				values[prop] = addressForms[addressType].addressFields[key].val();
 			}
 		}
 
@@ -284,11 +287,11 @@
 
 	const destruct = function ()
 	{
-		for (const addressType in checkoutElements)
+		for (const addressType in addressForms)
 		{
-			checkoutElements[addressType].container.find('.country_to_state').off('change.postcode-eu');
-			checkoutElements[addressType].container.find('.form-row.postcode-eu-autofill').remove();
-			toggleAddressFields(checkoutElements[addressType].addressFields, true, true);
+			addressForms[addressType].container.find('.country_to_state').off('change.postcode-eu');
+			addressForms[addressType].container.find('.form-row.postcode-eu-autofill').remove();
+			toggleAddressFields(addressForms[addressType].addressFields, true, true);
 		}
 	};
 
@@ -307,7 +310,7 @@
 			postcodeField = container.find('.postcode-eu-autofill-nl-postcode input'),
 			houseNumberField = container.find('.postcode-eu-autofill-nl-house-number input'),
 			houseNumberSelect = container.find('.postcode-eu-autofill-nl-house-number-select select'),
-			addressFields = checkoutElements[addressType].addressFields = getAddressFields(addressType),
+			addressFields = addressForms[addressType].addressFields = getAddressFields(addressType),
 			storedAddress = storedAddresses[addressType];
 
 		let lookupTimeout,
@@ -673,7 +676,7 @@
 			storedAddress = storedAddresses[addressType];
 
 		let autocompleteInstance = null,
-			addressFields = checkoutElements[addressType].addressFields = getAddressFields(addressType),
+			addressFields = addressForms[addressType].addressFields = getAddressFields(addressType),
 			matches = [];
 
 		const isSupportedCountryIntl = function (countryIso2)
@@ -974,7 +977,7 @@
 			link = $('<a>', {text: settings.autofillIntlBypassLinkText});
 
 		link.on('click', function () {
-			toggleAddressFields(checkoutElements[addressType].addressFields, true, true);
+			toggleAddressFields(addressForms[addressType].addressFields, true, true);
 			formRow.hide();
 			return false;
 		});
@@ -983,24 +986,33 @@
 		formRow.append(wrapper);
 	};
 
+	const getShipToDifferentAddressField = function ()
+	{
+		const {form} = addressForms.billing ?? addressForms.shipping ?? {};
+
+		return form?.elements.ship_to_different_address;
+	};
+
 	const hasUnusedShippingForm = function ()
 	{
-		if (typeof window.checkout.ship_to_different_address === 'undefined')
+		const field = getShipToDifferentAddressField();
+		if (typeof field === 'undefined')
 		{
 			return false; // No separate shipping form exists.
 		}
 
-		return !window.checkout.ship_to_different_address.checked;
+		return !field.checked;
 	};
 
 	const isBillingAsShipping = function ()
 	{
-		if (typeof window.checkout.ship_to_different_address === 'undefined')
+		const field = getShipToDifferentAddressField();
+		if (typeof field === 'undefined')
 		{
 			return true; // Forced shipping to billing address. No separate shipping form.
 		}
 
-		return !window.checkout.ship_to_different_address.checked;
+		return !field.checked;
 	};
 
 	class StoredAddress {

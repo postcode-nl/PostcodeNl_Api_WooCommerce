@@ -1,6 +1,6 @@
 import { __ } from '@wordpress/i18n';
 import { useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from '@wordpress/element';
-import { useDispatch } from '@wordpress/data';
+import { useDispatch, useSelect } from '@wordpress/data';
 import { ValidatedTextInput, Spinner } from '@woocommerce/blocks-components';
 import { VALIDATION_STORE_KEY } from '@woocommerce/block-data';
 import { settings } from '..';
@@ -47,24 +47,53 @@ const AddressLookup = forwardRef(
 			address: null
 		}),
 		lookupTimeoutRef = useRef(),
-		{setValidationErrors, clearValidationError} = useDispatch(VALIDATION_STORE_KEY),
+		{setValidationErrors, clearValidationError, hideValidationError} = useDispatch(VALIDATION_STORE_KEY),
 		storedAddress = useStoredAddress(addressType),
 		initStoredAddressRef = useRef(!storedAddress.isExpired() && storedAddress.isEqual(addressRef.current)),
-		postcodeInputRef = useRef(null);
+		postcodeInputRef = useRef(null),
+		houseNumberInputRef = useRef(null),
+		postcodeErrorMessage = __('Please enter a valid postcode', 'postcode-eu-address-validation'),
+		houseNumberErrorMessage = __('Please enter a valid house number', 'postcode-eu-address-validation'),
+		isStoreAddressValid = useSelect((select) => validateStoreAddress(addressType, select), [addressType]);
 
 	const isOptional = useCallback(() => validateStoreAddress(addressType) , [addressType]);
 
+	// The validation store only keeps an error if the input element itself reports a validation message.
 	const validatePostcode = useCallback((inputElement) => {
-		const match = POSTCODE_REGEX.exec(inputElement.value);
+		const match = POSTCODE_REGEX.exec(inputElement.value),
+			isValid = isOptional() || match !== null;
 		setParsedPostcodeValue(match === null ? null : match[1] + match[2]);
-		return isOptional() || match !== null;
-	}, [isOptional]);
+		inputElement.setCustomValidity(isValid ? '' : postcodeErrorMessage);
+		return isValid;
+	}, [isOptional, postcodeErrorMessage]);
 
 	const validateHouseNumber = useCallback((inputElement) => {
-		const match = HOUSE_NUMBER_REGEX.exec(inputElement.value);
+		const match = HOUSE_NUMBER_REGEX.exec(inputElement.value),
+			isValid = isOptional() || match !== null;
 		setParsedHouseNumberValue(match === null ? null : `${match[1]} ${match[2]?.trim() ?? ''}`.trim());
-		return isOptional() || match !== null;
-	}, [isOptional]);
+		inputElement.setCustomValidity(isValid ? '' : houseNumberErrorMessage);
+		return isValid;
+	}, [isOptional, houseNumberErrorMessage]);
+
+	// Both inputs are only required while the store address is invalid, so revalidate when that changes.
+	// Otherwise checkout submit would only show errors on the hidden address fields.
+	useEffect(() => {
+		const inputs = [[postcodeInputId, postcodeInputRef], [houseNumberInputId, houseNumberInputRef]];
+		for (const [inputId, inputRef] of inputs)
+		{
+			inputRef.current?.revalidate?.();
+
+			if (document.activeElement?.id === inputId)
+			{
+				hideValidationError(inputId); // No errors while typing, checkout submit will show them.
+			}
+		}
+	}, [
+		isStoreAddressValid,
+		postcodeInputId,
+		houseNumberInputId,
+		hideValidationError,
+	]);
 
 	const checkAddressStatus = useCallback(({status, address}) => {
 		clearValidationError(lookupErrorId);
@@ -260,16 +289,17 @@ const AddressLookup = forwardRef(
 				value={postcodeValue}
 				onChange={setPostcodeValue}
 				customValidation={validatePostcode}
-				errorMessage={__('Please enter a valid postcode', 'postcode-eu-address-validation')}
+				errorMessage={postcodeErrorMessage}
 			/>
 
 			<ValidatedTextInput
 				id={houseNumberInputId}
+				ref={houseNumberInputRef}
 				label={__('House number and addition', 'postcode-eu-address-validation')}
 				value={houseNumberValue}
 				onChange={setHouseNumberValue}
 				customValidation={validateHouseNumber}
-				errorMessage={__('Please enter a valid house number', 'postcode-eu-address-validation')}
+				errorMessage={houseNumberErrorMessage}
 			/>
 
 			{houseNumberOptions.length > 0 && (

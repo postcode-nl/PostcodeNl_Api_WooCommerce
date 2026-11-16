@@ -4,10 +4,10 @@ import { getSetting } from '@woocommerce/settings';
 import { settings } from '.';
 import { validate as validateAddress } from './intl/api';
 
-export function validateStoreAddress(addressType)
+export function validateStoreAddress(addressType, select = selectStore)
 {
 	return ['address_1', 'city', 'postcode'].every((field) => {
-		const error = selectStore(VALIDATION_STORE_KEY).getValidationError(`${addressType}_${field}`);
+		const error = select(VALIDATION_STORE_KEY).getValidationError(`${addressType}_${field}`);
 		return typeof error === 'undefined';
 	});
 }
